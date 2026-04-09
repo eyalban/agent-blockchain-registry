@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import { ProtocolStats } from '@/components/web3/protocol-stats'
+
 export default function HomePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -57,12 +59,7 @@ export default function HomePage() {
 
       {/* Stats */}
       <section className="relative border-t border-(--color-border) py-16">
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-          <StatBox label="Registered Agents" value="0" />
-          <StatBox label="Total Feedback" value="0" />
-          <StatBox label="Unique Owners" value="0" />
-          <StatBox label="Validations" value="0" />
-        </div>
+        <ProtocolStats />
       </section>
 
       {/* Protocol banner */}
@@ -187,22 +184,6 @@ export default function HomePage() {
 }
 
 /* ===== Sub-components ===== */
-
-interface StatBoxProps {
-  readonly label: string
-  readonly value: string
-}
-
-function StatBox({ label, value }: StatBoxProps) {
-  return (
-    <div className="rounded-xl border border-(--color-border) bg-(--color-surface)/40 p-5 text-center backdrop-blur-sm transition-colors hover:border-(--color-border-bright)">
-      <p className="font-mono text-3xl font-bold text-(--color-accent-cyan) text-glow-cyan">
-        {value}
-      </p>
-      <p className="mt-1 text-sm text-(--color-text-muted)">{label}</p>
-    </div>
-  )
-}
 
 interface FeatureCardProps {
   readonly icon: React.ReactNode

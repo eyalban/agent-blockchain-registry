@@ -6,6 +6,7 @@ import { formatEther } from 'viem'
 
 import { useRegisterAgent } from '@/hooks/use-register-agent'
 import { useRegistrationFee } from '@/hooks/use-registration-fee'
+import { useIpfsUpload } from '@/hooks/use-ipfs-upload'
 import { TxStatus } from '@/components/web3/tx-status'
 import { ERC8004_REGISTRATION_TYPE } from '@agent-registry/shared'
 
@@ -30,6 +31,7 @@ export function RegistrationWizard() {
   const {
     registerAgent, hash, isPending, isConfirming, isSuccess, error,
   } = useRegisterAgent()
+  const { upload: uploadToIPFS, isUploading } = useIpfsUpload()
 
   const [currentStep, setCurrentStep] = useState<Step>('info')
   const [name, setName] = useState('')
@@ -67,24 +69,30 @@ export function RegistrationWizard() {
     }
   })()
 
-  function handleSubmit(): void {
+  async function handleSubmit(): Promise<void> {
+    setCurrentStep('submit')
+
     // Build the ERC-8004 agent card JSON
     const agentCard = {
       type: ERC8004_REGISTRATION_TYPE,
       name: name.trim(),
       description: description.trim(),
-      image: imageUrl.trim() || 'https://placehold.co/400x400/1e3a5f/93c5fd?text=' + encodeURIComponent(name.slice(0, 2).toUpperCase()),
+      image: imageUrl.trim() || 'https://placehold.co/400x400/0f1520/00e5ff?text=' + encodeURIComponent(name.slice(0, 2).toUpperCase()),
       ...(serviceUrl.trim() ? {
         services: [{ type: serviceType, url: serviceUrl.trim() }],
       } : {}),
       active: true,
     }
 
-    // For now, use a data URI as the agent URI (in production, upload to IPFS first)
-    const agentURI = `data:application/json;base64,${btoa(JSON.stringify(agentCard))}`
-
-    registerAgent(agentURI, [], tags, fee ?? BigInt(0))
-    setCurrentStep('submit')
+    try {
+      // Upload to IPFS (or fallback to data URI)
+      const agentURI = await uploadToIPFS(agentCard)
+      registerAgent(agentURI, [], tags, fee ?? BigInt(0))
+    } catch {
+      // Fallback to data URI if upload fails
+      const encoded = btoa(JSON.stringify(agentCard))
+      registerAgent(`data:application/json;base64,${encoded}`, [], tags, fee ?? BigInt(0))
+    }
   }
 
   function toggleTag(tag: string): void {
@@ -317,6 +325,16 @@ export function RegistrationWizard() {
         {/* Step 5: Submit */}
         {currentStep === 'submit' && (
           <div className="space-y-4">
+            {isUploading && (
+              <div className="rounded-xl border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/5 p-4 glow-cyan-sm">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+                  <p className="text-sm font-medium text-(--color-accent-cyan)">
+                    Uploading agent card to IPFS...
+                  </p>
+                </div>
+              </div>
+            )}
             <TxStatus
               hash={hash}
               isPending={isPending}

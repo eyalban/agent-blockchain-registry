@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/register', label: 'Register' },
   { href: '/explorer', label: 'Explorer' },
   { href: '/reputation', label: 'Reputation' },
+  { href: '/validation', label: 'Validation' },
 ] as const
 
 export function Header() {

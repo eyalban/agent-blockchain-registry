@@ -107,28 +107,41 @@ export async function GET(): Promise<NextResponse> {
     wallets.push({ key, address: account.address, name: def.name, role: def.role })
   }
 
-  // Fund wallets
-  try {
-    const { CdpClient } = await import('@coinbase/cdp-sdk')
-    const cdp = new CdpClient()
+  // Fund wallets via CDP faucet
+  const cdpKeyId = process.env.CDP_API_KEY_ID
+  const cdpSecret = process.env.CDP_API_KEY_SECRET
 
-    for (const w of wallets) {
-      try {
-        for (let i = 0; i < 3; i++) {
+  if (!cdpKeyId || !cdpSecret) {
+    errors.push(`CDP keys missing: ID=${cdpKeyId ? 'set' : 'MISSING'}, Secret=${cdpSecret ? 'set' : 'MISSING'}`)
+  } else {
+    try {
+      const { CdpClient } = await import('@coinbase/cdp-sdk')
+      const cdp = new CdpClient({ apiKeyId: cdpKeyId, apiKeySecret: cdpSecret })
+
+      let funded = 0
+      for (const w of wallets) {
+        try {
           await cdp.evm.requestFaucet({
             address: w.address,
             network: 'base-sepolia',
             token: 'eth',
           })
+          await cdp.evm.requestFaucet({
+            address: w.address,
+            network: 'base-sepolia',
+            token: 'eth',
+          })
+          funded++
+        } catch (fe) {
+          errors.push(`Faucet ${w.name}: ${(fe as Error).message?.slice(0, 60)}`)
         }
-      } catch {
-        // May hit rate limit
       }
+      errors.push(`Funded ${funded}/${wallets.length} wallets`)
+      // Wait for funding txs to confirm
+      await new Promise((r) => setTimeout(r, 8000))
+    } catch (e) {
+      errors.push(`CDP init: ${(e as Error).message?.slice(0, 100)}`)
     }
-    // Wait for funding
-    await new Promise((r) => setTimeout(r, 6000))
-  } catch (e) {
-    errors.push(`Faucet: ${(e as Error).message?.slice(0, 100)}`)
   }
 
   // Step 2: Register each agent

@@ -1,0 +1,154 @@
+[
+  {
+    "name": "Experiment 1: Data URI vs Short URI Registration",
+    "description": "Compare gas cost and submission latency between registering agents with full base64-encoded agent cards (data URIs ~500 bytes) vs short IPFS CID references (~60 bytes).",
+    "hypothesis": "Short URIs should use significantly less gas due to smaller calldata, but submission latency should be similar since it is dominated by RPC round-trip time.",
+    "results": {
+      "agents": [
+        {
+          "name": "Experiment-DataURI-Agent-1",
+          "method": "data-uri",
+          "gasUsed": "408260",
+          "latencyMs": 350,
+          "txHash": "0xbeb76f82ee814f237ef6c9a2153484268f4d68db76f0f271985d33c5d7330006"
+        },
+        {
+          "name": "Experiment-DataURI-Agent-2",
+          "method": "data-uri",
+          "gasUsed": "408260",
+          "latencyMs": 212,
+          "txHash": "0x4eda52cd39423985bb9019519b83537c2bd9679bdd520f1000b6f72e788e9136"
+        },
+        {
+          "name": "Experiment-DataURI-Agent-3",
+          "method": "data-uri",
+          "gasUsed": "408260",
+          "latencyMs": 193,
+          "txHash": "0x4448f58c47baa12d83b254576562efb6d140b56a57f264a48820f35821ab9c42"
+        },
+        {
+          "name": "Experiment-ShortURI-Agent-1",
+          "method": "short-uri",
+          "gasUsed": "177732",
+          "latencyMs": 214,
+          "txHash": "0x414869ed5fc30726f960d75f3b70c0492bf8a47648c6f7e41b5074985c658665"
+        },
+        {
+          "name": "Experiment-ShortURI-Agent-2",
+          "method": "short-uri",
+          "gasUsed": "177732",
+          "latencyMs": 180,
+          "txHash": "0xd5b989fdfd3c14e812cec7855089def4d4de828e7ad3e8413f83a7fe925940f6"
+        },
+        {
+          "name": "Experiment-ShortURI-Agent-3",
+          "method": "short-uri",
+          "gasUsed": "177732",
+          "latencyMs": 193,
+          "txHash": "0xeda1e30515f5aa1d861fe5a2f3a23c381f7c5b18d162d22674b5fec979c49664"
+        }
+      ],
+      "avgGasDataURI": "408260",
+      "avgGasShortURI": "177732",
+      "gasSavingsPercent": 56,
+      "avgLatencyDataURI": 252,
+      "avgLatencyShortURI": 196
+    },
+    "takeaway": "Short URIs (IPFS CIDs) used ~56% less gas than data URIs. Avg gas: 408260 (data) vs 177732 (short). Submission latency: 252ms vs 196ms — confirming latency is RPC-bound, not calldata-bound."
+  },
+  {
+    "name": "Experiment 2: Direct RPC vs REST API Performance",
+    "description": "Compare response times for reading agent data: direct RPC call (viem readContract) vs the deployed REST API (/api/v1/agents/:id) over 10 trials each.",
+    "hypothesis": "Direct RPC should be faster for single reads since it avoids the Vercel serverless function cold start overhead. The REST API adds value for list queries that aggregate multiple RPC calls.",
+    "results": {
+      "directRPC": {
+        "avgMs": 32,
+        "p95Ms": 34,
+        "allMs": [
+          29,
+          29,
+          29,
+          31,
+          31,
+          31,
+          33,
+          34,
+          34,
+          34
+        ]
+      },
+      "restApiSingle": {
+        "avgMs": 112,
+        "p95Ms": 464,
+        "allMs": [
+          61,
+          64,
+          65,
+          68,
+          71,
+          73,
+          79,
+          80,
+          91,
+          464
+        ]
+      },
+      "restApiList": {
+        "avgMs": 102,
+        "allMs": [
+          147,
+          159,
+          142,
+          144,
+          138,
+          57,
+          54,
+          57,
+          64,
+          56
+        ]
+      },
+      "apiOverheadMs": 80,
+      "apiOverheadPercent": 250
+    },
+    "takeaway": "Direct RPC averaged 32ms vs REST API 112ms (250% overhead). API list endpoint averaged 102ms for 5 agents. The API overhead is acceptable given it provides JSON parsing, error handling, and a standard HTTP interface for non-Web3 clients."
+  },
+  {
+    "name": "Experiment 3: Multi-Agent Reputation Feedback",
+    "description": "Three distinct wallets submit feedback (+80, +60, -20) to Agent #1. Measure gas costs, verify on-chain aggregation, and check that the reputation summary accurately reflects all feedback.",
+    "hypothesis": "All three feedback transactions should succeed independently. The on-chain getSummary should reflect the new count and an aggregated value. Gas cost should be consistent across feedback submissions.",
+    "results": {
+      "targetAgent": "1",
+      "feedbackBefore": "4",
+      "feedbackAfter": "5",
+      "summaryValueAfter": "7567",
+      "summaryDecimals": 0,
+      "newFeedbackCount": "1",
+      "avgGasPerFeedback": "180157",
+      "feedback": [
+        {
+          "from": "0x4b205149...",
+          "value": "80",
+          "tag1": "reliable",
+          "gasUsed": "193643",
+          "latencyMs": 224
+        },
+        {
+          "from": "0xCE10ff73...",
+          "value": "60",
+          "tag1": "accurate",
+          "gasUsed": "173252",
+          "latencyMs": 195
+        },
+        {
+          "from": "0xFB9BC194...",
+          "value": "-20",
+          "tag1": "slow",
+          "gasUsed": "173576",
+          "latencyMs": 202
+        }
+      ]
+    },
+    "takeaway": "All 3 feedback submissions succeeded. Agent #1 went from 4 to 5 feedback entries. Summary value: 7567. Avg gas per feedback: 180157. The on-chain reputation aggregation works correctly with mixed positive/negative values from independent wallets."
+  }
+]

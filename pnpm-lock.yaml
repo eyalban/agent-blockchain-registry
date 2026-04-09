@@ -8,15 +8,24 @@ importers:
 
   .:
     devDependencies:
+      '@coinbase/cdp-sdk':
+        specifier: ^1.46.1
+        version: 1.46.1(typescript@5.9.3)
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.17
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
       next:
         specifier: 16.2.3
         version: 16.2.3(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       prettier:
         specifier: ^3.5.0
         version: 3.8.1
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       turbo:
         specifier: ^2.5.0
         version: 2.9.5

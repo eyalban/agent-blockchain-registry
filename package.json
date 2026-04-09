@@ -15,9 +15,12 @@
     "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {
+    "@coinbase/cdp-sdk": "^1.46.1",
     "@types/node": "^22.0.0",
+    "bs58": "^6.0.0",
     "next": "16.2.3",
     "prettier": "^3.5.0",
+    "tsx": "^4.21.0",
     "turbo": "^2.5.0",
     "typescript": "^5.7.0"
   },

@@ -1,8 +1,21 @@
 'use client'
 
+import dynamic from 'next/dynamic'
+
 import { useRecentEvents } from '@/hooks/use-recent-events'
 import { EventTable } from '@/components/explorer/event-table'
-import { ActivityChart } from '@/components/explorer/activity-chart'
+
+const ActivityChart = dynamic(
+  () => import('@/components/explorer/activity-chart').then((m) => m.ActivityChart),
+  {
+    loading: () => (
+      <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-(--color-border) bg-(--color-bg-secondary)">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+      </div>
+    ),
+    ssr: false,
+  },
+)
 
 export function ExplorerView() {
   const { events, isLoading } = useRecentEvents(50000n)

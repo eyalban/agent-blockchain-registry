@@ -43,3 +43,4 @@ packages/subgraph/build/
 # ide
 .vscode/
 .idea/
+.github/workflows/ci.yml

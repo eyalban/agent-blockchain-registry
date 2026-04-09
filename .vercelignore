@@ -1,0 +1,15 @@
+node_modules
+.next
+dist
+out
+coverage
+.turbo
+packages/contracts/cache
+packages/contracts/out
+packages/contracts/broadcast
+packages/contracts/lib
+packages/subgraph/generated
+packages/subgraph/build
+.git
+.claude
+docs

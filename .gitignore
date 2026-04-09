@@ -1,0 +1,45 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing
+coverage
+
+# next.js
+.next/
+out/
+
+# production
+dist/
+build/
+
+# turbo
+.turbo
+
+# misc
+.DS_Store
+*.pem
+*.log
+
+# env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# foundry
+packages/contracts/cache/
+packages/contracts/out/
+
+# subgraph
+packages/subgraph/generated/
+packages/subgraph/build/
+
+# vercel
+.vercel
+
+# ide
+.vscode/
+.idea/

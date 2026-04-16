@@ -10,17 +10,20 @@ import { truncateAddress } from '@/lib/utils'
 import { ADDRESS_EXPLORER_URL } from '@agent-registry/shared'
 import { FeedbackForm } from '@/components/reputation/feedback-form'
 import { TrustScore } from '@/components/reputation/trust-score'
+import { IncomeStatementCard } from '@/components/financials/income-statement-card'
+import { useIncomeStatement } from '@/hooks/use-income-statement'
 
 interface AgentDetailViewProps {
   readonly agentId: string
 }
 
-type Tab = 'overview' | 'reputation' | 'transactions' | 'validations'
+type Tab = 'overview' | 'reputation' | 'transactions' | 'financials' | 'validations'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'reputation', label: 'Reputation' },
   { id: 'transactions', label: 'Transactions' },
+  { id: 'financials', label: 'Financials' },
   { id: 'validations', label: 'Validations' },
 ]
 
@@ -31,6 +34,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
   const { tokenURI, owner, isLoading } = useAgentDetail(agentIdBigInt)
   const { tags } = useAgentTags(agentIdBigInt)
   const { count, summaryValue } = useReputationSummary(agentIdBigInt)
+  const { data: financialData, isLoading: financialsLoading } = useIncomeStatement(agentId)
 
   if (isLoading) {
     return (
@@ -204,6 +208,34 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                 View all transactions on BaseScan &rarr;
               </a>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'financials' && (
+          <div className="space-y-6">
+            <IncomeStatementCard
+              data={financialData?.incomeStatement ?? null}
+              isLoading={financialsLoading}
+            />
+            {financialData?.breakdown && Object.keys(financialData.breakdown).length > 0 && (
+              <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-6">
+                <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted)">
+                  Transaction Breakdown
+                </h3>
+                <div className="mt-3 space-y-2">
+                  {Object.entries(financialData.breakdown).map(([label, data]) => (
+                    <div key={label} className="flex items-center justify-between">
+                      <span className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-2 py-0.5 font-mono text-xs text-(--color-text-muted)">
+                        {label}
+                      </span>
+                      <span className="font-mono text-sm text-(--color-text-secondary)">
+                        {(data as { count: number; totalEth: number }).count} txs &middot; {(data as { count: number; totalEth: number }).totalEth.toFixed(6)} ETH
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

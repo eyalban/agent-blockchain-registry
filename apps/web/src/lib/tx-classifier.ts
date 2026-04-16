@@ -16,46 +16,27 @@ export type TransactionLabel =
   | 'unclassified'
 
 /**
- * Classify a transaction based on addresses and direction.
+ * Classify a transaction based on sender/receiver and known contract addresses.
+ * Direction is determined by whether the agent wallet is the sender (from) or receiver (to).
  */
 export function classifyTransaction(
   from: string,
   to: string,
   agentWallet: string,
-  inputData: string,
 ): { label: TransactionLabel; direction: 'incoming' | 'outgoing' } {
   const fromLower = from.toLowerCase()
   const toLower = to.toLowerCase()
   const walletLower = agentWallet.toLowerCase()
 
-  const isIncoming = toLower === walletLower
-  const direction = isIncoming ? 'incoming' as const : 'outgoing' as const
+  const isOutgoing = fromLower === walletLower
+  const direction = isOutgoing ? 'outgoing' as const : 'incoming' as const
 
-  // Outgoing to wrapper contract = registration fee
-  if (!isIncoming && toLower === WRAPPER) {
-    return { label: 'registration_fee', direction }
+  if (isOutgoing) {
+    if (toLower === WRAPPER || toLower === IDENTITY) return { label: 'registration_fee', direction }
+    if (toLower === REPUTATION) return { label: 'feedback_fee', direction }
+    return { label: 'sga_expense', direction }
   }
 
-  // Outgoing to identity registry = registration
-  if (!isIncoming && toLower === IDENTITY) {
-    return { label: 'registration_fee', direction }
-  }
-
-  // Outgoing to reputation registry = feedback fee
-  if (!isIncoming && toLower === REPUTATION) {
-    return { label: 'feedback_fee', direction }
-  }
-
-  // Incoming = revenue
-  if (isIncoming) {
-    return { label: 'revenue', direction }
-  }
-
-  // Check input data for known patterns (LLM API calls, etc.)
-  if (inputData && inputData.length > 10) {
-    return { label: 'cost_of_sales', direction }
-  }
-
-  // Default outgoing = SGA expense
-  return { label: 'sga_expense', direction }
+  // All incoming = revenue
+  return { label: 'revenue', direction }
 }

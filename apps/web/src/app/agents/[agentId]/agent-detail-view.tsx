@@ -33,7 +33,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
 
   const { tokenURI, owner, isLoading } = useAgentDetail(agentIdBigInt)
   const { tags } = useAgentTags(agentIdBigInt)
-  const { count, summaryValue } = useReputationSummary(agentIdBigInt)
+  const { count, summaryValue, summaryValueDecimals } = useReputationSummary(agentIdBigInt)
   const { data: financialData, isLoading: financialsLoading } = useIncomeStatement(agentId)
 
   if (isLoading) {
@@ -175,7 +175,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
             <TrustScore
               count={count}
               summaryValue={summaryValue}
-              summaryValueDecimals={undefined}
+              summaryValueDecimals={summaryValueDecimals}
             />
 
             {/* Give feedback */}

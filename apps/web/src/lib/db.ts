@@ -1,12 +1,17 @@
 import { neon } from '@neondatabase/serverless'
 
-const DATABASE_URL = process.env.DATABASE_URL ?? ''
+const DATABASE_URL = process.env.DATABASE_URL
+if (!DATABASE_URL) {
+  console.warn('DATABASE_URL not set — database features disabled')
+}
+const DB_AVAILABLE = Boolean(DATABASE_URL)
 
 /**
  * Neon serverless SQL client.
  * Usage: const rows = await sql`SELECT * FROM agent_wallets WHERE agent_id = ${id}`
  */
-export const sql = neon(DATABASE_URL)
+export const sql = neon(DATABASE_URL ?? '')
+export { DB_AVAILABLE }
 
 // ============================================================
 // Wallet Dictionary (bidirectional agent <-> wallet mapping)

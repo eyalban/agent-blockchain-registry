@@ -38,8 +38,8 @@ export async function POST(_req: Request, { params }: RouteParams): Promise<Next
 
   try {
     const currentBlock = await client.getBlockNumber()
-    // Scan last 3000 blocks (~1 hour on Base Sepolia)
-    const scanRange = 3000n
+    // Scan last 10000 blocks (~3 hours on Base Sepolia)
+    const scanRange = 10000n
     const fromBlock = currentBlock > scanRange ? currentBlock - scanRange : 0n
 
     for (let blockNum = currentBlock; blockNum >= fromBlock; blockNum--) {
@@ -68,7 +68,6 @@ export async function POST(_req: Request, { params }: RouteParams): Promise<Next
             tx.from,
             tx.to ?? '',
             agentWallet,
-            tx.input,
           )
 
           try {

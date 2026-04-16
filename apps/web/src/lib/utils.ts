@@ -25,14 +25,3 @@ export function formatTimestamp(timestamp: bigint): string {
 export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ')
 }
-
-/**
- * Resolve an IPFS URI to an HTTPS gateway URL.
- */
-export function resolveIpfsUri(uri: string): string {
-  if (uri.startsWith('ipfs://')) {
-    const cid = uri.replace('ipfs://', '')
-    return `https://gateway.pinata.cloud/ipfs/${cid}`
-  }
-  return uri
-}

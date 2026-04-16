@@ -1,0 +1,182 @@
+[
+  {
+    "id": "agent-01",
+    "name": "DeFi Agent 1",
+    "role": "defi-analyzer",
+    "address": "0xe94Dc983627b3Fa11326CFeC8468A6220283d68d"
+  },
+  {
+    "id": "agent-02",
+    "name": "DeFi Agent 2",
+    "role": "defi-analyzer",
+    "address": "0xFDfFb9549293C7e9a95f3501eE9A40295C0a8296"
+  },
+  {
+    "id": "agent-03",
+    "name": "DeFi Agent 3",
+    "role": "defi-analyzer",
+    "address": "0xC606066375bF1aD217444314A2b7C6178760df9f"
+  },
+  {
+    "id": "agent-04",
+    "name": "DeFi Agent 4",
+    "role": "defi-analyzer",
+    "address": "0x3A611cd6A82ffc0CBE07C1da2e4a649F4316eDD2"
+  },
+  {
+    "id": "agent-05",
+    "name": "DeFi Agent 5",
+    "role": "defi-analyzer",
+    "address": "0xa13cBcF30d99EF55907897DadF2Da25A8A74eC63"
+  },
+  {
+    "id": "agent-06",
+    "name": "DeFi Agent 6",
+    "role": "defi-analyzer",
+    "address": "0x0f6a894f8d7861D6BF8e3A76356806BdC17fA063"
+  },
+  {
+    "id": "agent-07",
+    "name": "Audit Agent 1",
+    "role": "security-auditor",
+    "address": "0xDa77fd0aFbB66074BF509f00930C92E322AcB7e7"
+  },
+  {
+    "id": "agent-08",
+    "name": "Audit Agent 2",
+    "role": "security-auditor",
+    "address": "0x9d9D57ec9881AC01613C03291D5B9457c4FB533C"
+  },
+  {
+    "id": "agent-09",
+    "name": "Audit Agent 3",
+    "role": "security-auditor",
+    "address": "0x647191B26aB91608B540B30D0936505ED4797C2b"
+  },
+  {
+    "id": "agent-10",
+    "name": "Audit Agent 4",
+    "role": "security-auditor",
+    "address": "0xC2Ce1b04f9652dD6ecb8e543bEA2b6357C8237a6"
+  },
+  {
+    "id": "agent-11",
+    "name": "Audit Agent 5",
+    "role": "security-auditor",
+    "address": "0xc5fE0174e188D3653003338cB6Cfe6cb756bD307"
+  },
+  {
+    "id": "agent-12",
+    "name": "Audit Agent 6",
+    "role": "security-auditor",
+    "address": "0x7dA92b0fA7505845Bfdd3AF766B531Fdf07F3631"
+  },
+  {
+    "id": "agent-13",
+    "name": "Data Agent 1",
+    "role": "data-collector",
+    "address": "0xD5BC84c5C6ddB88f372Ebac0cf29Be391D941B48"
+  },
+  {
+    "id": "agent-14",
+    "name": "Data Agent 2",
+    "role": "data-collector",
+    "address": "0xff569D2F519302dcD3F9aD7455168cA5C70B9c8e"
+  },
+  {
+    "id": "agent-15",
+    "name": "Data Agent 3",
+    "role": "data-collector",
+    "address": "0xb408A6F2D9E30F995C04c82B680a8F2106D7eD1d"
+  },
+  {
+    "id": "agent-16",
+    "name": "Data Agent 4",
+    "role": "data-collector",
+    "address": "0xdF4119b89C36E5ecd4267FeD8fDC6129F7176A7E"
+  },
+  {
+    "id": "agent-17",
+    "name": "Data Agent 5",
+    "role": "data-collector",
+    "address": "0xb57048Ca34Ee6df357416a848977e1418213a360"
+  },
+  {
+    "id": "agent-18",
+    "name": "Data Agent 6",
+    "role": "data-collector",
+    "address": "0x8A3ebC2358bC7EAE1356412552b30b6Ccb671df2"
+  },
+  {
+    "id": "agent-19",
+    "name": "Trade Agent 1",
+    "role": "trading-bot",
+    "address": "0xDFaA73f43dFD8B585a6feeb4726c818844f61744"
+  },
+  {
+    "id": "agent-20",
+    "name": "Trade Agent 2",
+    "role": "trading-bot",
+    "address": "0x750Ba74e45E757D6B4A586bcBa2aBd5897bF42B3"
+  },
+  {
+    "id": "agent-21",
+    "name": "Trade Agent 3",
+    "role": "trading-bot",
+    "address": "0x6DbD99cC6e66a2527d3C754211bA74571eaCD472"
+  },
+  {
+    "id": "agent-22",
+    "name": "Trade Agent 4",
+    "role": "trading-bot",
+    "address": "0xF708Fcdb5b12c160E858D68eF125dda2F2f0cdb5"
+  },
+  {
+    "id": "agent-23",
+    "name": "Trade Agent 5",
+    "role": "trading-bot",
+    "address": "0x43f11dbe59414422657f78AA8c0d493aA49a632f"
+  },
+  {
+    "id": "agent-24",
+    "name": "Trade Agent 6",
+    "role": "trading-bot",
+    "address": "0x498b44bDE81F55678ae3eAA2518786dF781B411A"
+  },
+  {
+    "id": "agent-25",
+    "name": "Assist Agent 1",
+    "role": "general-assistant",
+    "address": "0x75bc3ea073155d5169A1e5F51f49d87421A359C0"
+  },
+  {
+    "id": "agent-26",
+    "name": "Assist Agent 2",
+    "role": "general-assistant",
+    "address": "0xBbA282a090E0ACAfd5f77357553f9252B683ca30"
+  },
+  {
+    "id": "agent-27",
+    "name": "Assist Agent 3",
+    "role": "general-assistant",
+    "address": "0x1cbc6563a17778A04e4Ab74bcBbFE1dB690d776B"
+  },
+  {
+    "id": "agent-28",
+    "name": "Assist Agent 4",
+    "role": "general-assistant",
+    "address": "0xD1987E232B65e5F1C9585E8278e00D42a46352dB"
+  },
+  {
+    "id": "agent-29",
+    "name": "Assist Agent 5",
+    "role": "general-assistant",
+    "address": "0x1822216D4BF775922FFbe28512b074D000C639a3"
+  },
+  {
+    "id": "agent-30",
+    "name": "Assist Agent 6",
+    "role": "general-assistant",
+    "address": "0x75Ef37876a88F9d6074eAc8141a7938dfc46417B"
+  }
+]

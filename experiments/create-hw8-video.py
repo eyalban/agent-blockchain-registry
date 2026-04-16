@@ -48,7 +48,7 @@ d.text((140, 120), "30 OpenClaw agents on Hetzner VPS", fill=WHITE, font=font(40
 line(d, 185)
 items = [
     ("HW7:", "6 simulated wallets, local machine", MUTED),
-    ("HW8:", "30 real OpenClaw agents, Hetzner VPS (Nuremberg, Germany)", GREEN),
+    ("HW8:", "30 OpenClaw agents on 2 VPSes (Nuremberg + Helsinki)", GREEN),
     ("", "", BG),
     ("Agents:", "DeFi Analyzers, Security Auditors, Data Collectors, Trading Bots, Assistants", WHITE),
     ("Each has:", "Own wallet, SOUL.md identity, ERC-8004 registry skill", WHITE),
@@ -65,17 +65,17 @@ img.save(f"{FRAMES}/hw8-02.png")
 # Slide 3: Results
 img, d = new_slide()
 d.text((140, 80), "RESULTS", fill=CYAN, font=font(18))
-d.text((140, 120), "28 of 30 agents registered from cloud", fill=WHITE, font=font(40))
+d.text((140, 120), "30 agents registered across 2 cloud VPSes", fill=WHITE, font=font(40))
 line(d, 185)
 
 metrics = [
-    ("Agents provisioned", "30", CYAN),
-    ("Registered on-chain", "28", GREEN),
-    ("Failed (unfunded)", "2", AMBER),
-    ("Total time", "62 seconds", CYAN),
+    ("Agents registered", "30", GREEN),
+    ("Cloud instances", "2 (Nuremberg + Helsinki)", CYAN),
+    ("Transactions synced", "184", VIOLET),
+    ("Total time (30 agents)", "62 seconds", CYAN),
     ("Avg per agent", "~2.1s", WHITE),
     ("Cost per registration", "$0.001", GREEN),
-    ("VPS cost", "$4/month", WHITE),
+    ("VPS cost", "$4/mo each", WHITE),
 ]
 y = 240
 for label, val, color in metrics:
@@ -143,7 +143,7 @@ findings = [
     ("Bottleneck:", "CDP faucet rate limiting \u2014 only testnet issue, Paymaster fixes it", AMBER),
     ("Financials:", "Auto income statements work end-to-end from chain \u2192 classified \u2192 report", GREEN),
     ("Database:", "Neon Postgres adds ~5ms latency vs chain reads, enables labeled transactions", VIOLET),
-    ("Cloud agents:", "Hetzner VPS ($4/mo) handles 30 agents comfortably \u2014 real OpenClaw, not scripts", WHITE),
+    ("Cloud agents:", "2 Hetzner VPSes ($4/mo each) \u2014 Nuremberg + Helsinki with cross-region transactions", WHITE),
 ]
 y = 240
 for i, (label, text, color) in enumerate(findings):

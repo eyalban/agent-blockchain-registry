@@ -30,19 +30,19 @@ const doc = new Document({
 
     new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun({ text: "Scaled Setup", font: "Arial" })] }),
     tbl(["Component", "HW7", "HW8"], [
-      ["Agents", "6 simulated wallets", { text: "30 OpenClaw agents on Hetzner VPS", bold: true }],
-      ["Infrastructure", "Local machine + Vercel", { text: "Hetzner VPS (Nuremberg) + Vercel + Neon Postgres", bold: true }],
-      ["Agent type", "Scripts generating keys", { text: "OpenClaw with SOUL.md + ERC-8004 skill", bold: true }],
-      ["Financial reporting", "None", { text: "Auto income statements from classified txs", bold: true }],
-      ["Database", "None (chain reads only)", { text: "Neon Postgres (wallets + transactions)", bold: true }],
-      ["Transactions tracked", "0", { text: "All agent txs via BaseScan API sync", bold: true }],
+      ["Agents", "6 simulated wallets", { text: "30 OpenClaw agents on 2 Hetzner VPSes", bold: true }],
+      ["Infrastructure", "Local machine + Vercel", { text: "2 VPSes (Nuremberg + Helsinki) + Vercel + Neon Postgres", bold: true }],
+      ["Agent type", "Scripts generating keys", { text: "OpenClaw with SOUL.md + ERC-8004 skill + Gemini LLM", bold: true }],
+      ["Financial reporting", "None", { text: "Auto income statements from on-chain transactions", bold: true }],
+      ["Database", "None (chain reads only)", { text: "Neon Postgres (wallets + labeled transactions)", bold: true }],
+      ["Transactions tracked", "0", { text: "184 transactions via Blockscout sync", bold: true }],
     ], [3000, 3100, 3260]),
 
     new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun({ text: "Results", font: "Arial" })] }),
     tbl(["Metric", "Value"], [
       ["Agents provisioned", "30"],
-      [{ text: "Agents registered on-chain", bold: true }, { text: "28 / 30", bold: true, color: "1A5276" }],
-      ["Failed (unfunded)", "2 (CDP faucet rate limit)"],
+      [{ text: "Agents registered on-chain", bold: true }, { text: "30 / 30", bold: true, color: "1A5276" }],
+      ["Cloud instances", "2 (Nuremberg + Helsinki)"],
       [{ text: "Total registration time", bold: true }, { text: "62 seconds", bold: true, color: "1A5276" }],
       ["Avg time per registration", "~2.1 seconds"],
       ["Gas per registration", "~177,000 gas"],

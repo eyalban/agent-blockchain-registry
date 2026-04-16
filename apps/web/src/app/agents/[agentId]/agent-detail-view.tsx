@@ -12,6 +12,7 @@ import { FeedbackForm } from '@/components/reputation/feedback-form'
 import { TrustScore } from '@/components/reputation/trust-score'
 import { IncomeStatementCard } from '@/components/financials/income-statement-card'
 import { useIncomeStatement } from '@/hooks/use-income-statement'
+import { useAgentTransactions } from '@/hooks/use-agent-transactions'
 
 interface AgentDetailViewProps {
   readonly agentId: string
@@ -35,6 +36,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
   const { tags } = useAgentTags(agentIdBigInt)
   const { count, summaryValue, summaryValueDecimals } = useReputationSummary(agentIdBigInt)
   const { data: financialData, isLoading: financialsLoading } = useIncomeStatement(agentId)
+  const { transactions, isLoading: txLoading, isSyncing, sync } = useAgentTransactions(agentId)
 
   if (isLoading) {
     return (
@@ -191,23 +193,80 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
         )}
 
         {activeTab === 'transactions' && (
-          <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-6">
-            <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-accent-violet-bright)">
-              On-Chain Activity
-            </h3>
-            <p className="mt-2 text-sm text-(--color-text-secondary)">
-              Registration and activity events for this agent on Base Sepolia.
-            </p>
-            <div className="mt-4">
-              <a
-                href={`https://sepolia.basescan.org/address/${owner ?? ''}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-(--color-accent-cyan)/20 bg-(--color-accent-cyan)/5 px-4 py-2 font-mono text-xs text-(--color-accent-cyan) transition-colors hover:bg-(--color-accent-cyan)/10"
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-accent-violet-bright)">
+                On-Chain Transactions
+              </h3>
+              <button
+                type="button"
+                onClick={sync}
+                disabled={isSyncing}
+                className="rounded-lg border border-(--color-accent-cyan)/20 bg-(--color-accent-cyan)/5 px-3 py-1.5 font-mono text-xs text-(--color-accent-cyan) transition-colors hover:bg-(--color-accent-cyan)/10 disabled:opacity-50"
               >
-                View all transactions on BaseScan &rarr;
-              </a>
+                {isSyncing ? 'Syncing...' : 'Sync from chain'}
+              </button>
             </div>
+
+            {txLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-8 text-center">
+                <p className="text-sm text-(--color-text-secondary)">
+                  No transactions found. Click &ldquo;Sync from chain&rdquo; to scan the blockchain.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-(--color-border) bg-(--color-surface)">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-(--color-border)">
+                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Direction</th>
+                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Label</th>
+                      <th className="px-4 py-3 text-right font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Amount</th>
+                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Counterparty</th>
+                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Tx</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((tx) => (
+                      <tr key={tx.tx_hash} className="border-b border-(--color-border)/40 transition-colors hover:bg-(--color-surface-hover)">
+                        <td className="px-4 py-2.5">
+                          <span className={`font-mono text-xs font-medium ${tx.direction === 'incoming' ? 'text-(--color-accent-green)' : 'text-(--color-accent-red)'}`}>
+                            {tx.direction === 'incoming' ? '\u2192 IN' : '\u2190 OUT'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-2 py-0.5 font-mono text-xs text-(--color-text-muted)">
+                            {tx.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <span className={`font-mono text-sm ${tx.direction === 'incoming' ? 'text-(--color-accent-green)' : 'text-(--color-text-secondary)'}`}>
+                            {tx.direction === 'incoming' ? '+' : '-'}{Number(tx.value_eth).toFixed(6)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 font-mono text-xs text-(--color-text-muted)">
+                          {tx.counterparty.slice(0, 8)}...{tx.counterparty.slice(-4)}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <a
+                            href={`https://sepolia.basescan.org/tx/${tx.tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-xs text-(--color-text-muted) hover:text-(--color-accent-cyan)"
+                          >
+                            {tx.tx_hash.slice(0, 8)}...
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 

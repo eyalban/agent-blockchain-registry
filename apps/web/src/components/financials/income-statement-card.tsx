@@ -102,7 +102,7 @@ export function IncomeStatementCard({ data, isLoading }: IncomeStatementCardProp
         <Row label="SGA Expenses" value={-data.sgaExpenses} />
         <Row label="Operating Profit" value={data.operatingProfit} bold border />
         <Row
-          label={`Income Tax (${(data.taxRate * 100).toFixed(0)}%)`}
+          label={`Taxes (${(data.taxRate * 100).toFixed(0)}%)`}
           value={-data.incomeTaxExpense}
         />
         <div className="mt-1 border-t-2 border-(--color-accent-cyan)/30 pt-2">

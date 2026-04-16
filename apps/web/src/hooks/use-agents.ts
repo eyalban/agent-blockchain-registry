@@ -1,9 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePublicClient } from 'wagmi'
-
-import { contracts } from '@/lib/contracts'
 
 export interface AgentListItem {
   readonly agentId: string
@@ -16,108 +13,71 @@ export interface AgentListItem {
 }
 
 /**
- * Fetch all registered agents by iterating token IDs on the Identity Registry.
- * Parses agent card JSON from data URIs and fetches tags from the wrapper.
+ * Fetch agents from our API — only shows agents with linked wallets
+ * in our database (real OpenClaw agents), not the entire global registry.
  */
 export function useAgents(): {
   agents: AgentListItem[]
   isLoading: boolean
   error: Error | null
 } {
-  const publicClient = usePublicClient()
   const [agents, setAgents] = useState<AgentListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    if (!publicClient) return
-
     let cancelled = false
 
     async function fetchAgents(): Promise<void> {
-      if (!publicClient) return
-      const results: AgentListItem[] = []
+      try {
+        const res = await fetch('/api/v1/agents?pageSize=100')
+        if (!res.ok) throw new Error('Failed to fetch agents')
 
-      for (let i = 1; i <= 100; i++) {
-        try {
-          const [owner, tokenURI] = await Promise.all([
-            publicClient.readContract({
-              ...contracts.identityRegistry,
-              functionName: 'ownerOf',
-              args: [BigInt(i)],
-            }),
-            publicClient.readContract({
-              ...contracts.identityRegistry,
-              functionName: 'tokenURI',
-              args: [BigInt(i)],
-            }),
-          ])
+        const data = await res.json() as {
+          data: Array<{ agentId: string; owner: string; tokenURI: string }>
+        }
 
-          // Try to get tags from wrapper
-          let tags: string[] = []
-          try {
-            const result = await publicClient.readContract({
-              ...contracts.wrapper,
-              functionName: 'agentTags',
-              args: [BigInt(i)],
-            })
-            tags = result as string[]
-          } catch {
-            // Agent may not be registered through wrapper
-          }
-
-          // Parse agent card
-          let name = `Agent #${i}`
+        const results: AgentListItem[] = data.data.map((agent) => {
+          let name = `Agent #${agent.agentId}`
           let description = ''
           let image = ''
-          const uri = tokenURI as string
 
-          if (uri.startsWith('data:application/json;base64,')) {
+          if (agent.tokenURI.startsWith('data:application/json;base64,')) {
             try {
-              const json = atob(uri.split(',')[1] ?? '')
+              const json = atob(agent.tokenURI.split(',')[1] ?? '')
               const card = JSON.parse(json) as Record<string, unknown>
               name = (card.name as string) ?? name
               description = (card.description as string) ?? ''
               image = (card.image as string) ?? ''
-            } catch {
-              // Invalid JSON
-            }
+            } catch { /* invalid JSON */ }
           }
 
-          if (cancelled) return
-
-          results.push({
-            agentId: i.toString(),
-            owner: owner as string,
-            tokenURI: uri,
+          return {
+            agentId: agent.agentId,
+            owner: agent.owner,
+            tokenURI: agent.tokenURI,
             name,
             description,
             image,
-            tags,
-          })
-        } catch {
-          // Token doesn't exist — we've reached the end
-          break
+            tags: [],
+          }
+        })
+
+        if (!cancelled) {
+          setAgents(results)
+          setIsLoading(false)
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError(e instanceof Error ? e : new Error('Failed to fetch agents'))
+          setIsLoading(false)
         }
       }
-
-      if (!cancelled) {
-        setAgents(results)
-        setIsLoading(false)
-      }
     }
 
-    fetchAgents().catch((e) => {
-      if (!cancelled) {
-        setError(e instanceof Error ? e : new Error('Failed to fetch agents'))
-        setIsLoading(false)
-      }
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [publicClient])
+    fetchAgents()
+    return () => { cancelled = true }
+  }, [])
 
   return { agents, isLoading, error }
 }

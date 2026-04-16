@@ -1,56 +1,27 @@
 import { NextResponse } from 'next/server'
-
-import { publicClient } from '@/lib/viem-client'
-import {
-  wrapperAbi,
-  identityRegistryAbi,
-  IDENTITY_REGISTRY_ADDRESS,
-} from '@agent-registry/shared'
-
-const WRAPPER_ADDRESS = (process.env.NEXT_PUBLIC_WRAPPER_ADDRESS ?? '0x') as `0x${string}`
+import { sql } from '@/lib/db'
 
 /**
  * GET /api/v1/stats
  *
- * Returns protocol-wide statistics read from on-chain contracts.
+ * Returns stats from our database — only counts real agents
+ * that have linked wallets (not the entire global registry).
  */
 export async function GET(): Promise<NextResponse> {
   try {
-    const [registrationFee] = await Promise.all([
-      publicClient
-        .readContract({
-          address: WRAPPER_ADDRESS,
-          abi: wrapperAbi,
-          functionName: 'registrationFee',
-        })
-        .catch(() => BigInt(0)),
+    const [agentRows, txRows] = await Promise.all([
+      sql`SELECT COUNT(DISTINCT agent_id) as count FROM agent_wallets`,
+      sql`SELECT COUNT(*) as count FROM transactions`,
     ])
 
-    // Count agents by iterating until we hit a non-existent token
-    let totalAgents = 0
-    for (let i = 1; i <= 1000; i++) {
-      try {
-        await publicClient.readContract({
-          address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-          abi: identityRegistryAbi,
-          functionName: 'ownerOf',
-          args: [BigInt(i)],
-        })
-        totalAgents++
-      } catch {
-        break
-      }
-    }
+    const totalAgents = Number((agentRows[0] as { count: string }).count)
+    const totalTransactions = Number((txRows[0] as { count: string }).count)
 
     return NextResponse.json({
       totalAgents,
-      registrationFee: (registrationFee as bigint).toString(),
+      totalTransactions,
       network: 'base-sepolia',
       chainId: 84532,
-      contracts: {
-        identityRegistry: IDENTITY_REGISTRY_ADDRESS,
-        wrapper: WRAPPER_ADDRESS,
-      },
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unknown error'

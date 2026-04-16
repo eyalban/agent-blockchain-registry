@@ -1,73 +1,45 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePublicClient } from 'wagmi'
-
-import { contracts } from '@/lib/contracts'
 
 interface Stats {
   totalAgents: number
-  registrationFee: string
+  totalTransactions: number
 }
 
+/**
+ * Shows stats sourced from our database (only real agents with linked wallets),
+ * NOT from the global canonical registry which includes tokens from other projects.
+ */
 export function ProtocolStats() {
-  const publicClient = usePublicClient()
   const [stats, setStats] = useState<Stats | null>(null)
 
   useEffect(() => {
-    if (!publicClient) return
-
     let cancelled = false
 
     async function fetchStats(): Promise<void> {
-      if (!publicClient) return
-
-      // Count agents
-      let total = 0
-      for (let i = 1; i <= 1000; i++) {
-        try {
-          await publicClient.readContract({
-            ...contracts.identityRegistry,
-            functionName: 'ownerOf',
-            args: [BigInt(i)],
-          })
-          total++
-        } catch {
-          break
-        }
-      }
-
-      // Get fee
-      let fee = '0'
       try {
-        const result = await publicClient.readContract({
-          ...contracts.wrapper,
-          functionName: 'registrationFee',
-        })
-        const wei = result as bigint
-        fee = (Number(wei) / 1e18).toString()
-      } catch {
-        // wrapper may not be deployed
-      }
-
-      if (!cancelled) {
-        setStats({ totalAgents: total, registrationFee: fee })
-      }
+        const res = await fetch('/api/v1/stats')
+        if (!res.ok) return
+        const data = await res.json() as { totalAgents?: number; totalTransactions?: number }
+        if (!cancelled) {
+          setStats({
+            totalAgents: data.totalAgents ?? 0,
+            totalTransactions: data.totalTransactions ?? 0,
+          })
+        }
+      } catch { /* ignore */ }
     }
 
     fetchStats()
     return () => { cancelled = true }
-  }, [publicClient])
+  }, [])
 
   return (
-    <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-      <StatBox
-        label="Registered Agents"
-        value={stats ? stats.totalAgents.toString() : '...'}
-      />
-      <StatBox label="Total Feedback" value="0" />
-      <StatBox label="Unique Owners" value={stats ? stats.totalAgents.toString() : '...'} />
-      <StatBox label="Reg. Fee" value={stats ? `${stats.registrationFee} ETH` : '...'} />
+    <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
+      <StatBox label="Registered Agents" value={stats ? stats.totalAgents.toString() : '...'} />
+      <StatBox label="Transactions Tracked" value={stats ? stats.totalTransactions.toString() : '...'} />
+      <StatBox label="Network" value="Base Sepolia" />
     </div>
   )
 }

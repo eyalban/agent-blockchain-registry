@@ -13,6 +13,8 @@ import { TrustScore } from '@/components/reputation/trust-score'
 import { IncomeStatementCard } from '@/components/financials/income-statement-card'
 import { useIncomeStatement } from '@/hooks/use-income-statement'
 import { useAgentTransactions } from '@/hooks/use-agent-transactions'
+import { useWalletNames } from '@/hooks/use-wallet-names'
+import { formatEthValue } from '@/lib/utils'
 
 interface AgentDetailViewProps {
   readonly agentId: string
@@ -37,6 +39,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
   const { count, summaryValue, summaryValueDecimals } = useReputationSummary(agentIdBigInt)
   const { data: financialData, isLoading: financialsLoading } = useIncomeStatement(agentId)
   const { transactions, isLoading: txLoading, isSyncing, sync } = useAgentTransactions(agentId)
+  const walletNames = useWalletNames(transactions.map((tx) => tx.counterparty))
 
   if (isLoading) {
     return (
@@ -223,11 +226,11 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-(--color-border)">
-                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Direction</th>
-                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Label</th>
-                      <th className="px-4 py-3 text-right font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Amount</th>
-                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Counterparty</th>
-                      <th className="px-4 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Tx</th>
+                      <th className="px-3 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Dir</th>
+                      <th className="px-3 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Label</th>
+                      <th className="px-3 py-3 text-right font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Amount (ETH)</th>
+                      <th className="px-3 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Counterparty</th>
+                      <th className="px-3 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Tx</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -243,13 +246,22 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                             {tx.label}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 text-right">
-                          <span className={`font-mono text-sm ${tx.direction === 'incoming' ? 'text-(--color-accent-green)' : 'text-(--color-text-secondary)'}`}>
-                            {tx.direction === 'incoming' ? '+' : '-'}{Number(tx.value_eth).toFixed(6)}
+                        <td className="px-3 py-2.5 text-right">
+                          <span className={`font-mono text-xs ${tx.direction === 'incoming' ? 'text-(--color-accent-green)' : 'text-(--color-text-secondary)'}`}>
+                            {tx.direction === 'incoming' ? '+' : '-'}{formatEthValue(Number(tx.value_eth))}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 font-mono text-xs text-(--color-text-muted)">
-                          {tx.counterparty.slice(0, 8)}...{tx.counterparty.slice(-4)}
+                        <td className="px-3 py-2.5">
+                          <div>
+                            {walletNames.get(tx.counterparty.toLowerCase()) && (
+                              <p className="text-xs text-(--color-text-primary)">
+                                {walletNames.get(tx.counterparty.toLowerCase())}
+                              </p>
+                            )}
+                            <p className="font-mono text-[10px] text-(--color-text-muted)">
+                              {tx.counterparty.slice(0, 8)}...{tx.counterparty.slice(-4)}
+                            </p>
+                          </div>
                         </td>
                         <td className="px-4 py-2.5">
                           <a

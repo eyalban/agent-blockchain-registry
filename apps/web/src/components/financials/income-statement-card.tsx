@@ -19,7 +19,12 @@ interface IncomeStatementCardProps {
 
 function formatEth(value: number): string {
   if (value === 0) return '\u2014'
-  const formatted = Math.abs(value).toFixed(6)
+  const abs = Math.abs(value)
+  let formatted: string
+  if (abs >= 0.01) formatted = abs.toFixed(4)
+  else if (abs >= 0.0001) formatted = abs.toFixed(6)
+  else if (abs >= 0.000001) formatted = abs.toFixed(8)
+  else formatted = abs.toExponential(2)
   return value < 0 ? `(${formatted})` : formatted
 }
 

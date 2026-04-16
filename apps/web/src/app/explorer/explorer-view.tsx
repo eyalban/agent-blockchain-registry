@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { useWalletNames } from '@/hooks/use-wallet-names'
+import { formatEthValue } from '@/lib/utils'
 
 const ActivityChart = dynamic(
   () => import('@/components/explorer/activity-chart').then((m) => m.ActivityChart),
@@ -65,6 +67,8 @@ export function ExplorerView() {
       .catch(() => {})
       .finally(() => setIsLoading(false))
   }, [])
+
+  const walletNames = useWalletNames(transactions.map((tx) => tx.counterparty))
 
   const chartEvents = transactions.map((tx) => ({
     type: 'registration' as const,
@@ -152,8 +156,13 @@ export function ExplorerView() {
                     <td className="px-3 py-2">
                       <span className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-1.5 py-0.5 font-mono text-[10px] text-(--color-text-muted)">{tx.label}</span>
                     </td>
-                    <td className="px-3 py-2 text-right font-mono text-xs text-(--color-text-secondary)">{Number(tx.value_eth).toFixed(6)}</td>
-                    <td className="px-3 py-2 font-mono text-[10px] text-(--color-text-muted)">{tx.counterparty.slice(0, 8)}...{tx.counterparty.slice(-4)}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs text-(--color-text-secondary)">{formatEthValue(Number(tx.value_eth))}</td>
+                    <td className="px-3 py-2">
+                      {walletNames.get(tx.counterparty.toLowerCase()) && (
+                        <p className="text-xs text-(--color-text-primary)">{walletNames.get(tx.counterparty.toLowerCase())}</p>
+                      )}
+                      <p className="font-mono text-[10px] text-(--color-text-muted)">{tx.counterparty.slice(0, 8)}...{tx.counterparty.slice(-4)}</p>
+                    </td>
                     <td className="px-3 py-2">
                       <a href={`https://sepolia.basescan.org/tx/${tx.tx_hash}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[10px] text-(--color-text-muted) hover:text-(--color-accent-cyan)">
                         {tx.tx_hash.slice(0, 8)}...

@@ -60,6 +60,7 @@ export function ActivityChart({ events }: ActivityChartProps) {
           allowDecimals={false}
         />
         <Tooltip
+          cursor={{ fill: 'rgba(0, 229, 255, 0.05)' }}
           contentStyle={{
             background: '#0f1520',
             border: '1px solid #1a2235',
@@ -68,6 +69,8 @@ export function ActivityChart({ events }: ActivityChartProps) {
             fontFamily: 'monospace',
             fontSize: '12px',
           }}
+          wrapperStyle={{ outline: 'none' }}
+          labelStyle={{ color: '#64748b' }}
         />
         <Bar
           dataKey="count"

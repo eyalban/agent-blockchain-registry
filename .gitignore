@@ -44,3 +44,5 @@ packages/subgraph/build/
 .vscode/
 .idea/
 .github/workflows/ci.yml
+agents/configs/*.env
+Income statement example.xlsx

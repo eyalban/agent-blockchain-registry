@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server'
-import { createPublicClient, http } from 'viem'
-import { baseSepolia } from 'viem/chains'
 
 import { getWalletsByAgent, insertTransaction } from '@/lib/db'
 import { classifyTransaction } from '@/lib/tx-classifier'
@@ -9,16 +7,25 @@ interface RouteParams {
   params: Promise<{ agentId: string }>
 }
 
-const client = createPublicClient({
-  chain: baseSepolia,
-  transport: http(process.env.NEXT_PUBLIC_RPC_URL ?? 'https://sepolia.base.org'),
-})
+const BLOCKSCOUT_API = 'https://base-sepolia.blockscout.com/api'
+
+interface BlockscoutTx {
+  hash: string
+  from: string
+  to: string
+  value: string
+  blockNumber: string
+  timeStamp: string
+  gasUsed: string
+  gasPrice: string
+  isError: string
+}
 
 /**
  * POST /api/v1/agents/:agentId/transactions/sync
  *
- * Scans the blockchain for all transactions involving this agent's wallets.
- * Reads directly from on-chain data — no self-reporting, no external API.
+ * Fetches all transactions for the agent's wallets from Blockscout API
+ * (address-based query — no block scanning needed).
  * Classifies each transaction and stores in Postgres.
  */
 export async function POST(_req: Request, { params }: RouteParams): Promise<NextResponse> {
@@ -32,74 +39,57 @@ export async function POST(_req: Request, { params }: RouteParams): Promise<Next
     )
   }
 
-  const walletSet = new Set(wallets.map((w) => w.wallet_address.toLowerCase()))
   let totalSynced = 0
   const errors: string[] = []
 
-  try {
-    const currentBlock = await client.getBlockNumber()
-    // Scan last 10000 blocks (~3 hours on Base Sepolia)
-    const scanRange = 10000n
-    const fromBlock = currentBlock > scanRange ? currentBlock - scanRange : 0n
-
-    for (let blockNum = currentBlock; blockNum >= fromBlock; blockNum--) {
-      try {
-        const block = await client.getBlock({
-          blockNumber: blockNum,
-          includeTransactions: true,
-        })
-
-        for (const tx of block.transactions) {
-          if (typeof tx === 'string') continue
-
-          const fromLower = tx.from.toLowerCase()
-          const toLower = (tx.to ?? '').toLowerCase()
-
-          // Only process transactions involving our agent's wallets
-          if (!walletSet.has(fromLower) && !walletSet.has(toLower)) continue
-
-          const agentWallet = walletSet.has(fromLower) ? fromLower : toLower
-          const valueEth = Number(tx.value) / 1e18
-
-          // Skip zero-value transactions with no calldata
-          if (valueEth === 0 && tx.input === '0x') continue
-
-          const { label, direction } = classifyTransaction(
-            tx.from,
-            tx.to ?? '',
-            agentWallet,
-          )
-
-          try {
-            await insertTransaction({
-              tx_hash: tx.hash,
-              agent_id: agentId,
-              wallet_address: agentWallet,
-              direction,
-              counterparty: direction === 'incoming' ? tx.from : (tx.to ?? ''),
-              value_eth: valueEth > 0 ? valueEth : 0,
-              block_number: Number(blockNum),
-              block_timestamp: new Date(Number(block.timestamp) * 1000).toISOString(),
-              label,
-              label_source: 'auto',
-              memo: null,
-              gas_used: null,
-              gas_cost_eth: null,
-            })
-            totalSynced++
-          } catch {
-            // Duplicate tx_hash — already synced, skip
-          }
-        }
-      } catch {
-        // Block fetch error — continue
+  for (const wallet of wallets) {
+    try {
+      const url = `${BLOCKSCOUT_API}?module=account&action=txlist&address=${wallet.wallet_address}&sort=desc&page=1&offset=200`
+      const res = await fetch(url)
+      if (!res.ok) {
+        errors.push(`Blockscout fetch failed for ${wallet.wallet_address.slice(0, 10)}`)
+        continue
       }
 
-      // Stop early if we've synced enough or hitting timeout
-      if (totalSynced >= 100) break
+      const data = (await res.json()) as { status: string; result: BlockscoutTx[] | string }
+      if (data.status !== '1' || !Array.isArray(data.result)) continue
+
+      for (const tx of data.result) {
+        if (tx.isError === '1') continue
+
+        const valueEth = Number(tx.value) / 1e18
+        if (valueEth === 0 && !tx.to) continue
+
+        const { label, direction } = classifyTransaction(
+          tx.from,
+          tx.to ?? '',
+          wallet.wallet_address,
+        )
+
+        try {
+          await insertTransaction({
+            tx_hash: tx.hash,
+            agent_id: agentId,
+            wallet_address: wallet.wallet_address.toLowerCase(),
+            direction,
+            counterparty: direction === 'incoming' ? tx.from : (tx.to ?? ''),
+            value_eth: valueEth,
+            block_number: Number(tx.blockNumber),
+            block_timestamp: new Date(Number(tx.timeStamp) * 1000).toISOString(),
+            label,
+            label_source: 'auto',
+            memo: null,
+            gas_used: tx.gasUsed,
+            gas_cost_eth: (Number(tx.gasUsed) * Number(tx.gasPrice)) / 1e18,
+          })
+          totalSynced++
+        } catch {
+          // Duplicate tx_hash — already synced
+        }
+      }
+    } catch (e) {
+      errors.push(`${wallet.wallet_address.slice(0, 10)}: ${(e as Error).message?.slice(0, 60)}`)
     }
-  } catch (e) {
-    errors.push(`Chain scan: ${(e as Error).message?.slice(0, 80)}`)
   }
 
   return NextResponse.json({

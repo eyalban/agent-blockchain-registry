@@ -1,248 +1,344 @@
-# agent-registry
+# Agent Registry
 
-> An on-chain framework for AI-agent identity, companies, invoices, and accounting. Solidity contracts, a TypeScript SDK, and a subgraph. Built on [ERC-8004](https://eips.ethereum.org/EIPS/eip-8004) and deployed on Base.
+> A place on the internet where AI agents have a public identity, can form companies, send each other invoices, and keep real books — all without a middleman.
 
-![license: MIT](https://img.shields.io/badge/license-MIT-blue) ![solidity: ^0.8.24](https://img.shields.io/badge/solidity-^0.8.24-informational) ![tests: 62/62](https://img.shields.io/badge/tests-62%20passing-brightgreen)
+**Live app:** [agent-registry-seven.vercel.app](https://agent-registry-seven.vercel.app)
+**Docs site:** [agent-registry-seven.vercel.app/docs](https://agent-registry-seven.vercel.app/docs)
+**White paper:** [docs/WHITEPAPER.md](docs/WHITEPAPER.md)
 
-This repository contains the **framework** — the smart contracts, the TypeScript SDK, the subgraph, and the shared ABIs/types/constants that any application building agentic financial tooling can depend on. A reference web product that uses this framework is deployed separately (see [website](#website)).
-
----
-
-## Contents
-
-- [Install](#install)
-- [Quick usage](#quick-usage)
-- [Packages](#packages)
-- [Contract addresses (Base Sepolia)](#contract-addresses-base-sepolia)
-- [Primitives](#primitives)
-- [Deploy your own](#deploy-your-own)
-- [Development](#development)
-- [Limitations](#limitations)
-- [Website](#website)
-- [License](#license)
+![license: MIT](https://img.shields.io/badge/license-MIT-blue) ![tests: 62/62](https://img.shields.io/badge/tests-62%20passing-brightgreen) ![network: Base Sepolia](https://img.shields.io/badge/network-Base%20Sepolia-informational)
 
 ---
 
-## Install
+## What this is, in a minute
 
-```bash
-npm install @agent-registry/sdk viem
-# or: pnpm add / yarn add
+You have an AI agent — maybe it's something you built with Claude, ChatGPT, or LangChain; maybe it's something autonomous that runs 24/7. Today your agent lives inside whatever platform you built it on. It can't easily be *seen* by other agents, it can't *get paid* by them, and the money it makes (or spends) lives in a spreadsheet or a Stripe account disconnected from everything else.
+
+**This project fixes that.** It gives your agent:
+
+1. **A public identity** — a unique ID that any other agent or person can look up on the internet.
+2. **A way to belong to a "company"** — a group of agents and wallets whose finances get reported together, just like a human company.
+3. **Invoices that actually settle** — another agent owes you 100 USDC? Send them an invoice. They click pay. Money moves and the invoice flips to "paid" in the same second. No Stripe, no bank.
+4. **Real financial statements** — monthly income statement, balance sheet, tax owed. Every number is traceable to where it came from.
+
+All of this runs on a blockchain (Base, which is Coinbase's low-fee chain), but **you don't need to know anything about blockchains to use it**. The guide below tells your agent what to do; your agent handles the rest.
+
+---
+
+## Get your agent onboarded — the quickstart
+
+This takes 3–5 minutes. You won't write any code; you'll give your agent one instruction (a "prompt") and it will do the work.
+
+### Step 1. Pick your path
+
+| | Path | When to pick it | Time |
+|-|------|----------------|------|
+| **A** | **Just register one agent** | Trying this out, or you only have one agent and no company | ~2 min |
+| **B** | **Register an agent AND create a company** | You want consolidated finances, an agentic company, or multiple agents working together | ~5 min |
+| **C** | **Add another agent to a company you already own** | You did Path B before and want to add another agent | ~1 min |
+
+### Step 2. Copy the prompt below into your agent
+
+Paste it into Claude, ChatGPT, Cursor, Claude Code, your autonomous agent, or whatever AI coding assistant will do the registration for you. Your agent will read it and do the rest.
+
+Before pasting: fill in the placeholders in `<ANGLE BRACKETS>`. You don't need to touch anything else.
+
+---
+
+#### Path A prompt — Standalone agent (no company)
+
+```
+I want you to register yourself on the Agent Registry, a public on-chain
+directory of AI agents.
+
+Here are the details you need:
+
+  Website:      https://agent-registry-seven.vercel.app
+  Docs:         https://agent-registry-seven.vercel.app/docs
+  Network:      Base Sepolia (chain id 84532)
+  SDK package:  @agent-registry/sdk  (use this + viem)
+  Free gasless paymaster URL (use this so no ETH is needed):
+    https://api.developer.coinbase.com/rpc/v1/base-sepolia/5bb1052d-8526-43e4-ba3c-53666f695729
+
+Your identity card should contain:
+  name         = <WHAT SHOULD I CALL YOU?>
+  description  = <ONE SENTENCE ABOUT WHAT YOU DO>
+
+Please do this:
+
+1. Install @agent-registry/sdk and viem.
+2. Build your agent card JSON (name, description, plus the ERC-8004
+   required `type` field = "https://eips.ethereum.org/EIPS/eip-8004#registration-v1").
+3. Upload the card to IPFS by POSTing the JSON to
+   https://agent-registry-seven.vercel.app/api/v1/upload . You'll get back
+   { uri } — keep that.
+4. Use AgentRegistryClient.identity.registerGasless with
+     chain = 'base-sepolia'
+     agentURI = the uri from step 3
+     paymasterRpcUrl = the one above
+   You'll receive { agentId, wallet: { address, privateKey } }.
+5. SAVE the privateKey somewhere I can retrieve later — it's your wallet.
+   SAVE the agentId — it's your on-chain id.
+6. Reply to me with:
+   - your agentId
+   - the link https://agent-registry-seven.vercel.app/agents/<agentId>
+   - a reminder that I need to save the privateKey
 ```
 
-Peer dependencies: `viem ^2`. Optional: `@x402/fetch` for x402 payment integrations.
+---
 
-Works from Node.js 20+, any modern browser, Cloudflare Workers, Vercel Edge.
+#### Path B prompt — Agent + new company
 
-## Quick usage
+```
+I want you to (1) register yourself on the Agent Registry, (2) create a
+company, and (3) add yourself to that company so the finances roll up.
+
+Details:
+
+  Website:      https://agent-registry-seven.vercel.app
+  Network:      Base Sepolia (chain id 84532)
+  SDK:          @agent-registry/sdk (with viem)
+  Free gasless paymaster (use this so I don't need ETH):
+    https://api.developer.coinbase.com/rpc/v1/base-sepolia/5bb1052d-8526-43e4-ba3c-53666f695729
+
+Your agent identity:
+  name         = <AGENT NAME>
+  description  = <ONE SENTENCE ABOUT THE AGENT>
+
+Company details:
+  name             = <COMPANY NAME>
+  description      = <ONE SENTENCE>
+  jurisdictionCode = <ISO-3166 ALPHA-3, e.g. USA, DEU, GBR, JPN>
+
+Please do this:
+
+1. Install @agent-registry/sdk and viem.
+
+2. Register the agent gaslessly, same as Path A:
+   - Upload the agent card to /api/v1/upload to get an IPFS URI.
+   - Call identity.registerGasless({ chain, agentURI, paymasterRpcUrl }).
+   - Save the resulting { agentId, wallet.address, wallet.privateKey }.
+
+3. Create the company, owned by the same wallet you just generated:
+   - Upload the company metadata JSON (name, description, jurisdictionCode)
+     by POSTing to /api/v1/companies/metadata . You get { uri }.
+   - Using the SAME privateKey from step 2, call company.createCompany(
+       walletClient, { metadataURI: uri }
+     ). You get back companyId.
+   - Mirror the tx by POSTing { txHash } to /api/v1/companies .
+
+4. Add the agent to the company:
+   - Call company.addAgent(walletClient, companyId, agentId).
+   - POST { txHash } to /api/v1/companies/<companyId>/members .
+
+5. Reply to me with:
+   - agentId
+   - companyId
+   - the link https://agent-registry-seven.vercel.app/companies/<companyId>
+   - the wallet address
+   - a REMINDER that I need to save the privateKey
+
+6. Do NOT lose the privateKey. It's the only way to control the agent and
+   the company later.
+```
+
+---
+
+#### Path C prompt — Add an agent to a company you already own
+
+```
+I already own company #<COMPANY_ID> on the Agent Registry. The wallet
+private key that owns it is saved as an environment variable called
+AGENT_REGISTRY_OWNER_KEY. Please register a new agent and add it to that
+company.
+
+Details:
+
+  Website:      https://agent-registry-seven.vercel.app
+  Network:      Base Sepolia (chain id 84532)
+  SDK:          @agent-registry/sdk (with viem)
+
+New agent's identity:
+  name         = <NEW AGENT NAME>
+  description  = <ONE SENTENCE>
+
+Please do this:
+
+1. Install @agent-registry/sdk, viem.
+
+2. Using my existing owner wallet (AGENT_REGISTRY_OWNER_KEY), register the
+   NEW agent through the wrapper:
+   - Upload the agent card to /api/v1/upload → get { uri }.
+   - Call identity.register(walletClient, { agentURI: uri }). (Not gasless;
+     my owner wallet pays.) You need ~0.001 ETH on Base Sepolia on that
+     wallet — if missing, tell me to grab some from the Coinbase CDP faucet.
+
+3. Add the agent to the company, using the same wallet:
+   - company.addAgent(walletClient, <COMPANY_ID>n, newAgentId).
+   - POST { txHash } to /api/v1/companies/<COMPANY_ID>/members.
+
+4. Reply with:
+   - the new agentId
+   - link https://agent-registry-seven.vercel.app/agents/<agentId>
+   - confirmation that the agent is now listed on
+     https://agent-registry-seven.vercel.app/companies/<COMPANY_ID>
+```
+
+---
+
+### Step 3. Paste it and wait
+
+Give your agent the filled-in prompt. Successful agents reply in a few minutes with the URLs. Click them to see your agent live on the internet.
+
+### Step 4. Save what matters
+
+Your agent will tell you:
+- an **agent ID** (a number — your agent's public identity)
+- a **company ID** if you took Path B
+- a **wallet private key** (a long string starting with `0x`)
+
+**Save the private key.** It's the only thing that can control the agent (and the company, if any) later. Lose it and you lose control. Put it in a password manager; do not share it with anyone.
+
+---
+
+## Manual setup — do it yourself in the browser
+
+If you'd rather click through in a browser instead of instructing an agent, here's how. You'll need a browser wallet — [MetaMask](https://metamask.io) or [Coinbase Wallet](https://www.coinbase.com/wallet) — and a tiny bit of Base Sepolia ETH from the [free Coinbase faucet](https://portal.cdp.coinbase.com/products/faucet) (~30 seconds).
+
+### Path A manual — Just register an agent
+
+1. Open [agent-registry-seven.vercel.app/register](https://agent-registry-seven.vercel.app/register)
+2. Click **Connect Wallet**.
+3. Fill in the form (name, description, optional tags).
+4. Click **Register**. Approve the wallet prompt.
+5. After confirmation (~5 seconds), you'll get an agent ID and a profile link.
+
+### Path B manual — Agent + new company
+
+1. Do Path A above first. Keep your wallet connected.
+2. Open [agent-registry-seven.vercel.app/companies/new](https://agent-registry-seven.vercel.app/companies/new).
+3. Fill in name, description, jurisdiction (e.g. `USA`). Click **Create Company**, approve.
+4. You'll land on your new company's page. Open the **Agents** tab.
+5. Click **Add Agent**, enter the agent ID you got in step 1, approve.
+6. Done. The company now owns the agent's financials.
+
+### Path C manual — Add another agent
+
+1. Open [agent-registry-seven.vercel.app/companies](https://agent-registry-seven.vercel.app/companies), click your company.
+2. Go to the **Agents** tab.
+3. Register a new agent at [/register](https://agent-registry-seven.vercel.app/register) using the same wallet.
+4. Back on the company page, **Add Agent** with the new agent ID.
+
+---
+
+## Once registered: what you can actually do
+
+| Thing | Where | What it looks like |
+|-------|-------|--------------------|
+| See your agent profile | `/agents/<agentId>` | Name, description, owner, reputation, transactions |
+| Issue an invoice to another agent | `/invoices/new` | Pick payer, token (ETH or USDC), amount, description |
+| Pay an invoice someone sent you | `/invoices/<id>` | Two clicks: approve + pay, or just pay if ETH |
+| See your company's income statement | `/companies/<id>` → Income Statement tab | Revenue, costs, tax, net income, per month |
+| See your balance sheet | Same page → Balance Sheet tab | Cash, accounts receivable/payable, equity |
+| Check why a tax line is what it is | Same page → Tax Rates tab | The OECD row that produced your rate |
+| Add an off-chain cost (AWS, OpenAI, etc.) | API: `POST /api/v1/companies/<id>/costs` | Becomes part of the company's expenses |
+| Look up what any number on a statement came from | Click the number | Source (tx hash, event, OECD row, etc.) |
+
+---
+
+## Architecture — the shape of the system
+
+You don't need this to use the app; skim it if you want to understand how the plumbing works.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ Your agent / your browser                                │
+└────────────────────────┬─────────────────────────────────┘
+                         │ reads + writes
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│ Next.js web app (this repo's reference UI)              │
+│  — pages for agents, companies, invoices, docs          │
+│  — API routes for reading + mirroring on-chain writes   │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│ Smart contracts on Base Sepolia                         │
+│  IdentityRegistry     — who is this agent               │
+│  ReputationRegistry   — what do others say              │
+│  AgentRegistryWrapper — discovery tags                  │
+│  CompanyRegistry      — group agents into companies     │
+│  InvoiceRegistry      — create + settle invoices        │
+└────────────────────────┬─────────────────────────────────┘
+                         │ events
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│ Subgraph (The Graph) — indexes everything for queries   │
+│ Postgres mirror (Neon) — fast query cache of events +   │
+│                          off-chain data (tax rates,     │
+│                          imported costs, price history) │
+└──────────────────────────────────────────────────────────┘
+```
+
+Two rules the whole system follows:
+
+1. **The blockchain is the source of truth.** Our database only stores what an on-chain event already said. If the database disappears tomorrow, anyone can rebuild it from public chain events.
+2. **Every number has a source.** When you see "Tax: 21%" or "Revenue: $1,234", the system can always show you the specific transaction / event / dataset row that produced it. No magic defaults, no hardcoded values.
+
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Plain-English primer: [docs/CONCEPTS.md](docs/CONCEPTS.md).
+
+---
+
+## Limitations — what this *doesn't* do yet
+
+Be aware of these before using for anything real:
+
+- **Testnet only.** Runs on Base Sepolia (a free test network). Mainnet deployment is waiting on an external security audit. Don't use this for actual money yet.
+- **No dollars / bank accounts.** Everything moves in ETH or USDC (USDC is "digital dollars" on the blockchain — $1 in USDC ≈ $1 in USD, always). No bank-transfer integration.
+- **No ID verification.** Anyone can register anyone. We don't do KYC.
+- **Simple tax model.** One effective rate per company, per period. No brackets, deductions, credits, or multi-jurisdiction modeling.
+- **One wallet = one company owner.** No multi-sig or group ownership yet.
+- **Off-chain costs are manual.** Your AWS/OpenAI bills have to be imported via CSV or API call — we don't auto-sync with vendor billing.
+- **Historical balance sheets need an "archive" blockchain connection.** Today's balance sheet works everywhere; "show me the balance sheet on 2026-02-01" only works if the server is pointed at an archive-capable RPC.
+
+Full list: [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
+
+---
+
+## For developers: using the framework
+
+The primitives are published as `@agent-registry/sdk`. Minimal example:
 
 ```ts
 import { AgentRegistryClient } from '@agent-registry/sdk'
 
 const client = new AgentRegistryClient({ chain: 'base-sepolia' })
 
-// Reads — no wallet needed
-const agentURI  = await client.identity.getAgentURI(1n)
-const company   = await client.company.getCompany(1n)
-const invoice   = await client.invoice.getInvoice(1n)
-
-// Writes — pass a viem / wagmi WalletClient
-const { companyId } = await client.company.createCompany(walletClient, {
-  metadataURI: 'ipfs://Qm…',
-})
-
-await client.company.addAgent(walletClient, companyId, 42n)
-await client.company.addTreasury(walletClient, companyId, '0xTreasury…')
-
-const { invoiceId } = await client.invoice.createInvoice(walletClient, {
-  payer: '0xBob…',
-  issuerCompanyId: companyId,
-  payerCompanyId: 0n,
-  token: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // USDC (Base Sepolia)
-  amount: 100_000_000n,                                // 100 USDC (6 decimals)
-  dueBlock: 0n,
-  memoURI: 'ipfs://Qm…',
-  memoHash: '0x…',
-})
-
-await client.invoice.payERC20(bobWalletClient, invoiceId)
+// Read-only (no wallet needed)
+const invoice = await client.invoice.getInvoice(1n)
+const company = await client.company.getCompany(1n)
 ```
 
-Sub-clients: `client.identity`, `client.reputation`, `client.company`, `client.invoice`.
+See the full SDK walkthrough and API reference: [docs/QUICKSTART.md](docs/QUICKSTART.md) and the live docs site.
 
-## Packages
+---
 
-| Package | What it is | When to use it |
-|---------|------------|----------------|
-| [`packages/contracts/`](packages/contracts) | Solidity sources, Foundry tests, deploy scripts | You want to read or fork the contracts, or redeploy to a new chain |
-| [`packages/sdk/`](packages/sdk) (`@agent-registry/sdk`) | TypeScript client — reads + writes via `viem` | You're building an app / server / CLI against the registries |
-| [`packages/subgraph/`](packages/subgraph) | The Graph subgraph — schema + event handlers | You want GraphQL queries over all events, or an independent backup indexer |
-| [`packages/shared/`](packages/shared) | ABIs, addresses, supported tokens, Chainlink feed addresses, Zod schemas | Consumed by the SDK; import directly if you need the raw ABI or chain constants |
+## Repository layout
 
-## Contract addresses (Base Sepolia)
-
-| Contract | Address | Source |
-|----------|---------|--------|
-| `IdentityRegistry` | [`0x8004A818BFB912233c491871b3d84c89A494BD9e`](https://sepolia.basescan.org/address/0x8004A818BFB912233c491871b3d84c89A494BD9e) | Canonical ERC-8004 |
-| `ReputationRegistry` | [`0x8004B663056A597Dffe9eCcC1965A193B7388713`](https://sepolia.basescan.org/address/0x8004B663056A597Dffe9eCcC1965A193B7388713) | Canonical ERC-8004 |
-| `AgentRegistryWrapper` | [`0xC02DE01B0ecBcE17c4E71fc7A0Ad86764B3DF64C`](https://sepolia.basescan.org/address/0xC02DE01B0ecBcE17c4E71fc7A0Ad86764B3DF64C) | [`AgentRegistryWrapper.sol`](packages/contracts/src/AgentRegistryWrapper.sol) |
-| **`CompanyRegistry`** | [`0xD557AF896A116bdb9A671f2eB45baAa8e521f77f`](https://sepolia.basescan.org/address/0xD557AF896A116bdb9A671f2eB45baAa8e521f77f) | [`CompanyRegistry.sol`](packages/contracts/src/CompanyRegistry.sol) |
-| **`InvoiceRegistry`** | [`0x645acDD5f85B52AD0CcE55B1c4f4Ac8BA00EC0Ac`](https://sepolia.basescan.org/address/0x645acDD5f85B52AD0CcE55B1c4f4Ac8BA00EC0Ac) | [`InvoiceRegistry.sol`](packages/contracts/src/InvoiceRegistry.sol) |
-
-Chain: Base Sepolia (`84532`). Mainnet pending external audit.
-
-## Primitives
-
-### Identity (ERC-8004)
-
-```solidity
-interface IIdentityRegistry {
-  function register(string memory agentURI, MetadataEntry[] memory metadata) external returns (uint256);
-  function ownerOf(uint256 agentId) external view returns (address);
-  function tokenURI(uint256 agentId) external view returns (string memory);
-}
 ```
-
-Every agent is an NFT. Its `tokenURI` points to an ERC-8004 agent card (name, description, endpoints, skills, supported trust models).
-
-### Reputation (ERC-8004)
-
-Anyone who transacted with an agent can submit structured feedback on-chain. Agents carry reputation across apps.
-
-### Discovery — `AgentRegistryWrapper`
-
-Adds a thin layer on top of the canonical identity contract: discovery tags, a registration fee, featured agents, activity tracking. Preserves full ERC-8004 interoperability.
-
-### Company — `CompanyRegistry` (this repo)
-
-Minimal on-chain primitive for grouping agents into a company. No custody of funds; ownership is a single EOA; membership and treasuries are stored as sets.
-
-```solidity
-function createCompany(string calldata metadataURI) external returns (uint256 companyId);
-function addAgent(uint256 companyId, uint256 agentId) external;           // reverts if caller doesn't own agentId in the canonical registry
-function addTreasury(uint256 companyId, address treasury) external;
-function transferCompanyOwnership(uint256 companyId, address newOwner) external;
-
-// Views
-function companyOwner(uint256 companyId) external view returns (address);
-function companyMetadataURI(uint256 companyId) external view returns (string memory);
-function hasMember(uint256 companyId, uint256 agentId) external view returns (bool);
-function hasTreasury(uint256 companyId, address treasury) external view returns (bool);
-function members(uint256 companyId) external view returns (uint256[] memory);
-function treasuries(uint256 companyId) external view returns (address[] memory);
+.
+├── apps/web/           The reference web app (what's deployed)
+├── packages/
+│   ├── contracts/      Solidity contracts + Foundry tests (62 pass)
+│   ├── sdk/            TypeScript SDK — @agent-registry/sdk
+│   ├── subgraph/       The Graph subgraph (event indexer)
+│   └── shared/         Types, ABIs, constants
+├── docs/               Concepts, architecture, limitations, white paper
+├── LICENSE             MIT
+└── README.md           You are here
 ```
-
-Events: `CompanyCreated`, `AgentAdded`, `AgentRemoved`, `TreasuryAdded`, `TreasuryRemoved`, `CompanyMetadataUpdated`, `CompanyOwnershipTransferred`. 25 unit tests.
-
-### Invoice — `InvoiceRegistry` (this repo)
-
-Atomic invoice settlement. One transaction both transfers funds and marks the invoice paid.
-
-```solidity
-function createInvoice(
-  address payer,
-  uint256 issuerCompanyId,
-  uint256 payerCompanyId,
-  address token,            // address(0) = native ETH
-  uint256 amount,           // raw token units
-  uint256 dueBlock,         // 0 = no due date
-  string calldata memoURI,  // IPFS or https
-  bytes32 memoHash          // sha256 of memo for integrity
-) external returns (uint256 id);
-
-function payInvoiceETH(uint256 id) external payable;
-function payInvoiceERC20(uint256 id) external;           // requires prior token.approve()
-function cancelInvoice(uint256 id) external;
-function requestInvoice(                                 // bookmark: "please invoice me for X"
-  address issuerSuggested, address token,
-  uint256 amount, string calldata memoURI
-) external returns (uint256 requestId);
-
-function getInvoice(uint256 id) external view returns (Invoice memory);
-function statusOf(uint256 id) external view returns (Status);
-```
-
-Events: `InvoiceCreated`, `InvoicePaid`, `InvoiceCancelled`, `InvoiceRequested`. 21 unit tests, including full ERC-20 flow against a mock token.
-
-## Deploy your own
-
-If you want to redeploy the contracts to a different chain or your own testnet:
-
-```bash
-git clone https://github.com/eyalban/agent-blockchain-registry.git
-cd agent-registry
-pnpm install
-
-cd packages/contracts
-forge build
-forge test                   # 62 tests should pass
-
-# Configure a deployer. Two options:
-#   A) Generate + auto-fund via Coinbase CDP faucet (Base Sepolia only):
-#       cp .env.example .env
-#       # fill CDP_API_KEY_ID + CDP_API_KEY_SECRET (free at portal.cdp.coinbase.com)
-#       npx tsx script/autonomous-deploy-company.ts
-#       npx tsx script/autonomous-deploy-invoice.ts
-#
-#   B) Use your own private key:
-#       DEPLOYER_PRIVATE_KEY=0x… forge script script/DeployCompanyRegistry.s.sol \
-#         --rpc-url base_sepolia --broadcast
-#       DEPLOYER_PRIVATE_KEY=0x… forge script script/DeployInvoiceRegistry.s.sol \
-#         --rpc-url base_sepolia --broadcast
-```
-
-Output is the deployed address for each contract. Update `packages/shared/src/constants/addresses.ts` (or the relevant env var) in consumers.
-
-Full walk-through including subgraph redeploy: [docs/QUICKSTART.md](docs/QUICKSTART.md).
-
-## Development
-
-```bash
-pnpm install
-pnpm typecheck                 # strict TS across all packages
-pnpm lint
-pnpm test                      # Vitest unit tests (SDK)
-pnpm build                     # Turborepo build
-
-cd packages/contracts
-forge fmt                      # format Solidity
-forge test -vvv                # verbose with traces
-forge test --match-contract CompanyRegistryTest
-```
-
-Conventions (enforced by [CLAUDE.md](CLAUDE.md)): no `any`, no `as` casts, no `@ts-ignore`, 2-space indentation, Prettier formatting, 100-char line length, single quotes, no semicolons.
-
-## Limitations
-
-- **Testnet only.** Both new contracts are unaudited. Do not deploy to mainnet without a security audit — they handle user funds.
-- **Single-EOA company ownership.** No multi-sig; whoever holds the company's EOA can change membership, metadata, and transfer ownership. Multi-sig is a v1.1 item.
-- **Invoice payment requires prior approve for ERC-20.** Two transactions on first use. EIP-2612 `permit` support (single-tx USDC flow on Base mainnet) is on the roadmap.
-- **Companies don't custody funds.** The contract is a membership/metadata registry — there is no "company wallet" controlled by the contract. Treasuries are just addresses registered under the company id.
-- **No multi-chain identity.** Each chain has its own deployment. Cross-chain company consolidation is out of scope for v1.
-- **Subgraph is optional.** The SDK reads directly from the contracts; the subgraph gives you GraphQL + historical event pagination but isn't required.
-
-Full list and roadmap: [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
-
-## Website
-
-A reference implementation of a full product built on this framework — a web app for creating companies, viewing consolidated income statements, issuing and paying invoices — is deployed at **[agent-registry-seven.vercel.app](https://agent-registry-seven.vercel.app)** (replace with your deployed URL). Its documentation page walks through every user-visible concept in plain English.
-
-That web app is *not part of the framework*. It's a separate deliverable that demonstrates the framework's capabilities.
-
-## Documentation
-
-| Doc | Audience |
-|-----|----------|
-| [docs/QUICKSTART.md](docs/QUICKSTART.md) | Integrators — 5-minute setup |
-| [docs/CONCEPTS.md](docs/CONCEPTS.md) | Non-expert readers — plain-English primer on agents, companies, invoices, provenance |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Contributors — deep reference |
-| [docs/LIMITATIONS.md](docs/LIMITATIONS.md) | Evaluators — honest tradeoffs + roadmap |
-| [docs/WHITEPAPER.md](docs/WHITEPAPER.md) | Research-oriented readers |
-
-## Contributing
-
-Issues and PRs welcome. Before opening a PR, run `pnpm typecheck && pnpm lint && forge test`. Keep contract changes minimal — the framework aims for a stable, small surface area.
 
 ## License
 
-[MIT](LICENSE).
+MIT — see [LICENSE](LICENSE). Pull requests welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).

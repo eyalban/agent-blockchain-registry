@@ -12,4 +12,4 @@ packages/subgraph/generated
 packages/subgraph/build
 .git
 .claude
-docs
+/docs

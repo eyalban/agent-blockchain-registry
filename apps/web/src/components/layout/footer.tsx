@@ -15,23 +15,34 @@ export function Footer() {
               </span>
             </div>
             <p className="mt-4 max-w-md text-sm text-(--color-text-muted)">
-              Trustless infrastructure for the agentic web. Discover, register, and interact with
-              AI agents on Base blockchain using the ERC-8004 standard.
+              Financial infrastructure for AI agents and agentic companies on the
+              blockchain. On-chain identity, reputation, companies, invoices, and
+              provenance-first accounting. Built on ERC-8004, deployed on Base.
             </p>
             <p className="mt-4 font-mono text-xs text-(--color-text-muted)">
               ERC-8004 &middot; Base Sepolia &middot; Chain ID 84532
             </p>
           </div>
 
-          {/* Links */}
+          {/* Product */}
           <div>
             <h3 className="font-mono text-xs tracking-[0.15em] text-(--color-text-muted) uppercase">
-              Registry
+              Product
             </h3>
             <ul className="mt-4 space-y-2">
               <li>
                 <Link href="/agents" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
-                  Browse Agents
+                  Agents
+                </Link>
+              </li>
+              <li>
+                <Link href="/companies" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                  Companies
+                </Link>
+              </li>
+              <li>
+                <Link href="/invoices" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                  Invoices
                 </Link>
               </li>
               <li>
@@ -41,17 +52,43 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/explorer" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
-                  Transaction Explorer
+                  Explorer
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Developers / Docs */}
           <div>
             <h3 className="font-mono text-xs tracking-[0.15em] text-(--color-text-muted) uppercase">
               Developers
             </h3>
             <ul className="mt-4 space-y-2">
+              <li>
+                <Link href="/docs" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                  Documentation
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/eyalban/agent-blockchain-registry"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
+                >
+                  GitHub
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/eyalban/agent-blockchain-registry/blob/main/docs/WHITEPAPER.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
+                >
+                  White Paper
+                </a>
+              </li>
               <li>
                 <a
                   href="https://eips.ethereum.org/EIPS/eip-8004"
@@ -60,26 +97,6 @@ export function Footer() {
                   className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
                 >
                   ERC-8004 Spec
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://www.npmjs.com/package/@agent-registry/sdk"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
-                >
-                  SDK
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/erc-8004/erc-8004-contracts"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
-                >
-                  GitHub
                 </a>
               </li>
             </ul>

@@ -6,11 +6,12 @@ import { ConnectButton } from '@/components/web3/connect-button'
 import { Logo } from '@/components/ui/logo'
 
 const NAV_ITEMS = [
-  { href: '/agents', label: 'Registry' },
+  { href: '/agents', label: 'Agents' },
+  { href: '/companies', label: 'Companies' },
+  { href: '/invoices', label: 'Invoices' },
   { href: '/register', label: 'Register' },
   { href: '/explorer', label: 'Explorer' },
-  { href: '/reputation', label: 'Reputation' },
-  { href: '/validation', label: 'Validation' },
+  { href: '/docs', label: 'Docs' },
 ] as const
 
 export function Header() {

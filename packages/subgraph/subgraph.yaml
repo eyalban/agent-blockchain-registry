@@ -98,3 +98,43 @@ dataSources:
         - event: AgentActivityRecorded(indexed uint256,uint256)
           handler: handleAgentActivityRecorded
       file: ./src/wrapper.ts
+
+  # =========================================================================
+  # CompanyRegistry (agentic companies)
+  # =========================================================================
+  - kind: ethereum
+    name: CompanyRegistry
+    network: base-sepolia
+    source:
+      address: "0xD557AF896A116bdb9A671f2eB45baAa8e521f77f"
+      abi: CompanyRegistry
+      startBlock: 25000000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Company
+        - CompanyMember
+        - CompanyTreasury
+        - Agent
+        - ProtocolStats
+      abis:
+        - name: CompanyRegistry
+          file: ./abis/CompanyRegistry.json
+      eventHandlers:
+        - event: CompanyCreated(indexed uint256,indexed address,string)
+          handler: handleCompanyCreated
+        - event: CompanyMetadataUpdated(indexed uint256,string)
+          handler: handleCompanyMetadataUpdated
+        - event: CompanyOwnershipTransferred(indexed uint256,indexed address,indexed address)
+          handler: handleCompanyOwnershipTransferred
+        - event: AgentAdded(indexed uint256,indexed uint256)
+          handler: handleAgentAdded
+        - event: AgentRemoved(indexed uint256,indexed uint256)
+          handler: handleAgentRemoved
+        - event: TreasuryAdded(indexed uint256,indexed address)
+          handler: handleTreasuryAdded
+        - event: TreasuryRemoved(indexed uint256,indexed address)
+          handler: handleTreasuryRemoved
+      file: ./src/company-registry.ts

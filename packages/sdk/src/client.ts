@@ -3,9 +3,11 @@ import { baseSepolia, base } from 'viem/chains'
 
 import { type SupportedChainId } from '@agent-registry/shared'
 
-import type { AgentRegistryConfig } from './types'
+import { CompanyClient } from './company'
 import { IdentityClient } from './identity'
+import { InvoiceClient } from './invoice'
 import { ReputationClient } from './reputation'
+import type { AgentRegistryConfig } from './types'
 
 const CHAIN_MAP: Record<string, { chain: Chain; chainId: SupportedChainId }> = {
   'base-sepolia': { chain: baseSepolia, chainId: 84532 },
@@ -21,7 +23,7 @@ const CHAIN_MAP: Record<string, { chain: Chain; chainId: SupportedChainId }> = {
  *
  * const client = new AgentRegistryClient({
  *   chain: 'base-sepolia',
- *   apiUrl: 'https://registry.example.com/api/v1',
+ *   apiUrl: 'https://agent-registry-seven.vercel.app/api/v1',
  * })
  *
  * // Gasless registration (agent gets a wallet, protocol pays gas):
@@ -35,6 +37,8 @@ const CHAIN_MAP: Record<string, { chain: Chain; chainId: SupportedChainId }> = {
 export class AgentRegistryClient {
   readonly identity: IdentityClient
   readonly reputation: ReputationClient
+  readonly company: CompanyClient
+  readonly invoice: InvoiceClient
 
   constructor(config: AgentRegistryConfig) {
     const chainConfig = CHAIN_MAP[config.chain]
@@ -58,5 +62,7 @@ export class AgentRegistryClient {
       config.paymasterRpcUrl,
     )
     this.reputation = new ReputationClient(publicClient, chainId)
+    this.company = new CompanyClient(publicClient, chainId, viemChain)
+    this.invoice = new InvoiceClient(publicClient, chainId, viemChain)
   }
 }

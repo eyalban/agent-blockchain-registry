@@ -11,6 +11,10 @@ export const env = {
   reputationRegistryAddress: (process.env.NEXT_PUBLIC_REPUTATION_REGISTRY_ADDRESS ??
     '0x8004B663056A597Dffe9eCcC1965A193B7388713') as `0x${string}`,
   wrapperAddress: (process.env.NEXT_PUBLIC_WRAPPER_ADDRESS ?? '0x') as `0x${string}`,
+  companyRegistryAddress: (process.env.NEXT_PUBLIC_COMPANY_REGISTRY_ADDRESS ??
+    '0x') as `0x${string}`,
+  invoiceRegistryAddress: (process.env.NEXT_PUBLIC_INVOICE_REGISTRY_ADDRESS ??
+    '0x') as `0x${string}`,
   paymasterRpcUrl: process.env.NEXT_PUBLIC_PAYMASTER_RPC_URL ?? '',
   isMainnet: Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? '84532') === 8453,
 } as const

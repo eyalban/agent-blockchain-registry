@@ -15,6 +15,7 @@ export function loadOrCreateProtocolStats(): ProtocolStats {
     stats.totalValidations = BigInt.zero()
     stats.uniqueOwners = BigInt.zero()
     stats.totalWrapperRegistrations = BigInt.zero()
+    stats.totalCompanies = BigInt.zero()
     stats.lastUpdatedBlock = BigInt.zero()
   }
   return stats

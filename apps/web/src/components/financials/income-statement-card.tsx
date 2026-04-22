@@ -6,15 +6,14 @@ interface IncomeStatementData {
   grossProfit: number
   sgaExpenses: number
   operatingProfit: number
-  taxRate: number
-  incomeTaxExpense: number
-  netIncome: number
   transactionCount: number
 }
 
 interface IncomeStatementCardProps {
   readonly data: IncomeStatementData | null
   readonly isLoading: boolean
+  readonly taxComputed?: boolean
+  readonly taxComputedReason?: string
 }
 
 function formatEth(value: number): string {
@@ -60,11 +59,16 @@ function Row({
   )
 }
 
-export function IncomeStatementCard({ data, isLoading }: IncomeStatementCardProps) {
+export function IncomeStatementCard({
+  data,
+  isLoading,
+  taxComputed = false,
+  taxComputedReason,
+}: IncomeStatementCardProps) {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-3 rounded-xl border border-(--color-border) bg-(--color-surface) p-6">
-        {Array.from({ length: 7 }).map((_, i) => (
+        {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="flex justify-between">
             <div className="h-4 w-32 rounded bg-(--color-border)" />
             <div className="h-4 w-24 rounded bg-(--color-border)" />
@@ -100,21 +104,33 @@ export function IncomeStatementCard({ data, isLoading }: IncomeStatementCardProp
         <Row label="Cost of Sales" value={-data.costOfSales} />
         <Row label="Gross Profit" value={data.grossProfit} bold border />
         <Row label="SGA Expenses" value={-data.sgaExpenses} />
-        <Row label="Operating Profit" value={data.operatingProfit} bold border />
-        <Row
-          label={`Taxes (${(data.taxRate * 100).toFixed(0)}%)`}
-          value={-data.incomeTaxExpense}
-        />
         <div className="mt-1 border-t-2 border-(--color-accent-cyan)/30 pt-2">
-          <Row label="Net Income" value={data.netIncome} bold color={
-            data.netIncome > 0
-              ? 'text-(--color-accent-green) text-glow-cyan'
-              : data.netIncome < 0
-                ? 'text-(--color-accent-red)'
-                : 'text-(--color-text-muted)'
-          } />
+          <Row
+            label="Operating Profit"
+            value={data.operatingProfit}
+            bold
+            color={
+              data.operatingProfit > 0
+                ? 'text-(--color-accent-green) text-glow-cyan'
+                : data.operatingProfit < 0
+                  ? 'text-(--color-accent-red)'
+                  : 'text-(--color-text-muted)'
+            }
+          />
         </div>
       </div>
+
+      {!taxComputed && (
+        <div className="mt-5 rounded-lg border border-(--color-border) bg-(--color-bg-secondary) p-3">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
+            Tax &amp; Net Income
+          </p>
+          <p className="mt-1 text-xs text-(--color-text-secondary)">
+            {taxComputedReason ??
+              'Tax is resolved at the company level against a jurisdiction-specific rate sourced from OECD data. Link this agent to a company to see tax expense and net income.'}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

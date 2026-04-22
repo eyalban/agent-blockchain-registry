@@ -2,6 +2,16 @@ export { AgentRegistryClient } from './client'
 export { IdentityClient } from './identity'
 export { ReputationClient } from './reputation'
 export {
+  CompanyClient,
+  type CreateCompanyParams,
+  type CompanyInfo,
+} from './company'
+export {
+  InvoiceClient,
+  type CreateInvoiceParams,
+  type InvoiceInfo,
+} from './invoice'
+export {
   RegistryError,
   NotFoundError,
   TransactionError,

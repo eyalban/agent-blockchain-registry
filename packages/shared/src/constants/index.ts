@@ -14,6 +14,23 @@ export {
   type SupportedChain,
 } from './chains'
 
+export {
+  SUPPORTED_TOKENS,
+  getTokenBySymbol,
+  getTokenByAddress,
+  listTokens,
+  type TokenInfo,
+  type SupportedTokenChainId,
+} from './tokens'
+
+export {
+  CHAINLINK_FEEDS,
+  getFeed,
+  chainlinkAggregatorV3Abi,
+  type ChainlinkFeed,
+  type ChainlinkFeedChainId,
+} from './chainlink-feeds'
+
 /** Maximum number of tags per agent */
 export const MAX_TAGS = 10
 

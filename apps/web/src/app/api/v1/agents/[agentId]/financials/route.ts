@@ -35,9 +35,10 @@ export async function GET(_req: Request, { params }: RouteParams): Promise<NextR
       grossProfit: Number(statement.grossProfit.toFixed(6)),
       sgaExpenses: Number(statement.sgaExpenses.toFixed(6)),
       operatingProfit: Number(statement.operatingProfit.toFixed(6)),
-      incomeTaxExpense: Number(statement.incomeTaxExpense.toFixed(6)),
-      netIncome: Number(statement.netIncome.toFixed(6)),
     },
+    taxComputed: false,
+    taxComputedReason:
+      'Tax is resolved at the company level against a jurisdiction-specific rate. Create a company and link this agent to see tax and net income.',
     breakdown,
     transactionCount: transactions.length,
   })

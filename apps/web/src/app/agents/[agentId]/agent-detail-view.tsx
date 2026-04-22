@@ -287,6 +287,8 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
             <IncomeStatementCard
               data={financialData?.incomeStatement ?? null}
               isLoading={financialsLoading}
+              taxComputed={financialData?.taxComputed ?? false}
+              taxComputedReason={financialData?.taxComputedReason}
             />
             {financialData?.breakdown && Object.keys(financialData.breakdown).length > 0 && (
               <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-6">

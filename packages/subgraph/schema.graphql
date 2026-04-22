@@ -153,6 +153,68 @@ type ValidationResponse @entity(immutable: true) {
 }
 
 # =============================================================================
+# Agentic Companies (CompanyRegistry)
+# =============================================================================
+
+type Company @entity(immutable: false) {
+  "companyId as string"
+  id: ID!
+  "Numeric company id"
+  companyId: BigInt!
+  "Initial owner (founder)"
+  founder: Bytes!
+  "Current owner (may differ after ownership transfer)"
+  owner: Bytes!
+  "Off-chain metadata URI (IPFS JSON with name/description/jurisdictionCode)"
+  metadataURI: String!
+  "Block this company was created in"
+  createdAtBlock: BigInt!
+  "Timestamp of creation"
+  createdAt: BigInt!
+  "Tx hash of creation"
+  createdTx: Bytes!
+  "Active and historical members"
+  members: [CompanyMember!]! @derivedFrom(field: "company")
+  "Active and historical treasuries"
+  treasuries: [CompanyTreasury!]! @derivedFrom(field: "company")
+}
+
+type CompanyMember @entity(immutable: false) {
+  "companyId-agentId"
+  id: ID!
+  company: Company!
+  agent: Agent!
+  "Added at block"
+  addedAtBlock: BigInt!
+  "Timestamp added"
+  addedAt: BigInt!
+  "Tx hash of AgentAdded"
+  addedTx: Bytes!
+  "Timestamp removed (null if still active)"
+  removedAt: BigInt
+  "Tx hash of AgentRemoved (null if still active)"
+  removedTx: Bytes
+}
+
+type CompanyTreasury @entity(immutable: false) {
+  "companyId-address (lowercase)"
+  id: ID!
+  company: Company!
+  "Treasury EOA or contract address"
+  address: Bytes!
+  "Added at block"
+  addedAtBlock: BigInt!
+  "Timestamp added"
+  addedAt: BigInt!
+  "Tx hash of TreasuryAdded"
+  addedTx: Bytes!
+  "Timestamp removed (null if still active)"
+  removedAt: BigInt
+  "Tx hash of TreasuryRemoved (null if still active)"
+  removedTx: Bytes
+}
+
+# =============================================================================
 # Protocol-wide Statistics
 # =============================================================================
 
@@ -171,6 +233,8 @@ type ProtocolStats @entity(immutable: false) {
   uniqueOwners: BigInt!
   "Total agents registered via wrapper"
   totalWrapperRegistrations: BigInt!
+  "Total agentic companies created via CompanyRegistry"
+  totalCompanies: BigInt!
   "Block of last update"
   lastUpdatedBlock: BigInt!
 }

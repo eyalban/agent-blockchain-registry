@@ -9,11 +9,10 @@ interface IncomeStatementResponse {
     grossProfit: number
     sgaExpenses: number
     operatingProfit: number
-    taxRate: number
-    incomeTaxExpense: number
-    netIncome: number
     transactionCount: number
   }
+  taxComputed: boolean
+  taxComputedReason?: string
   breakdown: Record<string, { count: number; totalEth: number }>
 }
 

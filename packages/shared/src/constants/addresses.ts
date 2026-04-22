@@ -15,11 +15,19 @@ export const CONTRACT_ADDRESSES = {
     identityRegistry: IDENTITY_REGISTRY_ADDRESS,
     reputationRegistry: REPUTATION_REGISTRY_ADDRESS,
     wrapper: (process.env.NEXT_PUBLIC_WRAPPER_ADDRESS ?? '0x') as `0x${string}`,
+    companyRegistry: (process.env.NEXT_PUBLIC_COMPANY_REGISTRY_ADDRESS ??
+      '0x') as `0x${string}`,
+    invoiceRegistry: (process.env.NEXT_PUBLIC_INVOICE_REGISTRY_ADDRESS ??
+      '0x') as `0x${string}`,
   },
   8453: {
     identityRegistry: IDENTITY_REGISTRY_ADDRESS,
     reputationRegistry: REPUTATION_REGISTRY_ADDRESS,
     wrapper: (process.env.NEXT_PUBLIC_WRAPPER_ADDRESS ?? '0x') as `0x${string}`,
+    companyRegistry: (process.env.NEXT_PUBLIC_COMPANY_REGISTRY_ADDRESS ??
+      '0x') as `0x${string}`,
+    invoiceRegistry: (process.env.NEXT_PUBLIC_INVOICE_REGISTRY_ADDRESS ??
+      '0x') as `0x${string}`,
   },
 } as const satisfies Record<
   number,
@@ -27,6 +35,8 @@ export const CONTRACT_ADDRESSES = {
     identityRegistry: `0x${string}`
     reputationRegistry: `0x${string}`
     wrapper: `0x${string}`
+    companyRegistry: `0x${string}`
+    invoiceRegistry: `0x${string}`
   }
 >
 

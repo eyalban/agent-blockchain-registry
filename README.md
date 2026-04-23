@@ -200,7 +200,7 @@ Store the private key in a password manager. Losing it means losing the ability 
 
 ### Step 5. Operate through the agent
 
-Your agent now has an on-chain identity (and, for Path B, a company) it can use going forward. Continue instructing it through the same prompt pattern whenever you want it to use the registry's features — issue an invoice to another agent, pay an invoice it received, import off-chain costs, register additional agents under the company, update metadata, and so on. The agent re-uses its stored private key and the same `@agent-registry/sdk` client for every action. See [Usage](#usage) and the [documentation site](https://agent-registry-seven.vercel.app/docs) for the full surface.
+Your agent now has an on-chain identity (and, for Path B, a company) it can use going forward. Instruct it to take actions you want — issue an invoice to another agent, pay an invoice it received, import off-chain costs, register additional agents, update metadata, and so on. Point it at the [documentation site](https://agent-registry-seven.vercel.app/docs) and the [SDK source](packages/sdk); a capable agent can figure out the specific contract calls and API endpoints from there. See [Usage](#usage) below for the full surface area.
 
 ### Step 6. (Optional) Log in to the browser UI yourself
 

@@ -264,15 +264,28 @@ function ReconciliationBanner({
     )
   }
   if (recon.mismatchSource === 'faucet_drips_unbooked') {
+    const inflow = recon.externalInflowsUsd ?? 0
     return (
       <div className="rounded-lg border border-(--color-accent-amber)/40 bg-(--color-accent-amber)/5 p-3">
         <p className="text-xs text-(--color-accent-amber)">
-          Reconciliation mismatch: {formatUsd(recon.discrepancyUsd)}. This
-          company&rsquo;s member wallets received{' '}
-          {formatUsd(recon.externalInflowsUsd ?? 0)} of ETH from the Statemate
-          faucet, which hasn&rsquo;t been booked as contributed capital yet —
-          so assets exceed equity by roughly that amount. Record these drips
-          as capital contributions to reconcile.
+          Reconciliation mismatch: {formatUsd(recon.discrepancyUsd)}.{' '}
+          {inflow > 0 ? (
+            <>
+              This company&rsquo;s member wallets received{' '}
+              {formatUsd(inflow)} of ETH from the Statemate faucet, which
+              hasn&rsquo;t been booked as contributed capital yet — so assets
+              exceed equity by roughly that amount.
+            </>
+          ) : (
+            <>
+              This is Base Sepolia, contributed capital is $0, and the cash
+              in member wallets had to come from somewhere — on testnet that
+              &lsquo;somewhere&rsquo; is the Statemate faucet. Those drips
+              haven&rsquo;t been booked as contributed capital yet, so assets
+              exceed equity by the amount the faucet dripped in.
+            </>
+          )}{' '}
+          Record these inflows as capital contributions to reconcile.
         </p>
       </div>
     )

@@ -260,17 +260,26 @@ export async function computeCompanyBalanceSheet(params: {
       ? null
       : Math.abs(discrepancyUsd) <= Math.max(1, Math.abs(assetsUsd) * 0.001)
 
-  // Reconciliation-mismatch diagnosis. Sum USD received by any of this
-  // company's synced member wallets from a counterparty that is NOT a
-  // registered agent wallet — i.e. money coming in from outside the
-  // network. On testnet this is faucet drips; on mainnet it would be
-  // outside funding. If it explains most of the discrepancy we can
-  // tell the user exactly where the gap comes from.
+  // Reconciliation-mismatch diagnosis. We try two signals, in order:
+  //
+  //  1. Sum USD value received by this company's member wallets from a
+  //     counterparty that isn't a registered agent wallet — i.e. inflows
+  //     from outside the on-chain agent network. If this covers most of
+  //     the discrepancy, we have a concrete number to show. (Relies on
+  //     the tx indexer having picked up the faucet-drip transactions;
+  //     often it hasn't on testnet because the sync scope is per-agent
+  //     and starts after the drip.)
+  //
+  //  2. Fallback heuristic: on Base Sepolia (chainId 84532) the only
+  //     source of outside ETH is the Statemate faucet. If contributed
+  //     capital is $0 and the discrepancy is positive, the cash had to
+  //     come from the faucet — regardless of whether we indexed the
+  //     drip txs.
   const externalRows = (await sql`
     SELECT COALESCE(SUM(value_usd), 0)::text AS total
     FROM transactions
     WHERE company_id = ${companyId}
-      AND direction = 'in'
+      AND direction IN ('in', 'incoming')
       AND LOWER(counterparty) NOT IN (
         SELECT LOWER(wallet_address) FROM agent_wallets
       )
@@ -280,6 +289,8 @@ export async function computeCompanyBalanceSheet(params: {
       )
   `) as Array<{ total: string }>
   const externalInflowsUsd = Number(externalRows[0]?.total ?? 0)
+
+  const isTestnet = company.chain_id === 84532
 
   let mismatchSource: 'none' | 'faucet_drips_unbooked' | 'off_chain_costs_or_price_gaps'
   if (withinTolerance !== false || discrepancyUsd === null) {
@@ -292,6 +303,14 @@ export async function computeCompanyBalanceSheet(params: {
     Math.abs(discrepancyUsd - externalInflowsUsd) <=
       Math.max(1, Math.abs(discrepancyUsd) * 0.2)
   ) {
+    mismatchSource = 'faucet_drips_unbooked'
+  } else if (
+    isTestnet &&
+    discrepancyUsd > 0 &&
+    contributedCapitalUsd === 0
+  ) {
+    // Fallback: on testnet with no booked capital, a positive
+    // discrepancy is the faucet.
     mismatchSource = 'faucet_drips_unbooked'
   } else {
     mismatchSource = 'off_chain_costs_or_price_gaps'

@@ -25,7 +25,7 @@ The framework runs on Base, an Ethereum-based L2. Using it as an end user does n
 
 ## Quickstart — agent onboarding
 
-You instruct your AI agent with one of the prompts below. The agent handles the SDK install, IPFS upload, registration, and any company operations.
+You give one of the prompts below directly to your autonomous agent — the agent itself (built on OpenClaw, LangChain, AutoGPT, CrewAI, Letta, or a similar framework) performs its own registration. This is not a prompt for a coding assistant like Cursor; it is an instruction the autonomous agent reads and acts on via its own code-execution tool.
 
 ### Step 1. Choose a path
 
@@ -37,7 +37,7 @@ You instruct your AI agent with one of the prompts below. The agent handles the 
 
 ### Step 2. Copy the prompt for your path
 
-Paste it into Claude, ChatGPT, Cursor, Claude Code, or any AI coding assistant that can execute code. Fill in the placeholders in `<ANGLE BRACKETS>` before pasting.
+Provide the prompt to your autonomous agent — the agent you want registered — through whatever input channel that framework uses (a task message in LangChain/CrewAI, an instruction in OpenClaw, a goal in AutoGPT, etc.). The agent needs code-execution and internet access, both of which are standard in the frameworks listed above. Fill in the placeholders in `<ANGLE BRACKETS>` before handing it over.
 
 ---
 
@@ -187,7 +187,7 @@ Steps:
 
 ### Step 3. Run the agent
 
-Give the agent the filled-in prompt. On success, it returns an agent ID, optionally a company ID, and a wallet private key.
+Dispatch the filled-in prompt as the agent's task. On completion, the agent reports back with an agent ID, optionally a company ID, and a wallet private key.
 
 ### Step 4. Persist the returned credentials
 

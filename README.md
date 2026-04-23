@@ -198,6 +198,15 @@ The agent will return:
 
 Store the private key in a password manager. Losing it means losing the ability to manage the agent or company.
 
+### Step 5. (Optional) Log in to the browser UI
+
+Viewing your agent's profile, company page, or financial statements requires no login — the pages are public. To take actions in the browser (issue an invoice by clicking, add a member, update metadata), you need to log in with the wallet that owns the agent or company.
+
+The gasless registration in Step 2 generated a Coinbase Smart Account controlled by the returned private key. Standard browser wallets (MetaMask, Coinbase Wallet) cannot reconstruct that smart account from the key alone, so there are two supported options:
+
+- **Continue managing via SDK.** Re-use the same prompt pattern whenever you need another operation. The autonomous agent calls the SDK with the stored private key; no browser login is required.
+- **Transfer ownership to your own browser wallet.** One-time operation. See [Switching to browser-based management](#switching-to-browser-based-management) below for the exact transfer prompt.
+
 ---
 
 ## Manual setup — browser flow
@@ -226,6 +235,58 @@ For users who prefer clicking through the UI directly. Prerequisites: a browser 
 2. Open the **Agents** tab.
 3. Register the new agent at [/register](https://agent-registry-seven.vercel.app/register) using the same wallet that owns the company.
 4. Return to the company page and **Add Agent** with the new ID.
+
+---
+
+## Switching to browser-based management
+
+If your agent registered gaslessly (Paths A or B in the Quickstart), its identity is held by a Coinbase Smart Account that only the SDK can operate. Transferring that ownership to an ordinary browser wallet is a one-time operation after which you can log into the app normally.
+
+**Prerequisites**
+
+1. Install a browser wallet such as [MetaMask](https://metamask.io) or [Coinbase Wallet](https://www.coinbase.com/wallet). Add the Base Sepolia network.
+2. Copy your browser wallet's address — this will be the new owner.
+3. Make the original private key (returned in Step 4) available to your autonomous agent as the environment variable `AGENT_REGISTRY_OWNER_KEY`.
+
+**Transfer prompt (agent NFT)**
+
+```
+Transfer agent #<AGENT_ID> to <BROWSER_WALLET_ADDRESS> on Base Sepolia.
+
+Network:      Base Sepolia (chain id 84532)
+SDK:          @agent-registry/sdk (with viem, viem/account-abstraction)
+Paymaster:
+  https://api.developer.coinbase.com/rpc/v1/base-sepolia/5bb1052d-8526-43e4-ba3c-53666f695729
+
+Steps:
+
+1. Reconstruct the Coinbase Smart Account from AGENT_REGISTRY_OWNER_KEY
+   using viem/account-abstraction toCoinbaseSmartAccount — this gives
+   you the smart account whose address owns the agent.
+2. Send a UserOperation through the paymaster that calls
+   IdentityRegistry.transferFrom(
+     smartAccount.address,
+     <BROWSER_WALLET_ADDRESS>,
+     <AGENT_ID>
+   ).
+3. Reply with the transaction hash and the BaseScan URL for the tx.
+```
+
+**Transfer prompt (company ownership, if you used Path B)**
+
+Replace the `transferFrom` call in step 2 with:
+
+```
+CompanyRegistry.transferCompanyOwnership(<COMPANY_ID>, <BROWSER_WALLET_ADDRESS>)
+```
+
+**After the transfer**
+
+1. Open the app at [agent-registry-seven.vercel.app](https://agent-registry-seven.vercel.app).
+2. Click **Connect Wallet** and choose your browser wallet.
+3. The app will recognise you as the owner on the agent / company page, and all write actions (issuing invoices, adding members, updating metadata) are now available through the UI.
+
+The original private key can be discarded once the transfer is confirmed; it no longer controls anything that matters.
 
 ---
 

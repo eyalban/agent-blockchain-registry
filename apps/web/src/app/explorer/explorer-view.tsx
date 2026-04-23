@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useWalletNames } from '@/hooks/use-wallet-names'
-import { formatEthValue, formatRelativeTime } from '@/lib/utils'
+import {
+  formatEthValue,
+  formatRelativeTime,
+  formatCompactDateTime,
+} from '@/lib/utils'
 
 const ActivityChart = dynamic(
   () => import('@/components/explorer/activity-chart').then((m) => m.ActivityChart),
@@ -66,14 +70,16 @@ export function ExplorerView() {
 
   const walletNames = useWalletNames(transactions.map((tx) => tx.counterparty))
 
-  // Feed real block numbers into the chart so its block-range buckets
-  // spread out instead of collapsing into one gigantic bar. (The chart
-  // uses `blockNumber` to group.) The chart's `type` field is vestigial.
+  // Feed real block numbers + timestamps into the chart so it can
+  // bucket by time on the x-axis. (The chart prefers `timestamp` when
+  // present and falls back to `blockNumber` otherwise.) The `type`
+  // field is vestigial but kept for type compatibility.
   const chartEvents = transactions.map((tx) => ({
     type: 'registration' as const,
     agentId: BigInt(tx.agent_id),
     blockNumber: BigInt(tx.block_number),
     transactionHash: tx.tx_hash,
+    timestamp: new Date(tx.block_timestamp).getTime(),
   }))
 
   return (
@@ -145,8 +151,11 @@ export function ExplorerView() {
               <tbody>
                 {transactions.slice(0, 50).map((tx) => (
                   <tr key={`${tx.tx_hash}-${tx.agent_id}`} className="border-b border-(--color-border)/30 transition-colors hover:bg-(--color-surface-hover)">
-                    <td className="px-3 py-2 font-mono text-[11px] text-(--color-text-muted)" title={new Date(tx.block_timestamp).toLocaleString()}>
-                      {formatRelativeTime(tx.block_timestamp)}
+                    <td
+                      className="px-3 py-2 font-mono text-[11px] text-(--color-text-muted) whitespace-nowrap"
+                      title={`${new Date(tx.block_timestamp).toLocaleString()} (${formatRelativeTime(tx.block_timestamp)} ago)`}
+                    >
+                      {formatCompactDateTime(tx.block_timestamp)}
                     </td>
                     <td className="px-3 py-2">
                       <Link href={`/agents/${tx.agent_id}`} className="font-mono text-xs text-(--color-accent-cyan) hover:underline">#{tx.agent_id}</Link>

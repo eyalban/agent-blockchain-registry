@@ -56,3 +56,27 @@ export function formatRelativeTime(input: string | Date | number): string {
   if (diffSec < 365 * 86_400) return `${Math.floor(diffSec / (30 * 86_400))}mo`
   return `${Math.floor(diffSec / (365 * 86_400))}y`
 }
+
+/**
+ * Compact absolute timestamp for dense table cells. Today →"HH:MM",
+ * this year → "MMM DD HH:MM", older → "YYYY-MM-DD". Local time, so
+ * auditors see the instant they're used to reading.
+ */
+export function formatCompactDateTime(input: string | Date | number): string {
+  const d =
+    typeof input === 'string' || typeof input === 'number'
+      ? new Date(input)
+      : input
+  if (Number.isNaN(d.getTime())) return ''
+  const now = new Date()
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  const sameYear = d.getFullYear() === now.getFullYear()
+  const hm = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+  if (sameDay) return hm
+  const monthDay = d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+  if (sameYear) return `${monthDay} ${hm}`
+  return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })
+}

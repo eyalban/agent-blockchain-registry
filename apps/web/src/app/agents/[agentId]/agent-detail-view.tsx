@@ -6,7 +6,12 @@ import Link from 'next/link'
 import { useAgentDetail } from '@/hooks/use-agent-detail'
 import { useAgentTags } from '@/hooks/use-agent-tags'
 import { useReputationSummary } from '@/hooks/use-reputation-summary'
-import { truncateAddress, formatRelativeTime, formatEthValue } from '@/lib/utils'
+import {
+  truncateAddress,
+  formatRelativeTime,
+  formatCompactDateTime,
+  formatEthValue,
+} from '@/lib/utils'
 import { ADDRESS_EXPLORER_URL } from '@agent-registry/shared'
 import { FeedbackForm } from '@/components/reputation/feedback-form'
 import { TrustScore } from '@/components/reputation/trust-score'
@@ -236,8 +241,11 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                   <tbody>
                     {transactions.map((tx) => (
                       <tr key={tx.tx_hash} className="border-b border-(--color-border)/40 transition-colors hover:bg-(--color-surface-hover)">
-                        <td className="px-3 py-2.5 font-mono text-[11px] text-(--color-text-muted)" title={new Date(tx.block_timestamp).toLocaleString()}>
-                          {formatRelativeTime(tx.block_timestamp)}
+                        <td
+                          className="px-3 py-2.5 font-mono text-[11px] text-(--color-text-muted) whitespace-nowrap"
+                          title={`${new Date(tx.block_timestamp).toLocaleString()} (${formatRelativeTime(tx.block_timestamp)} ago)`}
+                        >
+                          {formatCompactDateTime(tx.block_timestamp)}
                         </td>
                         <td className="px-4 py-2.5">
                           <span className={`font-mono text-xs font-medium ${tx.direction === 'incoming' ? 'text-(--color-accent-green)' : 'text-(--color-accent-red)'}`}>

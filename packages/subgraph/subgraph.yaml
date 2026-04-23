@@ -106,7 +106,7 @@ dataSources:
     name: CompanyRegistry
     network: base-sepolia
     source:
-      address: "0xD557AF896A116bdb9A671f2eB45baAa8e521f77f"
+      address: "0x7b1598Ee7303A9EF733d2de92Ff81d555dcAb4A8"
       abi: CompanyRegistry
       startBlock: 25000000
     mapping:

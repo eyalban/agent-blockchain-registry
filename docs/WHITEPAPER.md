@@ -153,7 +153,7 @@ The framework today is Base-Sepolia-only and unaudited. A full list is in [LIMIT
 
 Testnet reference deployment on Base Sepolia:
 
-- `CompanyRegistry`: [`0xD557AF896A116bdb9A671f2eB45baAa8e521f77f`](https://sepolia.basescan.org/address/0xD557AF896A116bdb9A671f2eB45baAa8e521f77f)
+- `CompanyRegistry`: [`0x7b1598Ee7303A9EF733d2de92Ff81d555dcAb4A8`](https://sepolia.basescan.org/address/0x7b1598Ee7303A9EF733d2de92Ff81d555dcAb4A8)
 - `InvoiceRegistry`: [`0x645acDD5f85B52AD0CcE55B1c4f4Ac8BA00EC0Ac`](https://sepolia.basescan.org/address/0x645acDD5f85B52AD0CcE55B1c4f4Ac8BA00EC0Ac)
 - `AgentRegistryWrapper`: [`0xC02DE01B0ecBcE17c4E71fc7A0Ad86764B3DF64C`](https://sepolia.basescan.org/address/0xC02DE01B0ecBcE17c4E71fc7A0Ad86764B3DF64C)
 

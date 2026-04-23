@@ -1,6 +1,11 @@
 /**
  * ABI for the CompanyRegistry contract.
- * Deployed Base Sepolia: 0xD557AF896A116bdb9A671f2eB45baAa8e521f77f
+ * Deployed Base Sepolia: 0x7b1598Ee7303A9EF733d2de92Ff81d555dcAb4A8
+ *
+ * v2: adds the agent-side approval flow
+ * (`approveCompanyMembership` / `revokeCompanyMembership`) so every agent
+ * inside a company can keep its own wallet. `addAgent` accepts either the
+ * legacy single-EOA path or the cross-EOA path with prior approval.
  */
 export const companyRegistryAbi = [
   // Constructor
@@ -60,6 +65,26 @@ export const companyRegistryAbi = [
   },
   {
     type: 'function',
+    name: 'approveCompanyMembership',
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'companyId', type: 'uint256' },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'revokeCompanyMembership',
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'companyId', type: 'uint256' },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     name: 'addTreasury',
     inputs: [
       { name: 'companyId', type: 'uint256' },
@@ -107,6 +132,16 @@ export const companyRegistryAbi = [
     inputs: [
       { name: 'companyId', type: 'uint256' },
       { name: 'agentId', type: 'uint256' },
+    ],
+    outputs: [{ name: '', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'agentApprovedCompany',
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'companyId', type: 'uint256' },
     ],
     outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'view',
@@ -202,6 +237,26 @@ export const companyRegistryAbi = [
     inputs: [
       { name: 'companyId', type: 'uint256', indexed: true },
       { name: 'agentId', type: 'uint256', indexed: true },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'AgentApprovedCompanyMembership',
+    inputs: [
+      { name: 'companyId', type: 'uint256', indexed: true },
+      { name: 'agentId', type: 'uint256', indexed: true },
+      { name: 'agentOwner', type: 'address', indexed: true },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'AgentRevokedCompanyMembership',
+    inputs: [
+      { name: 'companyId', type: 'uint256', indexed: true },
+      { name: 'agentId', type: 'uint256', indexed: true },
+      { name: 'agentOwner', type: 'address', indexed: true },
     ],
     anonymous: false,
   },

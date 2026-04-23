@@ -164,16 +164,141 @@ contract CompanyRegistryTest is Test {
         assertEq(list[0], 42);
     }
 
-    function test_addAgent_reverts_when_caller_not_agent_owner() public {
+    function test_addAgent_reverts_when_agent_owned_by_other_eoa_without_approval() public {
         vm.prank(alice);
         uint256 id = registry.createCompany("ipfs://meta");
 
-        // Agent is owned by bob, but alice is trying to add it to her company.
+        // Agent is owned by bob, alice (the company owner) tries to add it
+        // but bob has not approved.
+        identity.setOwner(42, bob);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(CompanyRegistry.AgentNotApproved.selector, id, 42)
+        );
+        registry.addAgent(id, 42);
+    }
+
+    function test_addAgent_succeeds_cross_eoa_with_approval() public {
+        // Path: agent and company are owned by different EOAs. Each agent
+        // keeps its own wallet — the agent's owner pre-approves and the
+        // company owner consummates the membership.
+        vm.prank(alice);
+        uint256 id = registry.createCompany("ipfs://meta");
+
+        identity.setOwner(42, bob);
+        vm.prank(bob);
+        registry.approveCompanyMembership(42, id);
+
+        assertTrue(registry.agentApprovedCompany(42, id));
+
+        vm.prank(alice);
+        registry.addAgent(id, 42);
+
+        assertTrue(registry.hasMember(id, 42));
+        // One-shot: approval is consumed.
+        assertFalse(registry.agentApprovedCompany(42, id));
+    }
+
+    function test_approveCompanyMembership_reverts_when_not_agent_owner() public {
+        vm.prank(alice);
+        uint256 id = registry.createCompany("ipfs://meta");
         identity.setOwner(42, bob);
 
         vm.prank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(CompanyRegistry.NotAgentOwner.selector, 42, alice)
+        );
+        registry.approveCompanyMembership(42, id);
+    }
+
+    function test_approveCompanyMembership_reverts_for_unknown_company() public {
+        identity.setOwner(42, bob);
+        vm.prank(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(CompanyRegistry.CompanyNotFound.selector, 999)
+        );
+        registry.approveCompanyMembership(42, 999);
+    }
+
+    function test_approveCompanyMembership_reverts_when_already_approved() public {
+        vm.prank(alice);
+        uint256 id = registry.createCompany("ipfs://meta");
+        identity.setOwner(42, bob);
+
+        vm.prank(bob);
+        registry.approveCompanyMembership(42, id);
+
+        vm.prank(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(CompanyRegistry.AgentAlreadyApproved.selector, id, 42)
+        );
+        registry.approveCompanyMembership(42, id);
+    }
+
+    function test_revokeCompanyMembership_clears_pending_approval() public {
+        vm.prank(alice);
+        uint256 id = registry.createCompany("ipfs://meta");
+        identity.setOwner(42, bob);
+
+        vm.prank(bob);
+        registry.approveCompanyMembership(42, id);
+        vm.prank(bob);
+        registry.revokeCompanyMembership(42, id);
+
+        assertFalse(registry.agentApprovedCompany(42, id));
+
+        // After revoke, addAgent reverts again.
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(CompanyRegistry.AgentNotApproved.selector, id, 42)
+        );
+        registry.addAgent(id, 42);
+    }
+
+    function test_revokeCompanyMembership_reverts_when_not_agent_owner() public {
+        vm.prank(alice);
+        uint256 id = registry.createCompany("ipfs://meta");
+        identity.setOwner(42, bob);
+        vm.prank(bob);
+        registry.approveCompanyMembership(42, id);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(CompanyRegistry.NotAgentOwner.selector, 42, alice)
+        );
+        registry.revokeCompanyMembership(42, id);
+    }
+
+    function test_revokeCompanyMembership_reverts_when_no_approval() public {
+        vm.prank(alice);
+        uint256 id = registry.createCompany("ipfs://meta");
+        identity.setOwner(42, bob);
+
+        vm.prank(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(CompanyRegistry.AgentNotApprovedYet.selector, id, 42)
+        );
+        registry.revokeCompanyMembership(42, id);
+    }
+
+    function test_addAgent_consumes_approval_so_re_add_after_remove_fails() public {
+        // After removeAgent, the company cannot silently re-add the agent —
+        // the agent's owner must explicitly approve again.
+        vm.prank(alice);
+        uint256 id = registry.createCompany("ipfs://meta");
+        identity.setOwner(42, bob);
+
+        vm.prank(bob);
+        registry.approveCompanyMembership(42, id);
+        vm.prank(alice);
+        registry.addAgent(id, 42);
+        vm.prank(alice);
+        registry.removeAgent(id, 42);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(CompanyRegistry.AgentNotApproved.selector, id, 42)
         );
         registry.addAgent(id, 42);
     }

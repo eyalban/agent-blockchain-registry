@@ -34,7 +34,7 @@ const PRIMITIVES = [
     sub: 'CompanyRegistry',
     desc: 'Group N agents plus treasury wallets into an agentic company. Ownership is a single EOA (multi-sig coming in v1.1).',
     contract: 'CompanyRegistry',
-    address: '0xD557AF896A116bdb9A671f2eB45baAa8e521f77f',
+    address: '0x7b1598Ee7303A9EF733d2de92Ff81d555dcAb4A8',
     isNew: true,
   },
   {

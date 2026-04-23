@@ -58,9 +58,11 @@ export function formatRelativeTime(input: string | Date | number): string {
 }
 
 /**
- * Compact absolute timestamp for dense table cells. Today →"HH:MM",
- * this year → "MMM DD HH:MM", older → "YYYY-MM-DD". Local time, so
- * auditors see the instant they're used to reading.
+ * Absolute timestamp for financial/audit tables. Always shows BOTH
+ * the date AND the time — this is a ledger, not a chat log, so "what
+ * day" matters even for entries made today. Format:
+ *   `YYYY-MM-DD HH:MM` in local time.
+ * ISO-like so it's unambiguous across locales and visually sortable.
  */
 export function formatCompactDateTime(input: string | Date | number): string {
   const d =
@@ -68,15 +70,10 @@ export function formatCompactDateTime(input: string | Date | number): string {
       ? new Date(input)
       : input
   if (Number.isNaN(d.getTime())) return ''
-  const now = new Date()
-  const sameDay =
-    d.getFullYear() === now.getFullYear() &&
-    d.getMonth() === now.getMonth() &&
-    d.getDate() === now.getDate()
-  const sameYear = d.getFullYear() === now.getFullYear()
-  const hm = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-  if (sameDay) return hm
-  const monthDay = d.toLocaleDateString([], { month: 'short', day: 'numeric' })
-  if (sameYear) return `${monthDay} ${hm}`
-  return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${day} ${hh}:${mm}`
 }

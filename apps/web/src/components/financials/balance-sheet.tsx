@@ -35,6 +35,11 @@ interface BalanceSheet {
     liabilitiesPlusEquityUsd: number | null
     discrepancyUsd: number | null
     withinTolerance: boolean | null
+    externalInflowsUsd?: number
+    mismatchSource?:
+      | 'none'
+      | 'faucet_drips_unbooked'
+      | 'off_chain_costs_or_price_gaps'
   }
 }
 
@@ -254,6 +259,20 @@ function ReconciliationBanner({
         <p className="text-xs text-(--color-accent-green)">
           Balance sheet reconciled: assets ≈ liabilities + equity (diff{' '}
           {formatUsd(recon.discrepancyUsd ?? 0)}).
+        </p>
+      </div>
+    )
+  }
+  if (recon.mismatchSource === 'faucet_drips_unbooked') {
+    return (
+      <div className="rounded-lg border border-(--color-accent-amber)/40 bg-(--color-accent-amber)/5 p-3">
+        <p className="text-xs text-(--color-accent-amber)">
+          Reconciliation mismatch: {formatUsd(recon.discrepancyUsd)}. This
+          company&rsquo;s member wallets received{' '}
+          {formatUsd(recon.externalInflowsUsd ?? 0)} of ETH from the Statemate
+          faucet, which hasn&rsquo;t been booked as contributed capital yet —
+          so assets exceed equity by roughly that amount. Record these drips
+          as capital contributions to reconcile.
         </p>
       </div>
     )

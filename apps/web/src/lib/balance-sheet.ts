@@ -83,6 +83,22 @@ export interface CompanyBalanceSheet {
     liabilitiesPlusEquityUsd: number | null
     discrepancyUsd: number | null
     withinTolerance: boolean | null
+    /**
+     * Sum of USD value received by this company's member wallets from
+     * counterparties that are NOT registered agent wallets — i.e.
+     * inflows from outside the on-chain agent network. On testnet this
+     * is almost entirely Statemate faucet drips; on mainnet it would
+     * be shareholder wires / treasury funding.
+     *
+     * When this approximately equals `discrepancyUsd`, the mismatch is
+     * explained: these inflows haven't been booked as contributed
+     * capital yet. The UI uses this to show a specific banner.
+     */
+    externalInflowsUsd: number
+    mismatchSource:
+      | 'none'
+      | 'faucet_drips_unbooked'
+      | 'off_chain_costs_or_price_gaps'
   }
   sources: string[]
 }
@@ -244,6 +260,43 @@ export async function computeCompanyBalanceSheet(params: {
       ? null
       : Math.abs(discrepancyUsd) <= Math.max(1, Math.abs(assetsUsd) * 0.001)
 
+  // Reconciliation-mismatch diagnosis. Sum USD received by any of this
+  // company's synced member wallets from a counterparty that is NOT a
+  // registered agent wallet — i.e. money coming in from outside the
+  // network. On testnet this is faucet drips; on mainnet it would be
+  // outside funding. If it explains most of the discrepancy we can
+  // tell the user exactly where the gap comes from.
+  const externalRows = (await sql`
+    SELECT COALESCE(SUM(value_usd), 0)::text AS total
+    FROM transactions
+    WHERE company_id = ${companyId}
+      AND direction = 'in'
+      AND LOWER(counterparty) NOT IN (
+        SELECT LOWER(wallet_address) FROM agent_wallets
+      )
+      AND LOWER(counterparty) NOT IN (
+        SELECT LOWER(address) FROM company_treasuries
+        WHERE company_id = ${companyId}
+      )
+  `) as Array<{ total: string }>
+  const externalInflowsUsd = Number(externalRows[0]?.total ?? 0)
+
+  let mismatchSource: 'none' | 'faucet_drips_unbooked' | 'off_chain_costs_or_price_gaps'
+  if (withinTolerance !== false || discrepancyUsd === null) {
+    mismatchSource = 'none'
+  } else if (
+    externalInflowsUsd > 0 &&
+    // Discrepancy is explained if external inflows cover ≥80% of it and
+    // aren't dramatically larger (which would suggest something else
+    // like unbooked treasury outflows).
+    Math.abs(discrepancyUsd - externalInflowsUsd) <=
+      Math.max(1, Math.abs(discrepancyUsd) * 0.2)
+  ) {
+    mismatchSource = 'faucet_drips_unbooked'
+  } else {
+    mismatchSource = 'off_chain_costs_or_price_gaps'
+  }
+
   return {
     companyId,
     asOf,
@@ -271,6 +324,8 @@ export async function computeCompanyBalanceSheet(params: {
       liabilitiesPlusEquityUsd,
       discrepancyUsd,
       withinTolerance,
+      externalInflowsUsd,
+      mismatchSource,
     },
     sources: Array.from(new Set(sources)),
   }

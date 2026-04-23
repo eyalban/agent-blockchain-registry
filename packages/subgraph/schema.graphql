@@ -1,5 +1,5 @@
 """
-Agent Registry Subgraph Schema
+Statemate Subgraph Schema
 Indexes the canonical ERC-8004 Identity Registry, Reputation Registry,
 and the custom AgentRegistryWrapper on Base Sepolia.
 """

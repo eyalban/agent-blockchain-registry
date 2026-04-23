@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 export interface AgentTx {
   readonly tx_hash: string
@@ -17,26 +17,31 @@ export function useAgentTransactions(agentId: string): {
   isSyncing: boolean
   sync: () => void
 } {
-  const [transactions, setTransactions] = useState<AgentTx[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSyncing, setIsSyncing] = useState(false)
+  const query = useQuery({
+    queryKey: ['agent-transactions', agentId],
+    queryFn: async (): Promise<AgentTx[]> => {
+      const r = await fetch(`/api/v1/agents/${agentId}/transactions`)
+      if (!r.ok) return []
+      const d = (await r.json()) as { transactions?: AgentTx[] }
+      return d.transactions ?? []
+    },
+  })
 
-  function load(): void {
-    fetch(`/api/v1/agents/${agentId}/transactions`)
-      .then((r) => (r.ok ? r.json() : { transactions: [] }))
-      .then((d) => setTransactions((d as { transactions: AgentTx[] }).transactions ?? []))
-      .catch(() => setTransactions([]))
-      .finally(() => setIsLoading(false))
+  const syncMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      await fetch(`/api/v1/agents/${agentId}/transactions/sync`, {
+        method: 'POST',
+      })
+    },
+    onSuccess: () => {
+      void query.refetch()
+    },
+  })
+
+  return {
+    transactions: query.data ?? [],
+    isLoading: query.isPending,
+    isSyncing: syncMutation.isPending,
+    sync: () => syncMutation.mutate(),
   }
-
-  useEffect(() => { load() }, [agentId])
-
-  function sync(): void {
-    setIsSyncing(true)
-    fetch(`/api/v1/agents/${agentId}/transactions/sync`, { method: 'POST' })
-      .then(() => load())
-      .finally(() => setIsSyncing(false))
-  }
-
-  return { transactions, isLoading, isSyncing, sync }
 }

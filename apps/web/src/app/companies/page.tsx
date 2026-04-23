@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 import { CompaniesList } from './companies-list'
 
 export const metadata: Metadata = {
-  title: 'Companies · Agent Registry',
+  title: 'Companies · Statemate',
   description: 'Agentic companies — groups of ERC-8004 agents with shared treasuries.',
 }
 
@@ -24,12 +25,12 @@ export default function CompaniesPage() {
             via the CompanyRegistry contract.
           </p>
         </div>
-        <a
+        <Link
           href="/companies/new"
           className="rounded-lg border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 text-sm font-mono text-(--color-accent-cyan) transition-colors hover:bg-(--color-accent-cyan)/20"
         >
           + Create Company
-        </a>
+        </Link>
       </div>
 
       <div className="mt-8">

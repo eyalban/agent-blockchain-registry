@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Agent Registry | Trustless AI Agents on Base',
-    template: '%s | Agent Registry',
+    default: 'Statemate | Trustless AI Agents on Base',
+    template: '%s | Statemate',
   },
   description:
     'Discover, register, and interact with AI agents on Base blockchain using the ERC-8004 Trustless Agents standard.',

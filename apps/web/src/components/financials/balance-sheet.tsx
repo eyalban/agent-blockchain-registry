@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 interface CashLine {
   address: string
@@ -51,24 +51,19 @@ function formatUsd(v: number | null): string {
 }
 
 export function CompanyBalanceSheet({ companyId }: { companyId: string }) {
-  const [data, setData] = useState<BalanceSheet | null>(null)
-  const [isLoading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    setLoading(true)
-    fetch(`/api/v1/companies/${companyId}/financials/balance-sheet`)
-      .then(async (r) => {
-        if (!r.ok) {
-          const j = (await r.json()) as { error?: string }
-          throw new Error(j.error ?? `Request failed (${r.status})`)
-        }
-        return r.json()
-      })
-      .then((j) => setData(j as BalanceSheet))
-      .catch((e) => setError((e as Error).message))
-      .finally(() => setLoading(false))
-  }, [companyId])
+  const { data, isPending: isLoading, error } = useQuery({
+    queryKey: ['balance-sheet', companyId],
+    queryFn: async (): Promise<BalanceSheet> => {
+      const r = await fetch(
+        `/api/v1/companies/${companyId}/financials/balance-sheet`,
+      )
+      if (!r.ok) {
+        const j = (await r.json()) as { error?: string }
+        throw new Error(j.error ?? `Request failed (${r.status})`)
+      }
+      return (await r.json()) as BalanceSheet
+    },
+  })
 
   if (isLoading) {
     return (
@@ -78,7 +73,7 @@ export function CompanyBalanceSheet({ companyId }: { companyId: string }) {
   if (error) {
     return (
       <div className="rounded-xl border border-(--color-accent-red)/40 bg-(--color-accent-red)/5 p-4 text-sm text-(--color-accent-red)">
-        {error}
+        {error.message}
       </div>
     )
   }

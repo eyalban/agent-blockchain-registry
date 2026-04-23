@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 import { InvoicesList } from './invoices-list'
 
 export const metadata: Metadata = {
-  title: 'Invoices · Agent Registry',
+  title: 'Invoices · Statemate',
   description: 'On-chain invoices between agents and agentic companies.',
 }
 
@@ -23,12 +24,12 @@ export default function InvoicesPage() {
             settlement. Unpaid invoices show up as AR/AP on company balance sheets.
           </p>
         </div>
-        <a
+        <Link
           href="/invoices/new"
           className="rounded-lg border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 text-sm font-mono text-(--color-accent-cyan) transition-colors hover:bg-(--color-accent-cyan)/20"
         >
           + New Invoice
-        </a>
+        </Link>
       </div>
       <div className="mt-8">
         <InvoicesList />

@@ -1,48 +1,41 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
+import { useQueries } from '@tanstack/react-query'
 
 /**
- * Resolves wallet addresses to agent names by querying the wallet lookup API.
- * Caches results to avoid repeated calls for the same address.
+ * Resolves wallet addresses to agent names. Each address is its own query so
+ * results are cached and shared across components.
  */
 export function useWalletNames(addresses: string[]): Map<string, string> {
-  const [names, setNames] = useState<Map<string, string>>(new Map())
+  const unique = useMemo(
+    () => Array.from(new Set(addresses.map((a) => a.toLowerCase()))),
+    [addresses],
+  )
 
-  useEffect(() => {
-    if (addresses.length === 0) return
+  const results = useQueries({
+    queries: unique.map((addr) => ({
+      queryKey: ['wallet-name', addr],
+      queryFn: async (): Promise<{ addr: string; name: string } | null> => {
+        const lookup = await fetch(`/api/v1/wallets/${addr}`)
+        if (!lookup.ok) return null
+        const data = (await lookup.json()) as { agentId?: string }
+        if (!data.agentId) return null
+        const agent = await fetch(`/api/v1/agents/${data.agentId}`)
+        if (!agent.ok) return { addr, name: `Agent #${data.agentId}` }
+        const card = ((await agent.json()) as { card?: { name?: string } } | null)
+          ?.card
+        return { addr, name: card?.name ?? `Agent #${data.agentId}` }
+      },
+      staleTime: 5 * 60_000,
+    })),
+  })
 
-    const unique = [...new Set(addresses.map((a) => a.toLowerCase()))]
-    const toFetch = unique.filter((a) => !names.has(a))
-    if (toFetch.length === 0) return
-
-    Promise.all(
-      toFetch.map((addr) =>
-        fetch(`/api/v1/wallets/${addr}`)
-          .then((r) => (r.ok ? r.json() : null))
-          .then((data) => {
-            if (!data) return null
-            const agentId = (data as { agentId: string }).agentId
-            // Fetch agent name from the agent detail endpoint
-            return fetch(`/api/v1/agents/${agentId}`)
-              .then((r) => (r.ok ? r.json() : null))
-              .then((agentData) => {
-                const card = (agentData as { card?: { name?: string } } | null)?.card
-                return { addr, name: card?.name ?? `Agent #${agentId}` }
-              })
-          })
-          .catch(() => null),
-      ),
-    ).then((results) => {
-      setNames((prev) => {
-        const next = new Map(prev)
-        for (const r of results) {
-          if (r) next.set(r.addr, r.name)
-        }
-        return next
-      })
-    })
-  }, [addresses.join(',')])
-
-  return names
+  return useMemo(() => {
+    const m = new Map<string, string>()
+    for (const r of results) {
+      if (r.data) m.set(r.data.addr, r.data.name)
+    }
+    return m
+  }, [results])
 }

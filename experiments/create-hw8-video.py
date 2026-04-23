@@ -31,7 +31,7 @@ def line(d, y, c=CYAN, w=1):
 
 # Slide 1: Title
 img, d = new_slide()
-d.text((W//2, 250), "HW8: Agent Registry", fill=CYAN, font=font(56), anchor="mm")
+d.text((W//2, 250), "HW8: Statemate", fill=CYAN, font=font(56), anchor="mm")
 d.text((W//2, 330), "Financial Reporting + 30-Agent Scale Test", fill=WHITE, font=font(30, False), anchor="mm")
 line(d, 390)
 d.text((W//2, 440), "What changed since HW7:", fill=MUTED, font=font(20, False), anchor="mm")
@@ -153,7 +153,7 @@ for i, (label, text, color) in enumerate(findings):
     y += 80
 
 line(d, y + 20)
-d.text((W//2, y + 50), "github.com/eyalban/agent-blockchain-registry", fill=CYAN, font=font(20, False), anchor="mm")
+d.text((W//2, y + 50), "github.com/eyalban/agent-registry-framework", fill=CYAN, font=font(20, False), anchor="mm")
 img.save(f"{FRAMES}/hw8-05.png")
 
 # Combine

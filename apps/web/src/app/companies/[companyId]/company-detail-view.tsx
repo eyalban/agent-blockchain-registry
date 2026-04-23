@@ -319,8 +319,8 @@ function TreasuriesTab({
             Add Treasury
           </p>
           <p className="mt-1 text-xs text-(--color-text-secondary)">
-            Any address whose balances + txs should consolidate into this company's
-            financial statements.
+            Any address whose balances + txs should consolidate into this
+            company&apos;s financial statements.
           </p>
           <div className="mt-3 space-y-2">
             <input

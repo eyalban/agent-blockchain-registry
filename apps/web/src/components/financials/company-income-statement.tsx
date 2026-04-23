@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 interface TaxRate {
   rate: number
@@ -57,19 +58,15 @@ export function CompanyIncomeStatement({ companyId }: { companyId: string }) {
   const [period, setPeriod] = useState<'monthly' | 'quarterly' | 'ytd' | 'total'>(
     'monthly',
   )
-  const [data, setData] = useState<Statement | null>(null)
-  const [isLoading, setLoading] = useState(true)
-
-  useEffect(() => {
-    setLoading(true)
-    fetch(
-      `/api/v1/companies/${companyId}/financials/income-statement?period=${period}`,
-    )
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => setData(j as Statement | null))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false))
-  }, [companyId, period])
+  const { data, isPending: isLoading } = useQuery({
+    queryKey: ['income-statement', companyId, period],
+    queryFn: async (): Promise<Statement | null> => {
+      const r = await fetch(
+        `/api/v1/companies/${companyId}/financials/income-statement?period=${period}`,
+      )
+      return r.ok ? ((await r.json()) as Statement) : null
+    },
+  })
 
   if (isLoading) {
     return (

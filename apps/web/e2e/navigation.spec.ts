@@ -11,7 +11,7 @@ test.describe('Navigation', () => {
 
   test('agents page loads and shows registry', async ({ page }) => {
     await page.goto('/agents')
-    await expect(page.getByText('Agent Registry')).toBeVisible()
+    await expect(page.getByText('Statemate')).toBeVisible()
     await expect(page.getByPlaceholder('Search agents')).toBeVisible()
   })
 

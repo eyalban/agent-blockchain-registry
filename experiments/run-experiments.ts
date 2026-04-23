@@ -1,5 +1,5 @@
 /**
- * Agent Registry System Experiments
+ * Statemate System Experiments
  * ==================================
  * Tests the deployed registry (Base Sepolia) with real on-chain interactions.
  *
@@ -483,7 +483,7 @@ async function experiment3(): Promise<ExperimentResult> {
 
 async function main(): Promise<void> {
   console.log('╔══════════════════════════════════════════════════╗')
-  console.log('║  Agent Registry — System Experiments             ║')
+  console.log('║  Statemate — System Experiments             ║')
   console.log('║  Network: Base Sepolia                           ║')
   console.log('║  Live API: agent-registry-seven.vercel.app       ║')
   console.log('╚══════════════════════════════════════════════════╝')

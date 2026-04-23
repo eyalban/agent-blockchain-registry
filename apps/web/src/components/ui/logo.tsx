@@ -4,7 +4,7 @@ interface LogoProps {
 }
 
 /**
- * Agent Registry logo — a stylized node/agent icon with connection lines,
+ * Statemate logo — a stylized node/agent icon with connection lines,
  * representing a blockchain-registered AI agent in a network.
  */
 export function Logo({ size = 32, className = '' }: LogoProps) {

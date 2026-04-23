@@ -1,7 +1,7 @@
-# Agent Blockchain Registry - Development Standards
+# Statemate - Development Standards
 
 ## Project Overview
-AI Agent Registry built on ERC-8004 ("Trustless Agents") standard, deployed on Base Sepolia / Base mainnet. Turborepo monorepo with Next.js 15, Foundry smart contracts, The Graph subgraph, and a published TypeScript SDK.
+Statemate — an AI agent registry built on ERC-8004 ("Trustless Agents") standard, deployed on Base Sepolia / Base mainnet. Turborepo monorepo with Next.js 15, Foundry smart contracts, The Graph subgraph, and a published TypeScript SDK.
 
 ## Monorepo Structure
 - `apps/web/` - Next.js 15 App Router application

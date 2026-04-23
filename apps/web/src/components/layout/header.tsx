@@ -24,7 +24,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2.5 group">
           <Logo size={34} />
           <span className="text-lg font-semibold text-(--color-text-primary) transition-colors group-hover:text-(--color-accent-cyan)">
-            Agent Registry
+            Statemate
           </span>
         </Link>
 

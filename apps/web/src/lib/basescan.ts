@@ -17,9 +17,7 @@ export interface SimpleTx {
   isError: string
 }
 
-export async function fetchTransactions(
-  _address: string,
-): Promise<SimpleTx[]> {
+export async function fetchTransactions(): Promise<SimpleTx[]> {
   // BaseScan V1 deprecated, V2 requires API key.
   // Agents report their transactions directly via the sync API.
   return []

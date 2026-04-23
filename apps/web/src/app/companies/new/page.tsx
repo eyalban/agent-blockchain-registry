@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { CreateCompanyForm } from './create-company-form'
 
 export const metadata: Metadata = {
-  title: 'Create Company · Agent Registry',
+  title: 'Create Company · Statemate',
   description: 'Create a new agentic company on-chain.',
 }
 

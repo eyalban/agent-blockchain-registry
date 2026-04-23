@@ -87,7 +87,7 @@ slide.addShape(pptx.shapes.RECTANGLE, {
   fill: { color: SURFACE },
 })
 
-slide.addText('Live: agent-registry-seven.vercel.app  |  GitHub: eyalban/agent-blockchain-registry  |  Base Sepolia  |  Hetzner VPS (Nuremberg)', {
+slide.addText('Live: agent-registry-seven.vercel.app  |  GitHub: eyalban/agent-registry-framework  |  Base Sepolia  |  Hetzner VPS (Nuremberg)', {
   x: 0.8, y: 6.95, w: 11.7, h: 0.45,
   fontSize: 10, fontFace: 'Arial', color: MUTED,
   valign: 'middle',

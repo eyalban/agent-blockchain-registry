@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 export interface CompanyMember {
   agentId: string
@@ -31,54 +31,59 @@ export interface Company {
   treasuries: CompanyTreasury[]
 }
 
+type CompanySummary = Pick<
+  Company,
+  | 'companyId'
+  | 'ownerAddress'
+  | 'metadataURI'
+  | 'name'
+  | 'description'
+  | 'logoURL'
+  | 'jurisdictionCode'
+  | 'createdAt'
+>
+
 export function useCompany(companyId: string | undefined): {
   data: Company | null
   isLoading: boolean
   reload: () => void
 } {
-  const [data, setData] = useState<Company | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [nonce, setNonce] = useState(0)
+  const query = useQuery({
+    queryKey: ['company', companyId],
+    queryFn: async (): Promise<Company | null> => {
+      const r = await fetch(`/api/v1/companies/${companyId}`)
+      return r.ok ? ((await r.json()) as Company) : null
+    },
+    enabled: !!companyId,
+  })
 
-  useEffect(() => {
-    if (!companyId) return
-    setIsLoading(true)
-    fetch(`/api/v1/companies/${companyId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => setData(j as Company | null))
-      .catch(() => setData(null))
-      .finally(() => setIsLoading(false))
-  }, [companyId, nonce])
-
-  return { data, isLoading, reload: () => setNonce((n) => n + 1) }
+  return {
+    data: query.data ?? null,
+    isLoading: query.isPending,
+    reload: () => {
+      void query.refetch()
+    },
+  }
 }
 
 export function useCompaniesList(): {
-  data: Array<Pick<Company, 'companyId' | 'ownerAddress' | 'metadataURI' | 'name' | 'description' | 'logoURL' | 'jurisdictionCode' | 'createdAt'>>
+  data: CompanySummary[]
   total: number
   isLoading: boolean
 } {
-  const [data, setData] = useState<
-    Array<Pick<Company, 'companyId' | 'ownerAddress' | 'metadataURI' | 'name' | 'description' | 'logoURL' | 'jurisdictionCode' | 'createdAt'>>
-  >([])
-  const [total, setTotal] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
+  const query = useQuery({
+    queryKey: ['companies', { limit: 50 }],
+    queryFn: async (): Promise<{ data: CompanySummary[]; total: number }> => {
+      const r = await fetch('/api/v1/companies?limit=50')
+      if (!r.ok) return { data: [], total: 0 }
+      const j = (await r.json()) as { data?: CompanySummary[]; total?: number }
+      return { data: j.data ?? [], total: j.total ?? 0 }
+    },
+  })
 
-  useEffect(() => {
-    setIsLoading(true)
-    fetch('/api/v1/companies?limit=50')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j: { data?: typeof data; total?: number } | null) => {
-        if (j) {
-          setData(j.data ?? [])
-          setTotal(j.total ?? 0)
-        }
-      })
-      .catch(() => {
-        /* keep empty state */
-      })
-      .finally(() => setIsLoading(false))
-  }, [])
-
-  return { data, total, isLoading }
+  return {
+    data: query.data?.data ?? [],
+    total: query.data?.total ?? 0,
+    isLoading: query.isPending,
+  }
 }

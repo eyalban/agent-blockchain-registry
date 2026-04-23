@@ -88,14 +88,6 @@ interface OffChainAggRow {
   entry_count: string
 }
 
-function periodExpression(granularity: PeriodGranularity): string {
-  // PG date_trunc outputs timestamp; format as ISO string in SELECT.
-  if (granularity === 'monthly') return `date_trunc('month', block_timestamp)`
-  if (granularity === 'quarterly') return `date_trunc('quarter', block_timestamp)`
-  if (granularity === 'ytd') return `date_trunc('year', block_timestamp)`
-  return `date_trunc('century', block_timestamp)` // total: collapse all into one bucket
-}
-
 function periodExpressionDate(
   granularity: PeriodGranularity,
   col: string,

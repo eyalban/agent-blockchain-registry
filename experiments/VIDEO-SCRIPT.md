@@ -1,6 +1,6 @@
-# 1-Minute Video Script — Agent Registry Experiments
+# 1-Minute Video Script — Statemate Experiments
 
-**Title:** "ERC-8004 Agent Registry: System Experiments on Base Sepolia"  
+**Title:** "ERC-8004 Statemate: System Experiments on Base Sepolia"  
 **Duration:** ~60 seconds  
 **Recording method:** Screen record (QuickTime/OBS/Loom)
 
@@ -10,7 +10,7 @@
 
 ### 0:00-0:10 — Show the live app
 **Action:** Open https://agent-registry-seven.vercel.app  
-**Narration:** "This is the Agent Registry — a blockchain-based registry for AI agents, built on the ERC-8004 standard and deployed on Base Sepolia. Let me show the results of three system experiments."
+**Narration:** "This is the Statemate — a blockchain-based registry for AI agents, built on the ERC-8004 standard and deployed on Base Sepolia. Let me show the results of three system experiments."
 
 ### 0:10-0:15 — Show the agents list
 **Action:** Navigate to https://agent-registry-seven.vercel.app/agents  

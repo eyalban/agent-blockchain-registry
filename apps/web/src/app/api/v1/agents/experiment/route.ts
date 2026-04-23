@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server'
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  parseAbiItem,
-} from 'viem'
+import { createPublicClient, createWalletClient, http } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { baseSepolia } from 'viem/chains'
 
@@ -53,14 +48,7 @@ interface AgentResult {
   txHashes: string[]
 }
 
-function makeCard(name: string, role: string): string {
-  const card = {
-    type: 'https://eips.ethereum.org/EIPS/eip-8004#registration-v1',
-    name,
-    description: `Cloud-deployed ${role} agent for registry experiments`,
-    image: `https://placehold.co/400/0f1520/00e5ff?text=${name.slice(0, 2)}`,
-    active: true,
-  }
+function makeCardURI(name: string): string {
   return `ipfs://experiment-${name.toLowerCase().replace(/\s/g, '-')}-${Date.now()}`
 }
 
@@ -164,7 +152,7 @@ export async function GET(): Promise<NextResponse> {
         transport: http(RPC),
       })
 
-      const uri = makeCard(w.name, w.role)
+      const uri = makeCardURI(w.name)
       const regStart = performance.now()
 
       const hash = await walletClient.writeContract({

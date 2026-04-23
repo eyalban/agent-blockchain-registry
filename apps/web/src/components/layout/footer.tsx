@@ -11,7 +11,7 @@ export function Footer() {
             <div className="flex items-center gap-2.5">
               <Logo size={34} />
               <span className="text-lg font-semibold text-(--color-text-primary)">
-                Agent Registry
+                Statemate
               </span>
             </div>
             <p className="mt-4 max-w-md text-sm text-(--color-text-muted)">

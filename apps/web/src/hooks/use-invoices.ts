@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 export interface InvoiceRecord {
   invoiceId: string
@@ -28,32 +28,40 @@ export interface InvoiceRecord {
   cancelledTxHash: string | null
 }
 
-export function useInvoices(params: {
+interface InvoicesParams {
   issuer?: string
   payer?: string
   companyId?: string
   status?: string
-}): { data: InvoiceRecord[]; isLoading: boolean; reload: () => void } {
-  const [data, setData] = useState<InvoiceRecord[]>([])
-  const [isLoading, setLoading] = useState(true)
-  const [nonce, setNonce] = useState(0)
+}
 
-  useEffect(() => {
-    const qs = new URLSearchParams()
-    if (params.issuer) qs.set('issuer', params.issuer)
-    if (params.payer) qs.set('payer', params.payer)
-    if (params.companyId) qs.set('companyId', params.companyId)
-    if (params.status) qs.set('status', params.status)
+export function useInvoices(params: InvoicesParams): {
+  data: InvoiceRecord[]
+  isLoading: boolean
+  reload: () => void
+} {
+  const query = useQuery({
+    queryKey: ['invoices', params],
+    queryFn: async (): Promise<InvoiceRecord[]> => {
+      const qs = new URLSearchParams()
+      if (params.issuer) qs.set('issuer', params.issuer)
+      if (params.payer) qs.set('payer', params.payer)
+      if (params.companyId) qs.set('companyId', params.companyId)
+      if (params.status) qs.set('status', params.status)
+      const r = await fetch(`/api/v1/invoices?${qs}`)
+      if (!r.ok) return []
+      const j = (await r.json()) as { data?: InvoiceRecord[] } | null
+      return j?.data ?? []
+    },
+  })
 
-    setLoading(true)
-    fetch(`/api/v1/invoices?${qs}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j: { data?: InvoiceRecord[] } | null) => setData(j?.data ?? []))
-      .catch(() => setData([]))
-      .finally(() => setLoading(false))
-  }, [params.issuer, params.payer, params.companyId, params.status, nonce])
-
-  return { data, isLoading, reload: () => setNonce((n) => n + 1) }
+  return {
+    data: query.data ?? [],
+    isLoading: query.isPending,
+    reload: () => {
+      void query.refetch()
+    },
+  }
 }
 
 export function useInvoice(invoiceId: string | undefined): {
@@ -61,19 +69,20 @@ export function useInvoice(invoiceId: string | undefined): {
   isLoading: boolean
   reload: () => void
 } {
-  const [data, setData] = useState<InvoiceRecord | null>(null)
-  const [isLoading, setLoading] = useState(true)
-  const [nonce, setNonce] = useState(0)
+  const query = useQuery({
+    queryKey: ['invoice', invoiceId],
+    queryFn: async (): Promise<InvoiceRecord | null> => {
+      const r = await fetch(`/api/v1/invoices/${invoiceId}`)
+      return r.ok ? ((await r.json()) as InvoiceRecord) : null
+    },
+    enabled: !!invoiceId,
+  })
 
-  useEffect(() => {
-    if (!invoiceId) return
-    setLoading(true)
-    fetch(`/api/v1/invoices/${invoiceId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => setData(j as InvoiceRecord | null))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false))
-  }, [invoiceId, nonce])
-
-  return { data, isLoading, reload: () => setNonce((n) => n + 1) }
+  return {
+    data: query.data ?? null,
+    isLoading: query.isPending,
+    reload: () => {
+      void query.refetch()
+    },
+  }
 }

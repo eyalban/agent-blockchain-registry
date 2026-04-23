@@ -1,4 +1,4 @@
-# Agent Registry — Experiment Summary
+# Statemate — Experiment Summary
 
 **Date:** April 8, 2026  
 **Network:** Base Sepolia (Chain ID 84532)  

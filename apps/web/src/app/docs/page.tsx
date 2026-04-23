@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Documentation · Agent Registry',
+  title: 'Documentation · Statemate',
   description:
     'Plain-English introduction to agentic companies, on-chain invoices, and provenance-first accounting — plus SDK and API reference.',
 }
@@ -99,7 +99,7 @@ export default function DocsPage() {
         Documentation
       </p>
       <h1 className="mt-2 text-4xl font-bold text-(--color-text-primary)">
-        Agent Registry &mdash; Docs
+        Statemate &mdash; Docs
       </h1>
       <p className="mt-3 max-w-2xl text-(--color-text-secondary)">
         Financial infrastructure for AI agents and agentic companies: on-chain

@@ -153,13 +153,27 @@ export async function POST(_req: Request, { params }: RouteParams): Promise<Next
               usd_price_at_block: price?.usdPrice ?? null,
               price_source: price?.source ?? null,
             })
-            // Update company scoping + confidence + evidence (insertTransaction
-            // didn't take these; they're mirror-only columns).
+            // Update company scoping + confidence + evidence + is_internal.
+            // is_internal = TRUE when the counterparty wallet belongs to an
+            // agent that is currently an active member of the SAME company.
+            // That's the definition the income statement assumes when it
+            // filters `is_internal = FALSE` — intra-company transfers net
+            // to zero at the company level, so they shouldn't inflate
+            // top-line revenue or total costs.
+            const cptyNative = direction === 'incoming' ? tx.from : (tx.to ?? '')
             await sql`
               UPDATE transactions SET
                 company_id = ${companyId},
                 label_confidence = ${confidence},
-                label_evidence = ${JSON.stringify(evidence)}::jsonb
+                label_evidence = ${JSON.stringify(evidence)}::jsonb,
+                is_internal = ${companyId !== null} AND EXISTS (
+                  SELECT 1
+                  FROM agent_wallets aw
+                  JOIN company_members cm ON cm.agent_id = aw.agent_id
+                  WHERE LOWER(aw.wallet_address) = LOWER(${cptyNative})
+                    AND cm.company_id = ${companyId}
+                    AND cm.removed_at IS NULL
+                )
               WHERE tx_hash = ${tx.hash}
             `
             syncedTxHashes.push(tx.hash)
@@ -246,11 +260,20 @@ export async function POST(_req: Request, { params }: RouteParams): Promise<Next
               usd_price_at_block: price?.usdPrice ?? null,
               price_source: price?.source ?? null,
             })
+            const cptyToken = direction === 'incoming' ? tx.from : (tx.to ?? '')
             await sql`
               UPDATE transactions SET
                 company_id = ${companyId},
                 label_confidence = ${confidence},
-                label_evidence = ${JSON.stringify(evidence)}::jsonb
+                label_evidence = ${JSON.stringify(evidence)}::jsonb,
+                is_internal = ${companyId !== null} AND EXISTS (
+                  SELECT 1
+                  FROM agent_wallets aw
+                  JOIN company_members cm ON cm.agent_id = aw.agent_id
+                  WHERE LOWER(aw.wallet_address) = LOWER(${cptyToken})
+                    AND cm.company_id = ${companyId}
+                    AND cm.removed_at IS NULL
+                )
               WHERE tx_hash = ${tx.hash}
             `
             syncedTxHashes.push(tx.hash)

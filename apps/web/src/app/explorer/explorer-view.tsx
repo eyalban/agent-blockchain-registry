@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useWalletNames } from '@/hooks/use-wallet-names'
-import { formatEthValue } from '@/lib/utils'
+import { formatEthValue, formatRelativeTime } from '@/lib/utils'
 
 const ActivityChart = dynamic(
   () => import('@/components/explorer/activity-chart').then((m) => m.ActivityChart),
@@ -25,6 +25,7 @@ interface Transaction {
   counterparty: string
   value_eth: number
   label: string
+  block_number: string
   block_timestamp: string
 }
 
@@ -39,30 +40,25 @@ export function ExplorerView() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Global transaction feed — one endpoint, one query, every agent.
+    // Previously this page was wired to a hardcoded list of 8 agent IDs,
+    // so activity from any other agent was invisible.
     Promise.all([
       fetch('/api/v1/stats').then((r) => r.json()),
-      Promise.all(
-        [4894, 4895, 4896, 4897, 4902, 4903, 4936, 4939].map((id) =>
-          fetch(`/api/v1/agents/${id}/transactions`)
-            .then((r) => r.ok ? r.json() : { transactions: [] })
-            .catch(() => ({ transactions: [] })),
-        ),
-      ),
+      fetch('/api/v1/transactions?limit=500')
+        .then((r) => (r.ok ? r.json() : { data: [] }))
+        .catch(() => ({ data: [] })),
     ])
-      .then(([statsData, agentTxArrays]) => {
+      .then(([statsData, txData]) => {
         setStats(statsData as Stats)
-        const allTxs: Transaction[] = []
-        const seen = new Set<string>()
-        for (const data of agentTxArrays) {
-          for (const tx of (data as { transactions: Transaction[] }).transactions) {
-            if (!seen.has(tx.tx_hash)) {
-              seen.add(tx.tx_hash)
-              allTxs.push(tx)
-            }
-          }
-        }
-        allTxs.sort((a, b) => new Date(b.block_timestamp).getTime() - new Date(a.block_timestamp).getTime())
-        setTransactions(allTxs)
+        const rows = (txData as { data: Transaction[] }).data ?? []
+        // API already returns newest-first, but re-sort defensively.
+        rows.sort(
+          (a, b) =>
+            new Date(b.block_timestamp).getTime() -
+            new Date(a.block_timestamp).getTime(),
+        )
+        setTransactions(rows)
       })
       .catch(() => {})
       .finally(() => setIsLoading(false))
@@ -70,10 +66,13 @@ export function ExplorerView() {
 
   const walletNames = useWalletNames(transactions.map((tx) => tx.counterparty))
 
+  // Feed real block numbers into the chart so its block-range buckets
+  // spread out instead of collapsing into one gigantic bar. (The chart
+  // uses `blockNumber` to group.) The chart's `type` field is vestigial.
   const chartEvents = transactions.map((tx) => ({
     type: 'registration' as const,
     agentId: BigInt(tx.agent_id),
-    blockNumber: BigInt(0),
+    blockNumber: BigInt(tx.block_number),
     transactionHash: tx.tx_hash,
   }))
 
@@ -134,6 +133,7 @@ export function ExplorerView() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-(--color-border)">
+                  <th className="px-3 py-2.5 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Time</th>
                   <th className="px-3 py-2.5 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Agent</th>
                   <th className="px-3 py-2.5 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Dir</th>
                   <th className="px-3 py-2.5 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Label</th>
@@ -145,6 +145,9 @@ export function ExplorerView() {
               <tbody>
                 {transactions.slice(0, 50).map((tx) => (
                   <tr key={`${tx.tx_hash}-${tx.agent_id}`} className="border-b border-(--color-border)/30 transition-colors hover:bg-(--color-surface-hover)">
+                    <td className="px-3 py-2 font-mono text-[11px] text-(--color-text-muted)" title={new Date(tx.block_timestamp).toLocaleString()}>
+                      {formatRelativeTime(tx.block_timestamp)}
+                    </td>
                     <td className="px-3 py-2">
                       <Link href={`/agents/${tx.agent_id}`} className="font-mono text-xs text-(--color-accent-cyan) hover:underline">#{tx.agent_id}</Link>
                     </td>

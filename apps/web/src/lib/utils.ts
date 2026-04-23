@@ -38,3 +38,21 @@ export function formatEthValue(value: number): string {
   if (abs >= 0.000001) return abs.toFixed(8)
   return abs.toExponential(2)
 }
+
+/**
+ * Human-readable "time ago" for an ISO or date-like timestamp. Compact
+ * format for table cells: "12s", "4m", "2h", "3d", "5mo", "2y".
+ */
+export function formatRelativeTime(input: string | Date | number): string {
+  const d =
+    typeof input === 'string' || typeof input === 'number'
+      ? new Date(input)
+      : input
+  const diffSec = Math.max(0, (Date.now() - d.getTime()) / 1000)
+  if (diffSec < 60) return `${Math.floor(diffSec)}s`
+  if (diffSec < 3_600) return `${Math.floor(diffSec / 60)}m`
+  if (diffSec < 86_400) return `${Math.floor(diffSec / 3_600)}h`
+  if (diffSec < 30 * 86_400) return `${Math.floor(diffSec / 86_400)}d`
+  if (diffSec < 365 * 86_400) return `${Math.floor(diffSec / (30 * 86_400))}mo`
+  return `${Math.floor(diffSec / (365 * 86_400))}y`
+}

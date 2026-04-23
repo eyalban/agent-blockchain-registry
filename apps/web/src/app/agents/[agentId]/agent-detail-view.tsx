@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useAgentDetail } from '@/hooks/use-agent-detail'
 import { useAgentTags } from '@/hooks/use-agent-tags'
 import { useReputationSummary } from '@/hooks/use-reputation-summary'
-import { truncateAddress } from '@/lib/utils'
+import { truncateAddress, formatRelativeTime, formatEthValue } from '@/lib/utils'
 import { ADDRESS_EXPLORER_URL } from '@agent-registry/shared'
 import { FeedbackForm } from '@/components/reputation/feedback-form'
 import { TrustScore } from '@/components/reputation/trust-score'
@@ -14,7 +14,6 @@ import { IncomeStatementCard } from '@/components/financials/income-statement-ca
 import { useIncomeStatement } from '@/hooks/use-income-statement'
 import { useAgentTransactions } from '@/hooks/use-agent-transactions'
 import { useWalletNames } from '@/hooks/use-wallet-names'
-import { formatEthValue } from '@/lib/utils'
 
 interface AgentDetailViewProps {
   readonly agentId: string
@@ -226,6 +225,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-(--color-border)">
+                      <th className="px-3 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Time</th>
                       <th className="px-3 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Dir</th>
                       <th className="px-3 py-3 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Label</th>
                       <th className="px-3 py-3 text-right font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Amount (ETH)</th>
@@ -236,6 +236,9 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                   <tbody>
                     {transactions.map((tx) => (
                       <tr key={tx.tx_hash} className="border-b border-(--color-border)/40 transition-colors hover:bg-(--color-surface-hover)">
+                        <td className="px-3 py-2.5 font-mono text-[11px] text-(--color-text-muted)" title={new Date(tx.block_timestamp).toLocaleString()}>
+                          {formatRelativeTime(tx.block_timestamp)}
+                        </td>
                         <td className="px-4 py-2.5">
                           <span className={`font-mono text-xs font-medium ${tx.direction === 'incoming' ? 'text-(--color-accent-green)' : 'text-(--color-accent-red)'}`}>
                             {tx.direction === 'incoming' ? '\u2192 IN' : '\u2190 OUT'}

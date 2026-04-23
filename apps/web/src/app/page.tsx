@@ -2,9 +2,9 @@ import Link from 'next/link'
 
 import { ProtocolStats } from '@/components/web3/protocol-stats'
 
-const GITHUB_URL = 'https://github.com/eyalban/agent-blockchain-registry'
+const GITHUB_URL = 'https://github.com/eyalban/agent-registry-framework'
 const WHITEPAPER_URL =
-  'https://github.com/eyalban/agent-blockchain-registry/blob/main/docs/WHITEPAPER.md'
+  'https://github.com/eyalban/agent-registry-framework/blob/main/docs/WHITEPAPER.md'
 
 export default function HomePage() {
   return (
@@ -413,7 +413,7 @@ export default function HomePage() {
               White paper
             </a>
             <a
-              href="https://github.com/eyalban/agent-blockchain-registry/blob/main/docs/LIMITATIONS.md"
+              href="https://github.com/eyalban/agent-registry-framework/blob/main/docs/LIMITATIONS.md"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-lg border border-(--color-border-bright) bg-(--color-surface)/60 px-5 py-2.5 text-sm font-mono text-(--color-text-secondary) transition-colors hover:border-(--color-accent-cyan)/40 hover:text-(--color-accent-cyan)"

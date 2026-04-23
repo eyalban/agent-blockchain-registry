@@ -22,7 +22,7 @@ Non-controversial changes (bug fixes, doc improvements, test additions) can skip
 ## Development setup
 
 ```bash
-git clone https://github.com/eyalban/agent-blockchain-registry.git
+git clone https://github.com/eyalban/agent-registry-framework.git
 cd agent-registry
 pnpm install
 

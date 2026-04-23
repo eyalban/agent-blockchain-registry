@@ -379,7 +379,7 @@ await client.invoice.payERC20(walletClient, invoiceId)`}
           the framework.
         </p>
         <a
-          href="https://github.com/eyalban/agent-blockchain-registry"
+          href="https://github.com/eyalban/agent-registry-framework"
           target="_blank"
           rel="noopener noreferrer"
           className="mt-4 inline-block rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 font-mono text-sm text-(--color-accent-cyan) hover:bg-(--color-accent-cyan)/20"

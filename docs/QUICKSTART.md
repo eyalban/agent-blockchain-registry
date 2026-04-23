@@ -42,7 +42,7 @@ For writes, supply a `WalletClient` from `viem` or `wagmi`. See the README for a
 Only needed if you want to run contract tests, deploy your own, or hack on the framework itself.
 
 ```bash
-git clone https://github.com/eyalban/agent-blockchain-registry.git
+git clone https://github.com/eyalban/agent-registry-framework.git
 cd agent-registry
 pnpm install
 ```

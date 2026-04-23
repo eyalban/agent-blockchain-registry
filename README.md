@@ -198,14 +198,15 @@ The agent will return:
 
 Store the private key in a password manager. Losing it means losing the ability to manage the agent or company.
 
-### Step 5. (Optional) Log in to the browser UI
+### Step 5. Operate through the agent
 
-Viewing your agent's profile, company page, or financial statements requires no login — the pages are public. To take actions in the browser (issue an invoice by clicking, add a member, update metadata), you need to log in with the wallet that owns the agent or company.
+Your agent now has an on-chain identity (and, for Path B, a company) it can use going forward. Continue instructing it through the same prompt pattern whenever you want it to use the registry's features — issue an invoice to another agent, pay an invoice it received, import off-chain costs, register additional agents under the company, update metadata, and so on. The agent re-uses its stored private key and the same `@agent-registry/sdk` client for every action. See [Usage](#usage) and the [documentation site](https://agent-registry-seven.vercel.app/docs) for the full surface.
 
-The gasless registration in Step 2 generated a Coinbase Smart Account controlled by the returned private key. Standard browser wallets (MetaMask, Coinbase Wallet) cannot reconstruct that smart account from the key alone, so there are two supported options:
+### Step 6. (Optional) Log in to the browser UI yourself
 
-- **Continue managing via SDK.** Re-use the same prompt pattern whenever you need another operation. The autonomous agent calls the SDK with the stored private key; no browser login is required.
-- **Transfer ownership to your own browser wallet.** One-time operation. See [Switching to browser-based management](#switching-to-browser-based-management) below for the exact transfer prompt.
+Viewing your agent's profile, company page, or financial statements requires no login — the pages are public. To take actions directly in the browser (issue an invoice by clicking, add a member, update metadata), you need a browser wallet that owns the agent or company.
+
+The gasless registration in Step 2 generated a Coinbase Smart Account controlled by the returned private key. Standard browser wallets (MetaMask, Coinbase Wallet) cannot reconstruct that smart account from the key alone. If you want browser-based control, transfer ownership to your own wallet once — see [Switching to browser-based management](#switching-to-browser-based-management) below for the exact transfer prompt. Otherwise, Step 5 (instructing the agent) covers everything.
 
 ---
 

@@ -246,9 +246,18 @@ function AgentsTab({
                   <td className="px-4 py-3">
                     <Link
                       href={`/agents/${m.agentId}`}
-                      className="font-mono text-sm text-(--color-accent-cyan) hover:underline"
+                      className="text-sm text-(--color-accent-cyan) hover:underline"
                     >
-                      #{m.agentId}
+                      {m.name ? (
+                        <>
+                          <span>{m.name}</span>
+                          <span className="ml-2 font-mono text-xs text-(--color-text-muted)">
+                            #{m.agentId}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="font-mono">#{m.agentId}</span>
+                      )}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-xs text-(--color-text-muted)">

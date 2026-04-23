@@ -1,7 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 
-import { companyRegistryAbi } from '@agent-registry/shared'
+import {
+  companyRegistryAbi,
+  identityRegistryAbi,
+  IDENTITY_REGISTRY_ADDRESS,
+} from '@agent-registry/shared'
 
 import {
   getCompany,
@@ -16,6 +20,7 @@ import {
   verifyTxEvent,
 } from '@/lib/event-verify'
 import { fetchJsonMetadata, parseCompanyMetadata } from '@/lib/ipfs-fetch'
+import { publicClient } from '@/lib/viem-client'
 
 interface RouteParams {
   params: Promise<{ companyId: string }>
@@ -36,6 +41,27 @@ export async function GET(_req: NextRequest, { params }: RouteParams): Promise<N
     listActiveCompanyTreasuries(companyId),
   ])
 
+  // Resolve each member's display name from the on-chain agent card.
+  // Member counts are bounded so a per-call fan-out is fine; if name
+  // resolution fails (IPFS timeout, malformed JSON), we leave `name`
+  // null and the UI falls back to the numeric ID.
+  const memberNames = await Promise.all(
+    members.map(async (m): Promise<string | null> => {
+      try {
+        const tokenURI = (await publicClient.readContract({
+          address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
+          abi: identityRegistryAbi,
+          functionName: 'tokenURI',
+          args: [BigInt(m.agent_id)],
+        })) as string
+        const meta = await fetchJsonMetadata<{ name?: unknown }>(tokenURI)
+        return meta && typeof meta.name === 'string' ? meta.name : null
+      } catch {
+        return null
+      }
+    }),
+  )
+
   return NextResponse.json({
     companyId: company.company_id,
     chainId: company.chain_id,
@@ -49,8 +75,9 @@ export async function GET(_req: NextRequest, { params }: RouteParams): Promise<N
     createdTxHash: company.created_tx_hash,
     createdBlock: company.created_block,
     createdAt: company.created_at,
-    members: members.map((m) => ({
+    members: members.map((m, i) => ({
       agentId: m.agent_id,
+      name: memberNames[i],
       addedAt: m.added_at,
       addedTxHash: m.added_tx_hash,
     })),

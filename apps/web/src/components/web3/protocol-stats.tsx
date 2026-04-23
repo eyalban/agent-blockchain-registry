@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react'
 
 interface Stats {
   totalAgents: number
+  totalCompanies: number
   totalTransactions: number
 }
 
 /**
- * Shows stats sourced from our database (only real agents with linked wallets),
- * NOT from the global canonical registry which includes tokens from other projects.
+ * Stats sourced from our local mirror of on-chain state. `totalAgents`
+ * is a UNION of `agent_wallets` and active `company_members`, so an
+ * agent registered through the framework's Path B / Path C flow shows
+ * up immediately even before it links a separate wallet.
  */
 export function ProtocolStats() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -21,24 +24,43 @@ export function ProtocolStats() {
       try {
         const res = await fetch('/api/v1/stats')
         if (!res.ok) return
-        const data = await res.json() as { totalAgents?: number; totalTransactions?: number }
+        const data = (await res.json()) as {
+          totalAgents?: number
+          totalCompanies?: number
+          totalTransactions?: number
+        }
         if (!cancelled) {
           setStats({
             totalAgents: data.totalAgents ?? 0,
+            totalCompanies: data.totalCompanies ?? 0,
             totalTransactions: data.totalTransactions ?? 0,
           })
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     fetchStats()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (
-    <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
-      <StatBox label="Registered Agents" value={stats ? stats.totalAgents.toString() : '...'} />
-      <StatBox label="Transactions Tracked" value={stats ? stats.totalTransactions.toString() : '...'} />
+    <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+      <StatBox
+        label="Registered Agents"
+        value={stats ? stats.totalAgents.toString() : '...'}
+      />
+      <StatBox
+        label="Registered Companies"
+        value={stats ? stats.totalCompanies.toString() : '...'}
+      />
+      <StatBox
+        label="Transactions Tracked"
+        value={stats ? stats.totalTransactions.toString() : '...'}
+      />
       <StatBox label="Network" value="Base Sepolia" />
     </div>
   )

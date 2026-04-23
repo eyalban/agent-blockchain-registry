@@ -4,6 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 
 export interface CompanyMember {
   agentId: string
+  /**
+   * Display name resolved from the agent's on-chain card metadata
+   * (IdentityRegistry `tokenURI` → IPFS JSON `.name`). Null when the
+   * card couldn't be fetched or didn't include a `name` field; the UI
+   * falls back to `#${agentId}` in that case.
+   */
+  name: string | null
   addedAt: string
   addedTxHash: string
 }

@@ -135,14 +135,14 @@ export async function computeCompanyIncomeStatement(params: {
     SELECT
       ${txPeriod}::text        AS period,
       ${txPeriod}::text        AS period_start,
-      (${txPeriod} + INTERVAL '1 ${
+      (${txPeriod} + INTERVAL '${
         granularity === 'monthly'
-          ? 'month'
+          ? '1 month'
           : granularity === 'quarterly'
-            ? 'quarter'
+            ? '1 quarter'
             : granularity === 'ytd'
-              ? 'year'
-              : '100 year'
+              ? '1 year'
+              : '100 years'
       }')::text AS period_end,
       label,
       counterparty,
@@ -168,14 +168,14 @@ export async function computeCompanyIncomeStatement(params: {
     SELECT
       ${ocPeriod}::text        AS period,
       ${ocPeriod}::text        AS period_start,
-      (${ocPeriod} + INTERVAL '1 ${
+      (${ocPeriod} + INTERVAL '${
         granularity === 'monthly'
-          ? 'month'
+          ? '1 month'
           : granularity === 'quarterly'
-            ? 'quarter'
+            ? '1 quarter'
             : granularity === 'ytd'
-              ? 'year'
-              : '100 year'
+              ? '1 year'
+              : '100 years'
       }')::text AS period_end,
       category,
       SUM(amount_usd)::text    AS amount_usd,

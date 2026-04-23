@@ -13,8 +13,12 @@ export interface AgentListItem {
 }
 
 /**
- * Fetch agents from our API — only shows agents with linked wallets
- * in our database (real OpenClaw agents), not the entire global registry.
+ * Fetch agents from our API. The server returns the union of agents
+ * with linked wallets and active company members, with name /
+ * description / image already resolved from the agent card metadata
+ * (data: URIs and ipfs:// URIs alike). We keep the inline data-URI
+ * decode as a client-side fallback for legacy responses that didn't
+ * include the resolved fields.
  */
 export function useAgents(): {
   agents: AgentListItem[]
@@ -33,32 +37,46 @@ export function useAgents(): {
         const res = await fetch('/api/v1/agents?pageSize=100')
         if (!res.ok) throw new Error('Failed to fetch agents')
 
-        const data = await res.json() as {
-          data: Array<{ agentId: string; owner: string; tokenURI: string }>
+        const data = (await res.json()) as {
+          data: Array<{
+            agentId: string
+            owner: string
+            tokenURI: string
+            name?: string | null
+            description?: string | null
+            image?: string | null
+          }>
         }
 
         const results: AgentListItem[] = data.data.map((agent) => {
-          let name = `Agent #${agent.agentId}`
-          let description = ''
-          let image = ''
+          let name = agent.name ?? null
+          let description = agent.description ?? null
+          let image = agent.image ?? null
 
-          if (agent.tokenURI.startsWith('data:application/json;base64,')) {
+          // Fallback: inline data: URIs may not be resolved server-side.
+          if (
+            (!name || !description || !image) &&
+            agent.tokenURI.startsWith('data:application/json;base64,')
+          ) {
             try {
               const json = atob(agent.tokenURI.split(',')[1] ?? '')
               const card = JSON.parse(json) as Record<string, unknown>
-              name = (card.name as string) ?? name
-              description = (card.description as string) ?? ''
-              image = (card.image as string) ?? ''
-            } catch { /* invalid JSON */ }
+              if (!name && typeof card.name === 'string') name = card.name
+              if (!description && typeof card.description === 'string')
+                description = card.description
+              if (!image && typeof card.image === 'string') image = card.image
+            } catch {
+              /* invalid JSON */
+            }
           }
 
           return {
             agentId: agent.agentId,
             owner: agent.owner,
             tokenURI: agent.tokenURI,
-            name,
-            description,
-            image,
+            name: name ?? `Agent #${agent.agentId}`,
+            description: description ?? '',
+            image: image ?? '',
             tags: [],
           }
         })
@@ -76,7 +94,9 @@ export function useAgents(): {
     }
 
     fetchAgents()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return { agents, isLoading, error }

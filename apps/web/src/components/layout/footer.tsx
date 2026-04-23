@@ -81,9 +81,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/eyalban/agent-registry-framework/blob/main/docs/WHITEPAPER.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/whitepaper"
                   className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
                 >
                   White Paper

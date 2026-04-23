@@ -169,3 +169,90 @@ body {
   background: rgba(0, 229, 255, 0.2);
   color: #fff;
 }
+
+/* ===== White-paper prose (rendered from markdown) ===== */
+.whitepaper-prose {
+  color: var(--color-text-primary);
+  line-height: 1.65;
+  font-size: 0.9375rem;
+}
+.whitepaper-prose h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 1.5rem 0 1.25rem;
+  color: var(--color-text-primary);
+}
+.whitepaper-prose h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 2.25rem 0 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+.whitepaper-prose h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--color-text-primary);
+}
+.whitepaper-prose p {
+  margin: 0.75rem 0;
+  color: var(--color-text-secondary);
+}
+.whitepaper-prose ul,
+.whitepaper-prose ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+  color: var(--color-text-secondary);
+}
+.whitepaper-prose li {
+  margin: 0.35rem 0;
+}
+.whitepaper-prose a {
+  color: var(--color-accent-cyan);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.whitepaper-prose a:hover {
+  color: #fff;
+}
+.whitepaper-prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  color: var(--color-accent-cyan);
+}
+.whitepaper-prose pre {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.whitepaper-prose pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--color-text-primary);
+}
+.whitepaper-prose blockquote {
+  border-left: 3px solid var(--color-border-bright);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.whitepaper-prose strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+.whitepaper-prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 2rem 0;
+}

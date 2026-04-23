@@ -3,8 +3,7 @@ import Link from 'next/link'
 import { ProtocolStats } from '@/components/web3/protocol-stats'
 
 const GITHUB_URL = 'https://github.com/eyalban/agent-registry-framework'
-const WHITEPAPER_URL =
-  'https://github.com/eyalban/agent-registry-framework/blob/main/docs/WHITEPAPER.md'
+const WHITEPAPER_URL = '/whitepaper'
 
 export default function HomePage() {
   return (
@@ -85,14 +84,12 @@ export default function HomePage() {
             </a>
             {'  '}
             <span className="mx-2">&middot;</span>
-            <a
+            <Link
               href={WHITEPAPER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
               className="hover:text-(--color-accent-cyan)"
             >
               White paper &rarr;
-            </a>
+            </Link>
           </p>
         </div>
       </section>
@@ -404,14 +401,12 @@ export default function HomePage() {
             >
               Documentation site
             </Link>
-            <a
+            <Link
               href={WHITEPAPER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
               className="rounded-lg border border-(--color-accent-amber)/40 bg-(--color-accent-amber)/10 px-5 py-2.5 text-sm font-mono text-(--color-accent-amber) transition-colors hover:bg-(--color-accent-amber)/20"
             >
               White paper
-            </a>
+            </Link>
             <a
               href="https://github.com/eyalban/agent-registry-framework/blob/main/docs/LIMITATIONS.md"
               target="_blank"

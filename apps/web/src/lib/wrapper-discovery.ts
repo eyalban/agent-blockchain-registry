@@ -1,28 +1,28 @@
 import { keccak256, toBytes } from 'viem'
 
-import { IDENTITY_REGISTRY_ADDRESS } from '@agent-registry/shared'
-
 import { sql } from './db'
 
 const CHAIN_ID = 84532
+const WRAPPER_ADDRESS = process.env.NEXT_PUBLIC_WRAPPER_ADDRESS ?? ''
 const BLOCKSCOUT_API = 'https://base-sepolia.blockscout.com/api'
 
-// keccak256("Registered(uint256,string,address)") — emitted by the canonical
-// IdentityRegistry on every agent mint. topic1 holds the indexed agentId,
-// topic2 holds the indexed owner address.
-const REGISTERED_TOPIC0 = keccak256(toBytes('Registered(uint256,string,address)'))
+// keccak256("AgentRegisteredViaWrapper(uint256,address,string[])") — emitted
+// by the platform's AgentRegistryWrapper on every framework registration.
+// topic1 is the indexed agentId, topic2 is the indexed owner address.
+const WRAPPER_REGISTERED_TOPIC0 = keccak256(
+  toBytes('AgentRegisteredViaWrapper(uint256,address,string[])'),
+)
 
-// Throttle window: skip a discovery scan if the cursor was updated within
-// this many milliseconds. Listing requests trigger discovery in line, so this
-// keeps p99 latency bounded while still catching new mints within ~half a
-// minute under any meaningful traffic.
+// Throttle: skip a sweep if we ran one within this many ms. The listing
+// endpoint triggers this, so the cap keeps p99 latency bounded while
+// still catching new registrations within ~30s under any meaningful
+// traffic.
 const THROTTLE_MS = 30_000
 
-// Hard cap on Blockscout pages per discovery call so a cold start can't
-// blow the serverless function's wall clock budget. With 1000 events per
-// page the registry can ingest ~5k new agents per request, and subsequent
-// requests pick up where the cursor left off.
-const MAX_PAGES_PER_CALL = 8
+// Hard cap on Blockscout pages per call so a cold start can't blow the
+// serverless function's wall clock budget. Each page returns up to 1000
+// events, so this absorbs ~5k new registrations per request.
+const MAX_PAGES_PER_CALL = 5
 
 interface BlockscoutLog {
   readonly blockNumber: string
@@ -32,7 +32,6 @@ interface BlockscoutLog {
 
 interface BlockscoutResponse {
   readonly status: string
-  readonly message: string
   readonly result: BlockscoutLog[] | string
 }
 
@@ -76,8 +75,8 @@ async function fetchPage(fromBlock: bigint): Promise<BlockscoutLog[]> {
   const url =
     `${BLOCKSCOUT_API}?module=logs&action=getLogs` +
     `&fromBlock=${fromBlock.toString()}&toBlock=latest` +
-    `&address=${IDENTITY_REGISTRY_ADDRESS}` +
-    `&topic0=${REGISTERED_TOPIC0}`
+    `&address=${WRAPPER_ADDRESS}` +
+    `&topic0=${WRAPPER_REGISTERED_TOPIC0}`
   const res = await fetch(url)
   if (!res.ok) return []
   const data = (await res.json()) as BlockscoutResponse
@@ -86,18 +85,24 @@ async function fetchPage(fromBlock: bigint): Promise<BlockscoutLog[]> {
 }
 
 /**
- * Incrementally backfill `discovered_agents` from the canonical
- * IdentityRegistry's `Registered` event log.
+ * Resolve every new framework registration into `agent_wallets`.
  *
- * Throttled by `agent_discovery_cursor.last_scanned_at` so request handlers
- * can call this freely — most invocations are no-ops. Pagination is by
- * `fromBlock` because Blockscout's etherscan-compatible logs endpoint caps
- * at 1000 results per page and ignores `&page`/`&offset`.
+ * The platform's AgentRegistryWrapper emits `AgentRegisteredViaWrapper`
+ * on every Path A/B/C registration described in the public framework
+ * README. That event is the canonical "this is one of ours" signal —
+ * the canonical IdentityRegistry is shared across the whole Base
+ * Sepolia ecosystem, but the wrapper is ours alone, so indexing only
+ * its events keeps the listing scoped to platform agents without any
+ * client-side cooperation.
  *
- * Errors swallow silently and return false so a Blockscout outage never
- * breaks the listing endpoint — discovery resumes on the next call.
+ * Anchored to `agent_discovery_cursor` so each call only scans the
+ * delta since last sweep. Throttled in-process so the listing endpoint
+ * can call this freely. Errors swallow silently so a Blockscout outage
+ * never breaks the listing.
  */
-export async function discoverNewAgents(): Promise<number> {
+export async function discoverWrapperRegistrations(): Promise<number> {
+  if (!WRAPPER_ADDRESS) return 0
+
   let inserted = 0
   try {
     const { block: cursorBlock, ageMs } = await readCursor()
@@ -120,52 +125,32 @@ export async function discoverNewAgents(): Promise<number> {
           return {
             agentId: BigInt(agentIdHex).toString(),
             owner: `0x${ownerHex.slice(-40).toLowerCase()}`,
-            block: blockNum.toString(),
-            tx: log.transactionHash,
           }
         })
         .filter((r): r is NonNullable<typeof r> => r !== null)
 
-      if (rows.length > 0) {
-        // Bulk insert with parameterized VALUES — one round trip per page
-        // instead of one per row keeps cold backfills inside Vercel's 60s
-        // budget.
-        const placeholders = rows
-          .map((_, i) => {
-            const o = i * 5
-            return `($${o + 1}, $${o + 2}, $${o + 3}, $${o + 4}, $${o + 5})`
-          })
-          .join(', ')
-        const params = rows.flatMap((r) => [
-          r.agentId,
-          CHAIN_ID,
-          r.owner,
-          r.block,
-          r.tx,
-        ])
-        const result = (await sql.query(
-          `INSERT INTO discovered_agents
-             (agent_id, chain_id, owner_address, registered_block, registered_tx)
-           VALUES ${placeholders}
-           ON CONFLICT (chain_id, agent_id) DO NOTHING
-           RETURNING agent_id`,
-          params,
-        )) as unknown[]
-        inserted += result.length
+      for (const row of rows) {
+        const result = (await sql`
+          INSERT INTO agent_wallets (agent_id, wallet_address, is_primary, label)
+          VALUES (${row.agentId}, ${row.owner}, true, 'owner')
+          ON CONFLICT (agent_id, wallet_address) DO NOTHING
+          RETURNING agent_id
+        `) as unknown[]
+        if (result.length > 0) inserted++
       }
 
       // Blockscout returns at most 1000 logs per call. A short page means
       // we've caught up to head and can stop early.
       if (logs.length < 1000) break
 
-      // Resume from the highest block in this page; ON CONFLICT swallows the
-      // overlap of any same-block events that span the page boundary.
+      // Resume from the highest block in this page; ON CONFLICT swallows
+      // the same-block overlap of the page boundary.
       fromBlock = highestBlockSeen
     }
 
     await writeCursor(highestBlockSeen)
   } catch {
-    // Swallow — don't let a discovery failure break the listing endpoint.
+    // Swallow — discovery failures must never break the listing endpoint.
   }
   return inserted
 }

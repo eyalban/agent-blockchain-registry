@@ -3,7 +3,7 @@ import { sql } from '@/lib/db'
 import { publicClient } from '@/lib/viem-client'
 import { identityRegistryAbi, IDENTITY_REGISTRY_ADDRESS } from '@agent-registry/shared'
 import { fetchJsonMetadata } from '@/lib/ipfs-fetch'
-import { discoverNewAgents } from '@/lib/agent-discovery'
+import { discoverWrapperRegistrations } from '@/lib/wrapper-discovery'
 
 interface AgentCard {
   name?: unknown
@@ -33,12 +33,12 @@ async function resolveAgentCard(tokenURI: string): Promise<AgentCard | null> {
  * GET /api/v1/agents?page=1&pageSize=20
  *
  * Lists every agent we know about: ones with a wallet linked in our
- * `agent_wallets` dictionary, ones that are an active member of a
- * registered company, OR ones discovered on-chain via the canonical
- * IdentityRegistry's `Registered` event log. The third source guarantees
- * agents that registered through the public framework repo (which mints
- * directly on the IdentityRegistry without ever calling our API) still
- * surface in the listing.
+ * `agent_wallets` dictionary OR ones that are an active member of a
+ * registered company. The IdentityRegistry is the canonical ERC-8004
+ * contract shared across the whole Base Sepolia ecosystem, so we never
+ * scan it directly — agents arrive in `agent_wallets` via the wrapper
+ * event indexer (see `discoverWrapperRegistrations`), which only
+ * reacts to registrations through our own AgentRegistryWrapper.
  *
  * Each row is enriched with on-chain data (`ownerOf`, `tokenURI`)
  * from the canonical IdentityRegistry.
@@ -50,21 +50,20 @@ export async function GET(request: Request): Promise<NextResponse> {
     const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('pageSize') ?? '20')))
     const offset = (page - 1) * pageSize
 
-    // Best-effort: pull any new on-chain registrations into discovered_agents
-    // before reading. Throttled internally so most calls are no-ops.
-    await discoverNewAgents()
+    // Best-effort: pull any new wrapper registrations into agent_wallets
+    // before reading. Throttled internally so most calls are no-ops;
+    // failures never break the listing.
+    await discoverWrapperRegistrations()
 
-    // De-duped union of agents with linked wallets, active company members,
-    // and on-chain discoveries. Sort by numeric agentId DESC so the latest
-    // registrations land on page 1 — the UI fetches one page and we want
-    // a freshly-registered agent to appear without the user paginating.
+    // De-duped union of agents with linked wallets and active company
+    // members. Sort by numeric agentId DESC so the latest registrations
+    // land on page 1 — the UI fetches one page and we want a fresh
+    // registration to appear without the user paginating.
     const rows = await sql`
       SELECT agent_id FROM (
         SELECT agent_id FROM agent_wallets
         UNION
         SELECT agent_id FROM company_members WHERE removed_at IS NULL
-        UNION
-        SELECT agent_id FROM discovered_agents
       ) AS distinct_agents
       ORDER BY agent_id::numeric DESC
       LIMIT ${pageSize} OFFSET ${offset}
@@ -123,8 +122,6 @@ export async function GET(request: Request): Promise<NextResponse> {
         SELECT agent_id FROM agent_wallets
         UNION
         SELECT agent_id FROM company_members WHERE removed_at IS NULL
-        UNION
-        SELECT agent_id FROM discovered_agents
       ) AS distinct_agents
     `
     const total = Number((countRows[0] as { count: string }).count)

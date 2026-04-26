@@ -30,3 +30,4 @@ psql $DATABASE_URL -f apps/web/migrations/003_tax_rates.sql
 | 001 | `001_transactions_multi_token.sql` | M0 | Multi-token + USD snapshot + company scoping on `transactions`. |
 | 002 | `002_price_snapshots.sql` | M0 | Cache of token USD prices per block, sourced from Chainlink / CoinGecko. |
 | 003 | `003_tax_rates.sql` | M0 | Per-jurisdiction tax rates with full provenance (replaces the hardcoded 30%). |
+| 009 | `009_discovered_agents.sql` | M1 | Mirror of every on-chain `Registered` event so framework-only mints surface in the listing. |

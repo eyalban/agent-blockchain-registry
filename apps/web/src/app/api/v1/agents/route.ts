@@ -3,6 +3,7 @@ import { sql } from '@/lib/db'
 import { publicClient } from '@/lib/viem-client'
 import { identityRegistryAbi, IDENTITY_REGISTRY_ADDRESS } from '@agent-registry/shared'
 import { fetchJsonMetadata } from '@/lib/ipfs-fetch'
+import { discoverNewAgents } from '@/lib/agent-discovery'
 
 interface AgentCard {
   name?: unknown
@@ -32,10 +33,12 @@ async function resolveAgentCard(tokenURI: string): Promise<AgentCard | null> {
  * GET /api/v1/agents?page=1&pageSize=20
  *
  * Lists every agent we know about: ones with a wallet linked in our
- * `agent_wallets` dictionary OR ones that are an active member of a
- * registered company. The UNION ensures agents registered through the
- * framework's Path B / Path C flow appear here immediately, even
- * before they link a separate wallet.
+ * `agent_wallets` dictionary, ones that are an active member of a
+ * registered company, OR ones discovered on-chain via the canonical
+ * IdentityRegistry's `Registered` event log. The third source guarantees
+ * agents that registered through the public framework repo (which mints
+ * directly on the IdentityRegistry without ever calling our API) still
+ * surface in the listing.
  *
  * Each row is enriched with on-chain data (`ownerOf`, `tokenURI`)
  * from the canonical IdentityRegistry.
@@ -47,16 +50,23 @@ export async function GET(request: Request): Promise<NextResponse> {
     const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('pageSize') ?? '20')))
     const offset = (page - 1) * pageSize
 
-    // De-duped union of "agents with linked wallets" and "active company
-    // members". Cast to numeric for natural sort order so #5 doesn't sit
-    // between #49 and #500.
+    // Best-effort: pull any new on-chain registrations into discovered_agents
+    // before reading. Throttled internally so most calls are no-ops.
+    await discoverNewAgents()
+
+    // De-duped union of agents with linked wallets, active company members,
+    // and on-chain discoveries. Sort by numeric agentId DESC so the latest
+    // registrations land on page 1 — the UI fetches one page and we want
+    // a freshly-registered agent to appear without the user paginating.
     const rows = await sql`
       SELECT agent_id FROM (
         SELECT agent_id FROM agent_wallets
         UNION
         SELECT agent_id FROM company_members WHERE removed_at IS NULL
+        UNION
+        SELECT agent_id FROM discovered_agents
       ) AS distinct_agents
-      ORDER BY agent_id::numeric
+      ORDER BY agent_id::numeric DESC
       LIMIT ${pageSize} OFFSET ${offset}
     `
 
@@ -113,6 +123,8 @@ export async function GET(request: Request): Promise<NextResponse> {
         SELECT agent_id FROM agent_wallets
         UNION
         SELECT agent_id FROM company_members WHERE removed_at IS NULL
+        UNION
+        SELECT agent_id FROM discovered_agents
       ) AS distinct_agents
     `
     const total = Number((countRows[0] as { count: string }).count)

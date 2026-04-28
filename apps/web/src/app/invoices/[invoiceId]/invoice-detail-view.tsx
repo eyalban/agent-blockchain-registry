@@ -191,23 +191,57 @@ export function InvoiceDetailView({ invoiceId }: Props) {
         </div>
       )}
 
+      {/* Activity timeline */}
+      <div className="mt-4 rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
+          Timeline
+        </p>
+        <ol className="mt-5 space-y-5">
+          <TimelineEvent
+            label="Invoice issued"
+            timestamp={data.issuedAt}
+            txHash={data.issuedTxHash}
+            chainId={env.chainId}
+            done
+          />
+          {data.paidAt && data.paidTxHash ? (
+            <TimelineEvent
+              label="Payment settled"
+              timestamp={data.paidAt}
+              txHash={data.paidTxHash}
+              chainId={env.chainId}
+              done
+              variant="success"
+            />
+          ) : data.status === 'cancelled' ? (
+            <TimelineEvent
+              label="Cancelled by issuer"
+              timestamp={null}
+              txHash={null}
+              chainId={env.chainId}
+              done
+              variant="cancelled"
+            />
+          ) : (
+            <TimelineEvent
+              label="Awaiting payment"
+              timestamp={null}
+              txHash={null}
+              chainId={env.chainId}
+              done={false}
+            />
+          )}
+        </ol>
+      </div>
+
       <div className="mt-4 rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-2">
-        <Detail
-          label="Memo URI"
-          value={data.memoUri}
-          mono
-          truncate
-        />
-        <Detail label="Issued" value={new Date(data.issuedAt).toLocaleString()} />
+        <Detail label="Memo URI" value={data.memoUri} mono truncate />
         <Detail
           label="Issue Tx"
           value={data.issuedTxHash.slice(0, 10) + '…'}
           href={TX_EXPLORER_URL(env.chainId, data.issuedTxHash)}
           mono
         />
-        {data.paidAt && (
-          <Detail label="Paid" value={new Date(data.paidAt).toLocaleString()} />
-        )}
         {data.paidTxHash && (
           <Detail
             label="Payment Tx"
@@ -309,6 +343,54 @@ function Card({ label, children }: { label: string; children: React.ReactNode })
       </p>
       <div className="mt-2">{children}</div>
     </div>
+  )
+}
+
+function TimelineEvent({
+  label,
+  timestamp,
+  txHash,
+  chainId,
+  done,
+  variant,
+}: {
+  label: string
+  timestamp: string | null
+  txHash: string | null
+  chainId: number
+  done: boolean
+  variant?: 'success' | 'cancelled'
+}) {
+  const dotColor = !done
+    ? 'border border-dashed border-(--color-border-bright) bg-white'
+    : variant === 'success'
+      ? 'bg-emerald-500'
+      : variant === 'cancelled'
+        ? 'bg-red-500'
+        : 'bg-(--color-magenta-700)'
+
+  return (
+    <li className="flex items-start gap-4">
+      <span
+        className={`mt-1.5 inline-block h-2.5 w-2.5 shrink-0 rounded-full ${dotColor} ${done ? '' : ''}`}
+      />
+      <div className="flex-1">
+        <p className="text-sm font-medium text-(--color-text-primary)">{label}</p>
+        <p className="mt-0.5 text-xs text-(--color-text-muted)">
+          {timestamp ? new Date(timestamp).toLocaleString() : 'Pending'}
+        </p>
+        {txHash && (
+          <a
+            href={TX_EXPLORER_URL(chainId, txHash)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-block font-mono text-xs text-(--color-magenta-700) hover:underline"
+          >
+            {txHash.slice(0, 12)}…{txHash.slice(-6)}
+          </a>
+        )}
+      </div>
+    </li>
   )
 }
 

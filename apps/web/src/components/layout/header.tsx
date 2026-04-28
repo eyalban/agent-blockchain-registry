@@ -6,6 +6,7 @@ import { ConnectButton } from '@/components/web3/connect-button'
 import { Logo } from '@/components/ui/logo'
 
 const NAV_ITEMS = [
+  { href: '/', label: 'Home' },
   { href: '/agents', label: 'Agents' },
   { href: '/companies', label: 'Companies' },
   { href: '/invoices', label: 'Invoices' },

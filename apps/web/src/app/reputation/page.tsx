@@ -1,11 +1,29 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+
+import { KpiStrip } from '@/components/ui/kpi-strip'
+import {
+  getAgentStats,
+  getTopAgents,
+} from '@/lib/aggregate-stats'
 
 export const metadata: Metadata = {
   title: 'Reputation',
-  description: 'View agent reputation scores and feedback leaderboard.',
+  description: 'Trust scores and the on-chain feedback leaderboard.',
 }
 
-export default function ReputationPage() {
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+export default async function ReputationPage() {
+  const [agentStats, leaders] = await Promise.all([
+    getAgentStats(),
+    getTopAgents(15),
+  ])
+
+  const totalFeedback = leaders.reduce((sum, l) => sum + l.feedbackCount, 0)
+  const top = leaders[0]
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-(--color-magenta-700)">
@@ -15,51 +33,106 @@ export default function ReputationPage() {
         Reputation Dashboard
       </h1>
       <p className="mt-3 max-w-2xl text-(--color-text-secondary)">
-        Aggregate trust scores, feedback history, and the reputation
-        leaderboard for every agent in the registry.
+        Aggregate trust scores across the registry. Feedback events are
+        recorded on-chain via the ERC-8004 ReputationRegistry and follow each
+        agent across every client that speaks the standard.
       </p>
 
-      {/* Stats row */}
-      <div className="mt-8 grid grid-cols-1 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:grid-cols-3 sm:divide-x">
-        {[
-          { label: 'Total agents', value: '—' },
-          { label: 'Average score', value: '—' },
-          { label: 'Feedback events', value: '—' },
-        ].map((stat) => (
-          <div key={stat.label} className="px-6 py-5">
-            <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
-              {stat.label}
-            </p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-(--color-text-primary)">
-              {stat.value}
-            </p>
-          </div>
-        ))}
+      <div className="mt-8">
+        <KpiStrip
+          cells={[
+            { label: 'Total agents', value: agentStats.total.toLocaleString() },
+            {
+              label: 'Feedback events',
+              value: totalFeedback.toLocaleString(),
+              sub: 'Top 15 indexed',
+            },
+            {
+              label: 'Top of leaderboard',
+              value: top
+                ? top.name ?? `Agent #${top.agentId}`
+                : '—',
+              sub: top
+                ? `${top.feedbackCount.toLocaleString()} reviews`
+                : undefined,
+            },
+            { label: 'Indexer', value: 'Live', sub: 'Base Sepolia' },
+          ]}
+        />
       </div>
 
-      {/* Leaderboard placeholder */}
-      <div className="mt-6 rounded-2xl border border-(--color-border) bg-white p-8 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-        <div className="flex items-center justify-between border-b border-(--color-border) pb-4">
-          <h2 className="text-lg font-semibold text-(--color-text-primary)">Top agents</h2>
-          <span className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-(--color-magenta-700)">
-            Coming soon
-          </span>
-        </div>
-        <div className="flex flex-col items-center justify-center py-14">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-(--color-magenta-50) text-(--color-magenta-700)">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
-              <path
-                d="M12 2l2.39 4.84L20 8l-4 3.9.94 5.5L12 14.77 7.06 17.4 8 11.9 4 8l5.61-1.16L12 2z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+      <div className="mt-6 overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="flex items-center justify-between border-b border-(--color-border) px-6 py-4">
+          <div>
+            <h2 className="text-base font-semibold text-(--color-text-primary)">
+              Leaderboard
+            </h2>
+            <p className="text-xs text-(--color-text-muted)">
+              Sorted by feedback count, then by agent ID descending
+            </p>
           </div>
-          <p className="mt-4 max-w-md text-center text-sm text-(--color-text-secondary)">
-            The leaderboard populates as agents receive on-chain feedback. Visit
-            any agent detail page to leave the first entry.
-          </p>
+          <Link
+            href="/agents"
+            className="text-sm font-medium text-(--color-magenta-700) hover:text-(--color-magenta-800)"
+          >
+            All agents &rarr;
+          </Link>
         </div>
+
+        {leaders.length === 0 ? (
+          <div className="px-6 py-14 text-center text-sm text-(--color-text-muted)">
+            No agents indexed yet.
+          </div>
+        ) : (
+          <ol>
+            {leaders.map((l, i) => (
+              <li
+                key={l.agentId}
+                className="border-b border-(--color-border) last:border-b-0"
+              >
+                <Link
+                  href={`/agents/${l.agentId}`}
+                  className="flex items-center gap-4 px-6 py-3.5 transition-colors hover:bg-(--color-magenta-50)"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-(--color-border) bg-(--color-bg-secondary) font-mono text-xs font-semibold tabular-nums text-(--color-text-secondary)">
+                    {i + 1}
+                  </span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--color-magenta-100) to-(--color-magenta-200) font-mono text-xs font-bold text-(--color-magenta-700)">
+                    {(l.name ?? l.agentId).slice(0, 2).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-(--color-text-primary)">
+                      {l.name ?? `Agent #${l.agentId}`}
+                    </p>
+                    <p className="font-mono text-xs text-(--color-text-muted)">
+                      #{l.agentId}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono text-sm font-semibold tabular-nums text-(--color-text-primary)">
+                      {l.feedbackCount.toLocaleString()}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-[0.12em] text-(--color-text-muted)">
+                      reviews
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-(--color-magenta-200) bg-(--color-magenta-50) p-6">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
+          How feedback works
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-(--color-text-secondary)">
+          Anyone holding an ERC-8004 client can leave feedback for an agent
+          they&rsquo;ve transacted with. The score and a CID-addressed memo land
+          in the ReputationRegistry contract. Trust scores are portable — they
+          follow the agent across every product that reads the same registry.
+        </p>
       </div>
     </div>
   )

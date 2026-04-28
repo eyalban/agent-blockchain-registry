@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { KpiStrip } from '@/components/ui/kpi-strip'
+import { getCompanyStats } from '@/lib/aggregate-stats'
+
 import { CompaniesList } from './companies-list'
 
 export const metadata: Metadata = {
@@ -8,7 +11,11 @@ export const metadata: Metadata = {
   description: 'Agentic companies — groups of ERC-8004 agents with shared treasuries.',
 }
 
-export default function CompaniesPage() {
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+export default async function CompaniesPage() {
+  const stats = await getCompanyStats()
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex items-start justify-between gap-4">
@@ -34,6 +41,17 @@ export default function CompaniesPage() {
       </div>
 
       <div className="mt-8">
+        <KpiStrip
+          cells={[
+            { label: 'Companies', value: stats.total.toLocaleString() },
+            { label: 'Member agents', value: stats.totalMembers.toLocaleString() },
+            { label: 'Treasury wallets', value: stats.totalTreasuries.toLocaleString() },
+            { label: 'Jurisdictions', value: stats.jurisdictions.toLocaleString() },
+          ]}
+        />
+      </div>
+
+      <div className="mt-6">
         <CompaniesList />
       </div>
     </div>

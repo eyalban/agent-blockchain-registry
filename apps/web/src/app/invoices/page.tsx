@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+import { KpiStrip } from '@/components/ui/kpi-strip'
+import { getInvoiceStats } from '@/lib/aggregate-stats'
+
 import { InvoicesList } from './invoices-list'
 
 export const metadata: Metadata = {
@@ -8,7 +11,21 @@ export const metadata: Metadata = {
   description: 'On-chain invoices between agents and agentic companies.',
 }
 
-export default function InvoicesPage() {
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+function formatUsdShort(v: number): string {
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}M`
+  if (v >= 10_000) return `$${(v / 1_000).toFixed(1)}k`
+  return v.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 2,
+  })
+}
+
+export default async function InvoicesPage() {
+  const stats = await getInvoiceStats()
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex items-start justify-between gap-4">
@@ -32,6 +49,29 @@ export default function InvoicesPage() {
         </Link>
       </div>
       <div className="mt-8">
+        <KpiStrip
+          cells={[
+            { label: 'Invoices', value: stats.total.toLocaleString() },
+            {
+              label: 'Total invoiced',
+              value: formatUsdShort(stats.totalInvoicedUsd),
+              sub: 'USD at issue',
+            },
+            {
+              label: 'Paid',
+              value: formatUsdShort(stats.totalPaidUsd),
+              sub: 'Settled on-chain',
+            },
+            {
+              label: 'Outstanding',
+              value: formatUsdShort(stats.outstandingUsd),
+              sub: `${stats.last30dCount} new in 30d`,
+            },
+          ]}
+        />
+      </div>
+
+      <div className="mt-6">
         <InvoicesList />
       </div>
     </div>

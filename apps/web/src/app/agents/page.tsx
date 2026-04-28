@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 
+import { KpiStrip } from '@/components/ui/kpi-strip'
 import { getAgentsPage } from '@/lib/agents-cache'
+import { getAgentStats } from '@/lib/aggregate-stats'
 
 import { AgentsList } from './agents-list'
 
@@ -17,7 +19,10 @@ export const revalidate = 0
 const PAGE_SIZE = 60
 
 export default async function AgentsPage() {
-  const { data, total } = await getAgentsPage(PAGE_SIZE, 0)
+  const [{ data }, stats] = await Promise.all([
+    getAgentsPage(PAGE_SIZE, 0),
+    getAgentStats(),
+  ])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -28,13 +33,25 @@ export default async function AgentsPage() {
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-(--color-text-primary)">
           Agents
         </h1>
-        <p className="mt-2 text-(--color-text-secondary)">
-          Browse and discover registered AI agents on Base. {total} agent
-          {total === 1 ? '' : 's'} indexed.
+        <p className="mt-3 max-w-2xl text-(--color-text-secondary)">
+          {stats.total.toLocaleString()} ERC-8004 agents indexed on Base. Each
+          one carries a portable on-chain identity, a tokenURI agent card, and
+          a reputation history any compliant client can verify.
         </p>
       </div>
 
       <div className="mt-8">
+        <KpiStrip
+          cells={[
+            { label: 'Total agents', value: stats.total.toLocaleString() },
+            { label: 'Registered this week', value: stats.newThisWeek.toLocaleString() },
+            { label: 'Distinct owners', value: stats.uniqueOwners.toLocaleString() },
+            { label: 'In a company', value: stats.withCompany.toLocaleString() },
+          ]}
+        />
+      </div>
+
+      <div className="mt-6">
         <AgentsList
           initialAgents={data.map((a) => ({
             agentId: a.agentId,

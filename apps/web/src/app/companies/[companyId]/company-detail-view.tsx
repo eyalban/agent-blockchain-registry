@@ -110,6 +110,21 @@ export function CompanyDetailView({ companyId }: Props) {
         </div>
       </div>
 
+      <div className="mt-4 grid grid-cols-2 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:grid-cols-4 sm:divide-x">
+        <CKpiCell label="Member agents" value={data.members.length.toString()} />
+        <CKpiCell label="Treasuries" value={data.treasuries.length.toString()} />
+        <CKpiCell
+          label="Jurisdiction"
+          value={data.jurisdictionCode ?? '—'}
+          mono
+        />
+        <CKpiCell
+          label="Created"
+          value={data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '—'}
+          sub={`Block ${Number(data.createdBlock).toLocaleString()}`}
+        />
+      </div>
+
       <div className="mt-8 border-b border-(--color-border)">
         <div className="flex gap-1 overflow-x-auto">
           {TABS.map((t) => (
@@ -560,6 +575,32 @@ function Stat({ label, value, mono }: { label: string; value: string; mono?: boo
       >
         {value}
       </p>
+    </div>
+  )
+}
+
+function CKpiCell({
+  label,
+  value,
+  sub,
+  mono,
+}: {
+  readonly label: string
+  readonly value: string
+  readonly sub?: string
+  readonly mono?: boolean
+}) {
+  return (
+    <div className="px-6 py-5">
+      <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
+        {label}
+      </p>
+      <p
+        className={`mt-2 text-2xl font-semibold tracking-tight tabular-nums text-(--color-text-primary) ${mono ? 'font-mono' : ''}`}
+      >
+        {value}
+      </p>
+      {sub && <p className="mt-1 font-mono text-xs text-(--color-text-muted)">{sub}</p>}
     </div>
   )
 }

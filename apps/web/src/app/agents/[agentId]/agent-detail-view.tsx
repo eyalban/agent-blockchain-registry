@@ -115,26 +115,40 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
             )}
           </div>
 
-          {/* Stats */}
-          <div className="hidden gap-3 sm:flex">
-            <div className="rounded-xl border border-(--color-border) bg-(--color-bg-secondary) px-5 py-3 text-center">
-              <p className="text-2xl font-semibold tracking-tight text-(--color-text-primary)">
-                {count !== undefined ? count.toString() : '—'}
-              </p>
-              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-(--color-text-muted)">
-                Feedback
-              </p>
-            </div>
-            <div className="rounded-xl border border-(--color-magenta-200) bg-(--color-magenta-50) px-5 py-3 text-center">
-              <p className="text-2xl font-semibold tracking-tight text-(--color-magenta-700)">
-                {summaryValue !== undefined ? summaryValue.toString() : '—'}
-              </p>
-              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-(--color-magenta-700)/80">
-                Score
-              </p>
-            </div>
-          </div>
         </div>
+      </div>
+
+      {/* KPI strip */}
+      <div className="mt-4 grid grid-cols-2 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:grid-cols-4 sm:divide-x">
+        <KpiCell
+          label="Feedback events"
+          value={count !== undefined ? count.toString() : '—'}
+        />
+        <KpiCell
+          label="Trust score"
+          value={
+            summaryValue !== undefined && summaryValueDecimals !== undefined
+              ? (Number(summaryValue) / 10 ** summaryValueDecimals).toFixed(2)
+              : '—'
+          }
+        />
+        <KpiCell
+          label="On-chain txs"
+          value={transactions.length.toLocaleString()}
+        />
+        <KpiCell
+          label="Last activity"
+          value={
+            transactions.length > 0
+              ? formatRelativeTime(transactions[0]!.block_timestamp)
+              : '—'
+          }
+          sub={
+            transactions.length > 0
+              ? formatCompactDateTime(transactions[0]!.block_timestamp)
+              : undefined
+          }
+        />
       </div>
 
       {/* Tabs */}
@@ -343,6 +357,28 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function KpiCell({
+  label,
+  value,
+  sub,
+}: {
+  readonly label: string
+  readonly value: string
+  readonly sub?: string
+}) {
+  return (
+    <div className="px-6 py-5">
+      <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
+        {label}
+      </p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums text-(--color-text-primary)">
+        {value}
+      </p>
+      {sub && <p className="mt-1 font-mono text-xs text-(--color-text-muted)">{sub}</p>}
     </div>
   )
 }

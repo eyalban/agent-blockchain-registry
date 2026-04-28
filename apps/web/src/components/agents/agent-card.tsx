@@ -22,22 +22,22 @@ export function AgentCard({
   return (
     <Link
       href={`/agents/${agentId}`}
-      className="gradient-border gradient-border-hover group block rounded-2xl border border-(--color-border) bg-(--color-surface)/40 p-6 backdrop-blur-sm transition-all hover:bg-(--color-surface-hover)"
+      className="group block rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-(--color-magenta-300) hover:shadow-[0_12px_28px_-12px_rgba(219,39,119,0.20)]"
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-(--color-accent-cyan)/20 to-(--color-accent-violet)/20 font-mono text-sm font-bold text-(--color-accent-cyan)">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-(--color-magenta-100) to-(--color-magenta-200) font-mono text-sm font-bold text-(--color-magenta-700)">
             {name.slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <h3 className="font-semibold text-(--color-text-primary) transition-colors group-hover:text-(--color-accent-cyan)">
+            <h3 className="font-semibold text-(--color-text-primary) transition-colors group-hover:text-(--color-magenta-700)">
               {name}
             </h3>
             <p className="font-mono text-xs text-(--color-text-muted)">#{agentId}</p>
           </div>
         </div>
         {featured && (
-          <span className="rounded-full border border-(--color-accent-amber)/30 bg-(--color-accent-amber)/10 px-2 py-0.5 font-mono text-xs text-(--color-accent-amber)">
+          <span className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 font-mono text-xs text-(--color-magenta-700)">
             FEATURED
           </span>
         )}
@@ -50,7 +50,7 @@ export function AgentCard({
           {tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-2 py-0.5 font-mono text-xs text-(--color-text-muted)"
+              className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-2 py-0.5 font-mono text-xs text-(--color-text-secondary)"
             >
               {tag}
             </span>

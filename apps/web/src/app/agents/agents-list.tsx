@@ -49,7 +49,7 @@ export function AgentsList() {
           Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="animate-pulse rounded-2xl border border-(--color-border) bg-(--color-surface)/40 p-6"
+              className="animate-pulse rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
             >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-(--color-border)" />

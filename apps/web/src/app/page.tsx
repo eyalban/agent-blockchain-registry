@@ -1,9 +1,10 @@
 import Link from 'next/link'
 
 import { ProtocolStats } from '@/components/web3/protocol-stats'
+import { LatestAgents } from '@/components/agents/latest-agents'
+import { LatestCompanies } from '@/components/agents/latest-companies'
 
 const GITHUB_URL = 'https://github.com/eyalban/agent-registry-framework'
-const WHITEPAPER_URL = '/whitepaper'
 
 export default function HomePage() {
   return (
@@ -11,412 +12,225 @@ export default function HomePage() {
       {/* ====================================================================
           HERO
           ==================================================================== */}
-      <section className="relative py-28 text-center">
-        <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2">
-          <div className="h-[520px] w-[860px] rounded-full bg-[radial-gradient(closest-side,rgba(236,72,153,0.18),rgba(236,72,153,0.05),transparent)] blur-2xl" />
-        </div>
-
-        <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-3.5 py-1.5 text-xs font-medium tracking-wide">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--color-magenta-500) opacity-75" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-(--color-magenta-600)" />
-            </span>
-            <span className="text-(--color-magenta-700) uppercase tracking-[0.14em]">Live</span>
-            <span className="text-(--color-magenta-300)">/</span>
-            <span className="text-(--color-text-secondary)">Base Sepolia</span>
-          </div>
-
-          <h1 className="mt-8 text-5xl font-semibold tracking-[-0.02em] text-(--color-text-primary) sm:text-7xl">
-            Financial infrastructure
-            <br />
-            <span className="bg-gradient-to-r from-(--color-magenta-700) via-(--color-magenta-500) to-(--color-magenta-700) bg-clip-text text-transparent animate-gradient">
-              for agentic companies.
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-(--color-text-secondary)">
-            On-chain identity, reputation, companies, invoices, and provenance-first
-            accounting for AI agents. Built on{' '}
-            <a
-              href="https://eips.ethereum.org/EIPS/eip-8004"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-(--color-magenta-700) hover:underline"
-            >
-              ERC-8004
-            </a>
-            . Deployed on Base.
-          </p>
-
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/companies/new"
-              className="group relative rounded-full bg-(--color-magenta-700) px-7 py-3.5 text-sm font-semibold text-white transition-all hover:bg-(--color-magenta-800) glow-cyan"
-            >
-              Create a Company
-              <span className="ml-2 inline-block transition-transform group-hover:translate-x-0.5">
-                &rarr;
-              </span>
-            </Link>
-            <Link
-              href="/invoices/new"
-              className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-7 py-3.5 text-sm font-semibold text-(--color-magenta-700) transition-all hover:bg-(--color-magenta-100)"
-            >
-              Issue an Invoice
-            </Link>
-            <Link
-              href="/docs"
-              className="rounded-full border border-(--color-border-bright) bg-white px-7 py-3.5 text-sm font-semibold text-(--color-text-primary) transition-all hover:border-(--color-magenta-300) hover:text-(--color-magenta-700)"
-            >
-              Read the Docs
-            </Link>
-          </div>
-
-          <p className="mt-6 font-mono text-xs text-(--color-text-muted)">
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-(--color-magenta-700)"
-            >
-              GitHub &rarr;
-            </a>
-            {'  '}
-            <span className="mx-2">&middot;</span>
-            <Link
-              href={WHITEPAPER_URL}
-              className="hover:text-(--color-magenta-700)"
-            >
-              White paper &rarr;
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          STATS
-          ==================================================================== */}
-      <section className="relative border-t border-(--color-border) py-16">
-        <ProtocolStats />
-      </section>
-
-      {/* ====================================================================
-          PROTOCOL BANNER
-          ==================================================================== */}
-      <section className="py-4">
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-full border border-(--color-border) bg-white px-6 py-3 font-mono text-xs text-(--color-text-secondary) shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <span className="text-(--color-accent-cyan)">ERC-8004</span>
-          <span>&bull;</span>
-          <span>Identity</span>
-          <span>&bull;</span>
-          <span>Reputation</span>
-          <span>&bull;</span>
-          <span className="text-(--color-accent-cyan)">CompanyRegistry</span>
-          <span>&bull;</span>
-          <span className="text-(--color-accent-cyan)">InvoiceRegistry</span>
-          <span>&bull;</span>
-          <span className="text-(--color-accent-violet-bright)">Base L2</span>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          FEATURE CARDS
-          ==================================================================== */}
-      <section className="py-16">
-        <div className="text-center">
-          <p className="font-mono text-xs tracking-[0.2em] text-(--color-accent-cyan) uppercase">
-            Primitives
-          </p>
-          <h2 className="mt-3 text-3xl font-bold text-(--color-text-primary) sm:text-4xl">
-            Built for agents that earn, spend, and report
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-(--color-text-secondary)">
-            Everything an AI agent or agentic company needs to be identified, paid,
-            and audited — without centralized platforms.
-          </p>
-        </div>
-
-        <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <FeatureCard
-            accent="cyan"
-            icon={<IdentityIcon />}
-            title="On-Chain Identity"
-            description="Each agent is an ERC-721 NFT on Base. One registration, portable across every app that speaks ERC-8004."
-            href="/agents"
-            cta="Browse agents"
-          />
-          <FeatureCard
-            accent="violet"
-            icon={<ReputationIcon />}
-            title="Reputation"
-            description="Peer feedback recorded on-chain. Trust scores that follow the agent wherever it works."
-            href="/reputation"
-            cta="See reputation"
-          />
-          <FeatureCard
-            accent="cyan"
-            isNew
-            icon={<CompanyIcon />}
-            title="Agentic Companies"
-            description="Group N agents and M treasury wallets into a single on-chain company. Financials consolidate. Ownership is transferable."
-            href="/companies"
-            cta="Browse companies"
-          />
-          <FeatureCard
-            accent="violet"
-            isNew
-            icon={<InvoiceIcon />}
-            title="On-Chain Invoicing"
-            description="Atomic settlement — one transaction both transfers funds (ETH or USDC) and marks the invoice paid. No Stripe in between."
-            href="/invoices"
-            cta="See invoices"
-          />
-          <FeatureCard
-            accent="amber"
-            isNew
-            icon={<ChartIcon />}
-            title="Provenance-First Accounting"
-            description="Income statements and balance sheets where every number is traceable to a source: tx hash, event log, OECD dataset revision, or Chainlink round."
-            href="/docs#provenance"
-            cta="Learn how"
-          />
-          <FeatureCard
-            accent="amber"
-            icon={<SdkIcon />}
-            title="TypeScript SDK"
-            description="@agent-registry/sdk works in Node, browser, Edge, and Workers. Read-only with no wallet, write with any viem/wagmi WalletClient."
-            href="/docs#sdk"
-            cta="View SDK"
-          />
-        </div>
-      </section>
-
-      {/* ====================================================================
-          TRY-IT FLOW
-          ==================================================================== */}
-      <section className="border-t border-(--color-border) py-16">
-        <div className="text-center">
-          <p className="font-mono text-xs tracking-[0.2em] text-(--color-accent-violet-bright) uppercase">
-            Try it
-          </p>
-          <h2 className="mt-3 text-3xl font-bold text-(--color-text-primary)">
-            Go from zero to an audited agentic company in minutes
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-(--color-text-secondary)">
-            Connect a wallet, mint a company, add your agents, issue your first invoice.
-            Every step settles on-chain and every number is provenance-tagged.
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-4 md:grid-cols-2">
-          <Step
-            n={1}
-            title="Connect + get testnet ETH"
-            body="Connect MetaMask or Coinbase Wallet. Grab a drip from the Coinbase Base Sepolia faucet (takes 30 seconds)."
-            href="/companies/new"
-            cta="Start"
-          />
-          <Step
-            n={2}
-            title="Create a company"
-            body="Sign one transaction calling CompanyRegistry.createCompany. Name, description, jurisdiction (for tax)."
-            href="/companies/new"
-            cta="Create"
-          />
-          <Step
-            n={3}
-            title="Add agents + treasuries"
-            body="You become the owner. Add any ERC-8004 agents you own; link treasury wallets you want consolidated."
-            href="/companies"
-            cta="See companies"
-          />
-          <Step
-            n={4}
-            title="Issue and pay invoices"
-            body="Create an invoice (ETH or USDC). The payer settles in one click — funds move and status flips to Paid atomically."
-            href="/invoices/new"
-            cta="Issue invoice"
-          />
-          <Step
-            n={5}
-            title="Watch financials populate"
-            body="Income statement by period, balance sheet with AR/AP, tax rate from OECD. Every number linkable to its source."
-            href="/docs#provenance"
-            cta="How it works"
-          />
-          <Step
-            n={6}
-            title="Integrate via SDK"
-            body="Install @agent-registry/sdk. Build agents, CLIs, dashboards, or your own UI on top of the same primitives."
-            href="/docs#sdk"
-            cta="Read SDK docs"
-          />
-        </div>
-      </section>
-
-      {/* ====================================================================
-          SDK SECTION
-          ==================================================================== */}
-      <section className="border-t border-(--color-border) py-16">
-        <div className="grid items-center gap-12 md:grid-cols-2">
+      <section className="relative pt-16 pb-10">
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
           <div>
-            <p className="font-mono text-xs tracking-[0.2em] text-(--color-accent-violet-bright) uppercase">
-              Developer SDK
+            <div className="inline-flex items-center gap-2 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-1 text-xs font-medium">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--color-magenta-500) opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-(--color-magenta-600)" />
+              </span>
+              <span className="uppercase tracking-[0.14em] text-(--color-magenta-700)">Live</span>
+              <span className="text-(--color-magenta-300)">/</span>
+              <span className="text-(--color-text-secondary)">Base Sepolia · ERC-8004</span>
+            </div>
+
+            <h1 className="mt-6 text-4xl font-semibold tracking-[-0.02em] text-(--color-text-primary) sm:text-5xl lg:text-[3.5rem] lg:leading-[1.05]">
+              Banking and accounting
+              <br />
+              <span className="text-(--color-magenta-700)">for AI agents.</span>
+            </h1>
+
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-(--color-text-secondary) sm:text-lg">
+              statem8 gives every AI agent an on-chain identity, a reputation
+              score, a parent company, and an audited income statement —
+              issued, paid and reconciled atomically through smart contracts on
+              Base.
             </p>
-            <h2 className="mt-3 text-3xl font-bold text-(--color-text-primary)">
-              The primitives, in TypeScript
-            </h2>
-            <p className="mt-4 text-(--color-text-secondary)">
-              One client, four sub-clients ({' '}
-              <code className="font-mono text-xs text-(--color-accent-cyan)">identity</code>,{' '}
-              <code className="font-mono text-xs text-(--color-accent-cyan)">reputation</code>,{' '}
-              <code className="font-mono text-xs text-(--color-accent-cyan)">company</code>,{' '}
-              <code className="font-mono text-xs text-(--color-accent-cyan)">invoice</code>{' '}
-              ). Reads need no wallet; writes take any{' '}
-              <code className="font-mono text-xs text-(--color-accent-cyan)">viem</code>/
-              <code className="font-mono text-xs text-(--color-accent-cyan)">wagmi</code>{' '}
-              <code className="font-mono text-xs text-(--color-accent-cyan)">WalletClient</code>.
-              Runs in Node, browser, Cloudflare Workers, and Vercel Edge.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2">
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/docs#sdk"
-                className="rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 text-sm font-mono text-(--color-accent-cyan) transition-colors hover:bg-(--color-accent-cyan)/20"
+                href="/signin"
+                className="inline-flex items-center gap-2 rounded-full bg-(--color-magenta-700) px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-all hover:bg-(--color-magenta-800)"
               >
-                SDK reference
+                Sign in
+                <span className="text-base">&rarr;</span>
+              </Link>
+              <Link
+                href="/agents"
+                className="inline-flex items-center gap-2 rounded-full border border-(--color-border-bright) bg-white px-6 py-3 text-sm font-semibold text-(--color-text-primary) transition-all hover:border-(--color-magenta-300) hover:text-(--color-magenta-700)"
+              >
+                Browse the registry
               </Link>
               <a
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-md border border-(--color-border-bright) bg-(--color-surface) px-4 py-2 text-sm font-mono text-(--color-text-secondary) transition-colors hover:text-(--color-accent-cyan) hover:border-(--color-accent-cyan)/40"
+                className="text-sm font-medium text-(--color-text-secondary) hover:text-(--color-magenta-700)"
               >
-                GitHub
+                GitHub &rarr;
               </a>
             </div>
           </div>
-          <div className="rounded-2xl border border-(--color-border) bg-white p-5 font-mono text-sm shadow-[0_8px_24px_-12px_rgba(15,23,42,0.10)]">
-            <div className="flex items-center gap-2 border-b border-(--color-border) pb-3 text-xs text-(--color-text-muted)">
-              <span className="h-3 w-3 rounded-full bg-red-500/60" />
-              <span className="h-3 w-3 rounded-full bg-yellow-500/60" />
-              <span className="h-3 w-3 rounded-full bg-green-500/60" />
-              <span className="ml-2">invoice.ts</span>
+
+          {/* Right-side mini "console" */}
+          <div className="relative">
+            <div className="absolute -inset-6 -z-10 rounded-[28px] bg-[radial-gradient(closest-side,rgba(236,72,153,0.16),transparent)] blur-2xl" />
+            <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_8px_28px_-12px_rgba(15,23,42,0.10)]">
+              <div className="flex items-center justify-between border-b border-(--color-border) pb-3">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
+                  Live network
+                </p>
+                <span className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-(--color-magenta-700)">
+                  Base · 84532
+                </span>
+              </div>
+
+              <dl className="mt-4 grid grid-cols-2 gap-y-4 text-sm">
+                <ConsoleRow label="IdentityRegistry" value="ERC-8004" />
+                <ConsoleRow label="ReputationRegistry" value="ERC-8004" />
+                <ConsoleRow label="CompanyRegistry" value="statem8" />
+                <ConsoleRow label="InvoiceRegistry" value="statem8" />
+              </dl>
+
+              <div className="mt-5 rounded-xl border border-(--color-border) bg-(--color-bg-secondary) p-4 font-mono text-[11px] leading-5 text-(--color-text-secondary)">
+                <span className="text-(--color-magenta-700)">issue</span>{' '}
+                <span>invoice</span>{' '}
+                <span className="text-(--color-text-muted)">→</span>{' '}
+                <span>payer settles</span>{' '}
+                <span className="text-(--color-text-muted)">→</span>{' '}
+                <span>funds + status flip atomically</span>
+              </div>
             </div>
-            <pre className="mt-4 overflow-x-auto text-xs leading-6">
-              <code>
-                <span className="text-(--color-accent-violet-bright)">import</span>{' '}
-                <span className="text-(--color-text-primary)">{'{ AgentRegistryClient }'}</span>{' '}
-                <span className="text-(--color-accent-violet-bright)">from</span>{' '}
-                <span className="text-(--color-accent-green)">{`'@agent-registry/sdk'`}</span>
-                {'\n\n'}
-                <span className="text-(--color-accent-violet-bright)">const</span>{' '}
-                <span className="text-(--color-accent-cyan)">client</span>{' '}
-                <span className="text-(--color-text-muted)">=</span>{' '}
-                <span className="text-(--color-accent-violet-bright)">new</span>{' '}
-                <span className="text-(--color-accent-amber)">AgentRegistryClient</span>
-                {`({ chain: `}
-                <span className="text-(--color-accent-green)">{`'base-sepolia'`}</span>
-                {` })\n\n`}
-                <span className="text-(--color-text-muted)">
-                  {'// Issue an invoice — atomic settlement, no intermediary'}
-                </span>
-                {'\n'}
-                <span className="text-(--color-accent-violet-bright)">const</span>{' '}
-                <span className="text-(--color-text-primary)">{'{ invoiceId }'}</span>{' '}
-                <span className="text-(--color-text-muted)">=</span>{' '}
-                <span className="text-(--color-accent-violet-bright)">await</span>{' '}
-                {'client.invoice.'}
-                <span className="text-(--color-accent-amber)">createInvoice</span>
-                {'(wallet, {\n'}
-                <span className="text-(--color-text-secondary)">{'  payer: '}</span>
-                <span className="text-(--color-accent-green)">{`'0xBob...'`}</span>
-                {',\n'}
-                <span className="text-(--color-text-secondary)">{'  token: '}</span>
-                <span className="text-(--color-accent-green)">{`'0x036C...USDC'`}</span>
-                {',\n'}
-                <span className="text-(--color-text-secondary)">{'  amount: '}</span>
-                <span className="text-(--color-accent-cyan)">100_000_000n</span>
-                <span className="text-(--color-text-muted)">{' // 100 USDC'}</span>
-                {',\n'}
-                <span className="text-(--color-text-secondary)">
-                  {'  issuerCompanyId: '}
-                </span>
-                <span className="text-(--color-accent-cyan)">1n</span>
-                {',\n'}
-                <span className="text-(--color-text-secondary)">
-                  {'  payerCompanyId: '}
-                </span>
-                <span className="text-(--color-accent-cyan)">2n</span>
-                {',\n'}
-                <span className="text-(--color-text-secondary)">{'  dueBlock: '}</span>
-                <span className="text-(--color-accent-cyan)">0n</span>
-                {',\n'}
-                <span className="text-(--color-text-secondary)">{'  memoURI: '}</span>
-                <span className="text-(--color-accent-green)">{`'ipfs://Qm...'`}</span>
-                {',\n'}
-                <span className="text-(--color-text-secondary)">{'  memoHash: '}</span>
-                <span className="text-(--color-accent-green)">{`'0x...'`}</span>
-                {',\n})\n\n'}
-                <span className="text-(--color-text-muted)">{'// Payer settles in one tx'}</span>
-                {'\n'}
-                <span className="text-(--color-accent-violet-bright)">await</span>{' '}
-                {'client.invoice.'}
-                <span className="text-(--color-accent-amber)">payERC20</span>
-                {'(payerWallet, invoiceId)'}
-              </code>
-            </pre>
           </div>
         </div>
       </section>
 
       {/* ====================================================================
-          FOR GRADERS / EVALUATORS
+          KPI STRIP
           ==================================================================== */}
-      <section className="border-t border-(--color-border) py-16">
-        <div className="rounded-2xl border border-(--color-magenta-200) bg-gradient-to-br from-(--color-magenta-50) via-white to-(--color-magenta-100) p-10 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <p className="font-mono text-xs tracking-[0.2em] text-(--color-accent-cyan) uppercase">
-            MIT Media Lab &middot; AI Studio, Spring 2026
-          </p>
-          <h2 className="mt-3 text-3xl font-bold text-(--color-text-primary)">
-            Open, audited-in-principle, production-ready testnet
-          </h2>
-          <p className="mt-4 max-w-3xl text-(--color-text-secondary)">
-            The entire framework is open-source under MIT. 62 Foundry contract tests pass.
-            Every piece ships with documentation for non-experts (concepts), integrators
-            (quickstart), and auditors (architecture + limitations).
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-5 py-2.5 text-sm font-mono text-(--color-accent-cyan) transition-colors hover:bg-(--color-accent-cyan)/20"
-            >
-              GitHub repo
-            </a>
-            <Link
-              href="/docs"
-              className="rounded-lg border border-(--color-accent-violet)/40 bg-(--color-accent-violet)/10 px-5 py-2.5 text-sm font-mono text-(--color-accent-violet-bright) transition-colors hover:bg-(--color-accent-violet)/20"
-            >
-              Documentation site
-            </Link>
-            <Link
-              href={WHITEPAPER_URL}
-              className="rounded-lg border border-(--color-accent-amber)/40 bg-(--color-accent-amber)/10 px-5 py-2.5 text-sm font-mono text-(--color-accent-amber) transition-colors hover:bg-(--color-accent-amber)/20"
-            >
-              White paper
-            </Link>
-            <a
-              href="https://github.com/eyalban/agent-registry-framework/blob/main/docs/LIMITATIONS.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-(--color-border-bright) bg-(--color-surface)/60 px-5 py-2.5 text-sm font-mono text-(--color-text-secondary) transition-colors hover:border-(--color-accent-cyan)/40 hover:text-(--color-accent-cyan)"
-            >
-              Limitations
-            </a>
+      <section className="py-6">
+        <ProtocolStats />
+      </section>
+
+      {/* ====================================================================
+          PRODUCT PILLARS
+          ==================================================================== */}
+      <section className="pt-14 pb-6">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-(--color-magenta-700)">
+              Platform
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-(--color-text-primary) sm:text-3xl">
+              Four primitives. One audited statement.
+            </h2>
+          </div>
+          <Link
+            href="/docs"
+            className="hidden text-sm font-medium text-(--color-magenta-700) hover:text-(--color-magenta-800) sm:inline"
+          >
+            Read the docs &rarr;
+          </Link>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Pillar
+            n="01"
+            title="Identity"
+            body="Every agent is an ERC-721 NFT under the canonical IdentityRegistry. One mint, portable across every app that speaks ERC-8004."
+            href="/agents"
+          />
+          <Pillar
+            n="02"
+            title="Reputation"
+            body="Peer feedback recorded on-chain. Trust scores follow the agent — not the platform — and are queryable by any client."
+            href="/reputation"
+          />
+          <Pillar
+            n="03"
+            title="Companies"
+            body="Group N agents and M treasury wallets into one company. Ownership is transferable; financials consolidate automatically."
+            href="/companies"
+          />
+          <Pillar
+            n="04"
+            title="Invoicing"
+            body="Atomic settlement — one transaction transfers funds (ETH or USDC) and flips the invoice to Paid. No Stripe in between."
+            href="/invoices"
+          />
+        </div>
+      </section>
+
+      {/* ====================================================================
+          LIVE DATA: AGENTS + COMPANIES SHORTLISTS
+          ==================================================================== */}
+      <section className="py-10">
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <LatestAgents limit={6} />
+          </div>
+          <div className="lg:col-span-2">
+            <LatestCompanies limit={4} />
           </div>
         </div>
+      </section>
+
+      {/* ====================================================================
+          WORKFLOW — what does this app actually do?
+          ==================================================================== */}
+      <section className="py-10">
+        <div className="rounded-2xl border border-(--color-border) bg-white p-8 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-10">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-(--color-magenta-700)">
+            How it works
+          </p>
+          <h2 className="mt-2 max-w-2xl text-2xl font-semibold tracking-tight text-(--color-text-primary) sm:text-3xl">
+            From a fresh wallet to an audited agentic company in minutes.
+          </h2>
+
+          <ol className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Step
+              n={1}
+              title="Sign in"
+              body="Use email + password, or connect a wallet. Email accounts can link a wallet later to sign transactions."
+            />
+            <Step
+              n={2}
+              title="Register agents"
+              body="Mint an ERC-8004 agent NFT — name, description, capability tags, and an agent card published to IPFS or as a data URI."
+            />
+            <Step
+              n={3}
+              title="Spin up a company"
+              body="Group your agents and treasury wallets under one CompanyRegistry entry. Set jurisdiction for tax handling."
+            />
+            <Step
+              n={4}
+              title="Issue + reconcile"
+              body="Send invoices in ETH or USDC. The income statement and balance sheet populate automatically — every line traceable to a tx hash."
+            />
+          </ol>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              href="/companies/new"
+              className="inline-flex items-center gap-2 rounded-full bg-(--color-magenta-700) px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-(--color-magenta-800)"
+            >
+              Create a company
+            </Link>
+            <Link
+              href="/invoices/new"
+              className="inline-flex items-center gap-2 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-5 py-2.5 text-sm font-semibold text-(--color-magenta-700) transition-all hover:bg-(--color-magenta-100)"
+            >
+              Issue an invoice
+            </Link>
+            <Link
+              href="/whitepaper"
+              className="text-sm font-medium text-(--color-text-secondary) hover:text-(--color-magenta-700)"
+            >
+              Read the white paper &rarr;
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          FOOTER NOTE
+          ==================================================================== */}
+      <section className="pt-2 pb-12">
+        <p className="text-center font-mono text-xs text-(--color-text-muted)">
+          MIT Media Lab · AI Studio Spring 2026 · open-source under MIT
+        </p>
       </section>
     </div>
   )
@@ -424,228 +238,59 @@ export default function HomePage() {
 
 /* ===== Sub-components ===== */
 
-interface FeatureCardProps {
-  readonly icon: React.ReactNode
-  readonly title: string
-  readonly description: string
-  readonly accent: 'cyan' | 'violet' | 'amber'
-  readonly href?: string
-  readonly cta?: string
-  readonly isNew?: boolean
-}
-
-const accentMap = {
-  cyan: {
-    iconBg: 'bg-(--color-accent-cyan)/10',
-    iconColor: 'text-(--color-accent-cyan)',
-    hoverBorder: 'hover:border-(--color-accent-cyan)/30',
-    glow: 'hover:glow-cyan-sm',
-    ctaColor: 'text-(--color-accent-cyan)',
-  },
-  violet: {
-    iconBg: 'bg-(--color-accent-violet)/10',
-    iconColor: 'text-(--color-accent-violet-bright)',
-    hoverBorder: 'hover:border-(--color-accent-violet)/30',
-    glow: 'hover:glow-violet',
-    ctaColor: 'text-(--color-accent-violet-bright)',
-  },
-  amber: {
-    iconBg: 'bg-(--color-accent-amber)/10',
-    iconColor: 'text-(--color-accent-amber)',
-    hoverBorder: 'hover:border-(--color-accent-amber)/30',
-    glow: 'hover:glow-amber',
-    ctaColor: 'text-(--color-accent-amber)',
-  },
-}
-
-function FeatureCard({
-  icon,
-  title,
-  description,
-  accent,
-  href,
-  cta,
-  isNew,
-}: FeatureCardProps) {
-  const a = accentMap[accent]
-  const inner = (
-    <div
-      className={`group h-full rounded-2xl border border-(--color-border) bg-white p-7 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all ${a.hoverBorder} ${a.glow}`}
-    >
-      <div className="flex items-start justify-between">
-        <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${a.iconBg}`}>
-          <div className={a.iconColor}>{icon}</div>
-        </div>
-        {isNew && (
-          <span className="rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-(--color-accent-cyan)">
-            new
-          </span>
-        )}
-      </div>
-      <h3 className="mt-5 text-lg font-semibold text-(--color-text-primary)">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-(--color-text-secondary)">
-        {description}
-      </p>
-      {cta && (
-        <p
-          className={`mt-4 font-mono text-xs ${a.ctaColor} transition-transform group-hover:translate-x-0.5`}
-        >
-          {cta} &rarr;
-        </p>
-      )}
-    </div>
+function ConsoleRow({ label, value }: { readonly label: string; readonly value: string }) {
+  return (
+    <>
+      <dt className="font-mono text-xs text-(--color-text-muted)">{label}</dt>
+      <dd className="text-right font-mono text-xs text-(--color-text-primary)">{value}</dd>
+    </>
   )
-  if (href) {
-    if (href.startsWith('http')) {
-      return (
-        <a href={href} target="_blank" rel="noopener noreferrer">
-          {inner}
-        </a>
-      )
-    }
-    return <Link href={href}>{inner}</Link>
-  }
-  return inner
+}
+
+function Pillar({
+  n,
+  title,
+  body,
+  href,
+}: {
+  readonly n: string
+  readonly title: string
+  readonly body: string
+  readonly href: string
+}) {
+  return (
+    <Link
+      href={href}
+      className="group block rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:border-(--color-magenta-300) hover:shadow-[0_12px_28px_-12px_rgba(219,39,119,0.20)]"
+    >
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-xs text-(--color-text-muted)">{n}</span>
+        <span className="text-(--color-magenta-700) opacity-0 transition-opacity group-hover:opacity-100">
+          &rarr;
+        </span>
+      </div>
+      <h3 className="mt-4 text-lg font-semibold text-(--color-text-primary)">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-(--color-text-secondary)">{body}</p>
+    </Link>
+  )
 }
 
 function Step({
   n,
   title,
   body,
-  href,
-  cta,
 }: {
   readonly n: number
   readonly title: string
   readonly body: string
-  readonly href: string
-  readonly cta: string
 }) {
   return (
-    <Link
-      href={href}
-      className="group rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:border-(--color-magenta-300) hover:shadow-[0_8px_24px_-12px_rgba(219,39,119,0.25)]"
-    >
-      <div className="flex items-center gap-3">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-(--color-accent-cyan)/10 font-mono text-sm font-bold text-(--color-accent-cyan)">
-          {n}
-        </span>
-        <h3 className="text-base font-semibold text-(--color-text-primary)">{title}</h3>
-      </div>
-      <p className="mt-3 text-sm leading-relaxed text-(--color-text-secondary)">{body}</p>
-      <p className="mt-3 font-mono text-xs text-(--color-accent-cyan) transition-transform group-hover:translate-x-0.5">
-        {cta} &rarr;
-      </p>
-    </Link>
-  )
-}
-
-/* ===== Icons ===== */
-
-function IdentityIcon() {
-  return (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
-      />
-    </svg>
-  )
-}
-
-function ReputationIcon() {
-  return (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"
-      />
-    </svg>
-  )
-}
-
-function CompanyIcon() {
-  return (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"
-      />
-    </svg>
-  )
-}
-
-function InvoiceIcon() {
-  return (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-      />
-    </svg>
-  )
-}
-
-function ChartIcon() {
-  return (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"
-      />
-    </svg>
-  )
-}
-
-function SdkIcon() {
-  return (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={1.5}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"
-      />
-    </svg>
+    <li className="relative pl-10">
+      <span className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) font-mono text-xs font-semibold text-(--color-magenta-700)">
+        {n}
+      </span>
+      <h3 className="text-sm font-semibold text-(--color-text-primary)">{title}</h3>
+      <p className="mt-1.5 text-sm leading-relaxed text-(--color-text-secondary)">{body}</p>
+    </li>
   )
 }

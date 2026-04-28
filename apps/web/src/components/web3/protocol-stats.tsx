@@ -48,31 +48,44 @@ export function ProtocolStats() {
   }, [])
 
   return (
-    <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+    <div className="grid grid-cols-2 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:grid-cols-4 md:divide-x">
       <StatBox
-        label="Registered Agents"
-        value={stats ? stats.totalAgents.toString() : '...'}
+        label="Registered agents"
+        value={stats ? stats.totalAgents.toLocaleString() : '—'}
       />
       <StatBox
-        label="Registered Companies"
-        value={stats ? stats.totalCompanies.toString() : '...'}
+        label="Registered companies"
+        value={stats ? stats.totalCompanies.toLocaleString() : '—'}
       />
       <StatBox
-        label="Transactions Tracked"
-        value={stats ? stats.totalTransactions.toString() : '...'}
+        label="Transactions tracked"
+        value={stats ? stats.totalTransactions.toLocaleString() : '—'}
       />
-      <StatBox label="Network" value="Base Sepolia" />
+      <StatBox label="Network" value="Base Sepolia" sub="Chain 84532" />
     </div>
   )
 }
 
-function StatBox({ label, value }: { readonly label: string; readonly value: string }) {
+function StatBox({
+  label,
+  value,
+  sub,
+}: {
+  readonly label: string
+  readonly value: string
+  readonly sub?: string
+}) {
   return (
-    <div className="rounded-xl border border-(--color-border) bg-(--color-surface)/40 p-5 text-center backdrop-blur-sm transition-colors hover:border-(--color-border-bright)">
-      <p className="font-mono text-3xl font-bold text-(--color-accent-cyan) text-glow-cyan">
+    <div className="px-6 py-7">
+      <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-semibold tracking-tight text-(--color-text-primary)">
         {value}
       </p>
-      <p className="mt-1 text-sm text-(--color-text-muted)">{label}</p>
+      {sub && (
+        <p className="mt-1 font-mono text-xs text-(--color-text-muted)">{sub}</p>
+      )}
     </div>
   )
 }

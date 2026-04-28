@@ -50,80 +50,78 @@ export async function GET(request: Request): Promise<NextResponse> {
     const pageSize = Math.min(100, Math.max(1, Number(searchParams.get('pageSize') ?? '20')))
     const offset = (page - 1) * pageSize
 
-    // Best-effort: pull any new wrapper registrations into agent_wallets
-    // before reading. Throttled internally so most calls are no-ops;
-    // failures never break the listing.
-    await discoverWrapperRegistrations()
+    // Best-effort: pull any new wrapper registrations into agent_wallets.
+    // Fire-and-forget so a fresh sweep never blocks the listing response —
+    // the function is internally throttled to 30s so stragglers land in
+    // the next refresh.
+    void discoverWrapperRegistrations()
 
     // De-duped union of agents with linked wallets and active company
     // members. Sort by numeric agentId DESC so the latest registrations
     // land on page 1 — the UI fetches one page and we want a fresh
     // registration to appear without the user paginating.
-    const rows = await sql`
-      SELECT agent_id FROM (
-        SELECT agent_id FROM agent_wallets
-        UNION
-        SELECT agent_id FROM company_members WHERE removed_at IS NULL
-      ) AS distinct_agents
-      ORDER BY agent_id::numeric DESC
-      LIMIT ${pageSize} OFFSET ${offset}
-    `
+    const [rows, countRows] = await Promise.all([
+      sql`
+        SELECT agent_id FROM (
+          SELECT agent_id FROM agent_wallets
+          UNION
+          SELECT agent_id FROM company_members WHERE removed_at IS NULL
+        ) AS distinct_agents
+        ORDER BY agent_id::numeric DESC
+        LIMIT ${pageSize} OFFSET ${offset}
+      `,
+      sql`
+        SELECT COUNT(*) as count FROM (
+          SELECT agent_id FROM agent_wallets
+          UNION
+          SELECT agent_id FROM company_members WHERE removed_at IS NULL
+        ) AS distinct_agents
+      `,
+    ])
 
-    const agents: Array<{
-      agentId: string
-      owner: string
-      tokenURI: string
-      name: string | null
-      description: string | null
-      image: string | null
-      wallets: string[]
-    }> = []
+    // Enrich every agent in parallel — sequential awaits across 30+ agents
+    // multiplied IPFS-gateway round-trips into a 30–60s wall clock.
+    const enriched = await Promise.all(
+      rows.map(async (row) => {
+        const agentId = (row as { agent_id: string }).agent_id
+        try {
+          const [owner, tokenURI] = await Promise.all([
+            publicClient.readContract({
+              address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
+              abi: identityRegistryAbi,
+              functionName: 'ownerOf',
+              args: [BigInt(agentId)],
+            }),
+            publicClient.readContract({
+              address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
+              abi: identityRegistryAbi,
+              functionName: 'tokenURI',
+              args: [BigInt(agentId)],
+            }),
+          ])
 
-    for (const row of rows) {
-      const agentId = (row as { agent_id: string }).agent_id
-      try {
-        const [owner, tokenURI, walletRows] = await Promise.all([
-          publicClient.readContract({
-            address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-            abi: identityRegistryAbi,
-            functionName: 'ownerOf',
-            args: [BigInt(agentId)],
-          }),
-          publicClient.readContract({
-            address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
-            abi: identityRegistryAbi,
-            functionName: 'tokenURI',
-            args: [BigInt(agentId)],
-          }),
-          sql`SELECT wallet_address FROM agent_wallets WHERE agent_id = ${agentId}`,
-        ])
+          const card = await resolveAgentCard(tokenURI as string)
 
-        const card = await resolveAgentCard(tokenURI as string)
+          return {
+            agentId,
+            owner: owner as string,
+            tokenURI: tokenURI as string,
+            name: card && typeof card.name === 'string' ? card.name : null,
+            description:
+              card && typeof card.description === 'string' ? card.description : null,
+            image: card && typeof card.image === 'string' ? card.image : null,
+          }
+        } catch {
+          // Agent may not exist on-chain anymore (burned / wrong chain).
+          return null
+        }
+      }),
+    )
 
-        agents.push({
-          agentId,
-          owner: owner as string,
-          tokenURI: tokenURI as string,
-          name: card && typeof card.name === 'string' ? card.name : null,
-          description:
-            card && typeof card.description === 'string' ? card.description : null,
-          image: card && typeof card.image === 'string' ? card.image : null,
-          wallets: (walletRows as Array<{ wallet_address: string }>).map(
-            (w) => w.wallet_address,
-          ),
-        })
-      } catch {
-        // Agent may not exist on-chain anymore (burned / wrong chain).
-      }
-    }
+    const agents = enriched.filter(
+      (a): a is NonNullable<typeof a> => a !== null,
+    )
 
-    const countRows = await sql`
-      SELECT COUNT(*) as count FROM (
-        SELECT agent_id FROM agent_wallets
-        UNION
-        SELECT agent_id FROM company_members WHERE removed_at IS NULL
-      ) AS distinct_agents
-    `
     const total = Number((countRows[0] as { count: string }).count)
 
     return NextResponse.json({

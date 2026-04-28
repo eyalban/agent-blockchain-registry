@@ -17,10 +17,12 @@ function formatUsd(v: number | null): string {
   })
 }
 
-function statusBadge(status: InvoiceRecord['status']): string {
-  if (status === 'paid') return 'text-(--color-accent-green)'
-  if (status === 'cancelled') return 'text-(--color-accent-red)'
-  return 'text-(--color-accent-amber)'
+function statusPill(status: InvoiceRecord['status']): string {
+  if (status === 'paid')
+    return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (status === 'cancelled')
+    return 'border-red-200 bg-red-50 text-red-700'
+  return 'border-(--color-magenta-200) bg-(--color-magenta-50) text-(--color-magenta-700)'
 }
 
 export function InvoicesList() {
@@ -35,7 +37,7 @@ export function InvoicesList() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="h-16 animate-pulse rounded-xl border border-(--color-border) bg-(--color-surface)"
+            className="h-16 animate-pulse rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
           />
         ))}
       </div>
@@ -44,16 +46,16 @@ export function InvoicesList() {
 
   return (
     <div>
-      <div className="mb-4 flex gap-1 rounded-md border border-(--color-border) bg-(--color-bg-secondary) p-1 w-fit">
+      <div className="mb-6 flex w-fit gap-1 rounded-full border border-(--color-border) bg-white p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         {(['all', 'issued', 'paid', 'cancelled'] as const).map((f) => (
           <button
             key={f}
             type="button"
             onClick={() => setFilter(f)}
-            className={`px-3 py-1 text-xs font-mono uppercase tracking-[0.05em] rounded ${
+            className={`rounded-full px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.08em] transition-colors ${
               filter === f
-                ? 'bg-(--color-accent-cyan)/20 text-(--color-accent-cyan)'
-                : 'text-(--color-text-muted) hover:text-(--color-text-secondary)'
+                ? 'bg-(--color-magenta-700) text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)]'
+                : 'text-(--color-text-secondary) hover:text-(--color-magenta-700)'
             }`}
           >
             {f}
@@ -62,19 +64,19 @@ export function InvoicesList() {
       </div>
 
       {data.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-10 text-center">
+        <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-12 text-center">
           <p className="text-sm text-(--color-text-secondary)">
             No invoices yet.{' '}
-            <Link href="/invoices/new" className="text-(--color-accent-cyan) hover:underline">
+            <Link href="/invoices/new" className="font-medium text-(--color-magenta-700) hover:underline">
               Issue one
             </Link>
             .
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-(--color-border)">
+        <div className="overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <table className="w-full">
-            <thead className="bg-(--color-bg-secondary)">
+            <thead className="border-b border-(--color-border) bg-(--color-bg-secondary)">
               <tr>
                 <Th>#</Th>
                 <Th>Issuer → Payer</Th>
@@ -88,37 +90,37 @@ export function InvoicesList() {
               {data.map((inv) => (
                 <tr
                   key={inv.invoiceId}
-                  className="border-t border-(--color-border)/40 hover:bg-(--color-surface-hover)"
+                  className="border-t border-(--color-border) transition-colors hover:bg-(--color-magenta-50)"
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <Link
                       href={`/invoices/${inv.invoiceId}`}
-                      className="font-mono text-sm text-(--color-accent-cyan) hover:underline"
+                      className="font-mono text-sm font-medium text-(--color-magenta-700) hover:underline"
                     >
                       #{inv.invoiceId}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-(--color-text-secondary)">
+                  <td className="px-4 py-3.5 font-mono text-xs text-(--color-text-secondary)">
                     {truncateAddress(inv.issuerAddress)} →{' '}
                     {truncateAddress(inv.payerAddress)}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-(--color-text-primary)">
+                  <td className="px-4 py-3.5 text-right font-mono text-sm text-(--color-text-primary)">
                     {(Number(inv.amountRaw) / 10 ** (inv.tokenSymbol === 'USDC' ? 6 : 18)).toFixed(
                       inv.tokenSymbol === 'USDC' ? 2 : 6,
                     )}{' '}
-                    {inv.tokenSymbol}
+                    <span className="text-(--color-text-muted)">{inv.tokenSymbol}</span>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-xs text-(--color-text-secondary)">
+                  <td className="px-4 py-3.5 text-right font-mono text-xs text-(--color-text-secondary)">
                     {formatUsd(inv.amountUsdAtIssue)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3.5">
                     <span
-                      className={`font-mono text-[10px] uppercase tracking-[0.1em] ${statusBadge(inv.status)}`}
+                      className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${statusPill(inv.status)}`}
                     >
                       {inv.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-(--color-text-muted)">
+                  <td className="px-4 py-3.5 text-xs text-(--color-text-muted)">
                     {new Date(inv.issuedAt).toLocaleDateString()}
                   </td>
                 </tr>

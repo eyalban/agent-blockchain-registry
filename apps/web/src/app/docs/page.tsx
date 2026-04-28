@@ -95,10 +95,10 @@ const API_ENDPOINTS = [
 export default function DocsPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-(--color-accent-cyan)">
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-(--color-magenta-700)">
         Documentation
       </p>
-      <h1 className="mt-2 text-4xl font-bold text-(--color-text-primary)">
+      <h1 className="mt-2 text-4xl font-semibold tracking-tight text-(--color-text-primary)">
         statem8 &mdash; Docs
       </h1>
       <p className="mt-3 max-w-2xl text-(--color-text-secondary)">
@@ -106,7 +106,7 @@ export default function DocsPage() {
         identity, reputation, invoices, and provenance-first accounting.
         Built on{' '}
         <a
-          className="text-(--color-accent-cyan) hover:underline"
+          className="font-medium text-(--color-magenta-700) hover:underline"
           href="https://eips.ethereum.org/EIPS/eip-8004"
           target="_blank"
           rel="noopener noreferrer"
@@ -135,9 +135,9 @@ export default function DocsPage() {
           {CONCEPTS.map((c) => (
             <div
               key={c.title}
-              className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5"
+              className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
             >
-              <h3 className="text-sm font-semibold text-(--color-accent-cyan)">{c.title}</h3>
+              <h3 className="text-sm font-semibold text-(--color-magenta-700)">{c.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-(--color-text-secondary)">
                 {c.body}
               </p>
@@ -156,14 +156,14 @@ export default function DocsPage() {
           {PRIMITIVES.map((p) => (
             <div
               key={p.contract}
-              className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5"
+              className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-semibold text-(--color-text-primary)">{p.name}</h3>
                     {p.isNew && (
-                      <span className="rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-(--color-accent-cyan)">
+                      <span className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-(--color-magenta-700)">
                         new
                       </span>
                     )}
@@ -176,7 +176,7 @@ export default function DocsPage() {
                 href={`https://sepolia.basescan.org/address/${p.address}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-block break-all font-mono text-xs text-(--color-accent-cyan) hover:underline"
+                className="mt-3 inline-block break-all font-mono text-xs font-medium text-(--color-magenta-700) hover:underline"
               >
                 {p.address}
               </a>
@@ -196,7 +196,7 @@ export default function DocsPage() {
               href="https://portal.cdp.coinbase.com/products/faucet"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-(--color-accent-cyan) hover:underline"
+              className="font-medium text-(--color-magenta-700) hover:underline"
             >
               the Coinbase faucet
             </a>
@@ -204,7 +204,7 @@ export default function DocsPage() {
           </Step>
           <Step n={2}>
             Go to{' '}
-            <Link href="/companies/new" className="text-(--color-accent-cyan) hover:underline">
+            <Link href="/companies/new" className="font-medium text-(--color-magenta-700) hover:underline">
               Companies &rarr; Create Company
             </Link>
             . Fill in name, description, and jurisdiction (e.g.{' '}
@@ -226,7 +226,7 @@ export default function DocsPage() {
             has filed taxes.
           </Step>
           <Step n={6}>
-            <Link href="/invoices/new" className="text-(--color-accent-cyan) hover:underline">
+            <Link href="/invoices/new" className="font-medium text-(--color-magenta-700) hover:underline">
               Issue an invoice
             </Link>{' '}
             to another agent. Switch to that wallet and pay &mdash; one tx settles atomically. Both
@@ -240,8 +240,8 @@ export default function DocsPage() {
         <h2 className="text-2xl font-bold text-(--color-text-primary)">TypeScript SDK</h2>
         <p className="mt-2 text-(--color-text-secondary)">
           Install{' '}
-          <code className="font-mono text-xs text-(--color-accent-cyan)">@agent-registry/sdk</code>{' '}
-          and <code className="font-mono text-xs text-(--color-accent-cyan)">viem</code>. Works in
+          <code className="rounded border border-(--color-magenta-200) bg-(--color-magenta-50) px-1.5 py-0.5 font-mono text-xs text-(--color-magenta-700)">@agent-registry/sdk</code>{' '}
+          and <code className="rounded border border-(--color-magenta-200) bg-(--color-magenta-50) px-1.5 py-0.5 font-mono text-xs text-(--color-magenta-700)">viem</code>. Works in
           Node, browser, Workers, and Edge runtimes.
         </p>
         <div className="mt-5 rounded-xl border border-(--color-border) bg-(--color-bg-secondary) p-5 font-mono text-sm">
@@ -304,12 +304,12 @@ await client.invoice.payERC20(walletClient, invoiceId)`}
                 <tr key={`${e.method}-${e.path}`} className="border-t border-(--color-border)/40">
                   <td className="px-3 py-2.5">
                     <span
-                      className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-bold ${
+                      className={`rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.08em] ${
                         e.method === 'GET'
-                          ? 'bg-(--color-accent-cyan)/10 text-(--color-accent-cyan)'
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                           : e.method === 'POST'
-                            ? 'bg-(--color-accent-amber)/10 text-(--color-accent-amber)'
-                            : 'bg-(--color-accent-red)/10 text-(--color-accent-red)'
+                            ? 'border-(--color-magenta-200) bg-(--color-magenta-50) text-(--color-magenta-700)'
+                            : 'border-red-200 bg-red-50 text-red-700'
                       }`}
                     >
                       {e.method}
@@ -335,12 +335,12 @@ await client.invoice.payERC20(walletClient, invoiceId)`}
           Every number you see in this product is traceable to a real, named source. No hardcoded
           values anywhere.
         </p>
-        <div className="mt-5 space-y-3 rounded-xl border border-(--color-border) bg-(--color-surface) p-5 text-sm">
+        <div className="mt-5 space-y-3 rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] text-sm">
           <p className="text-(--color-text-secondary)">
             <strong className="text-(--color-text-primary)">Token prices.</strong> Chainlink
             AggregatorV3 feeds first (
-            <span className="font-mono text-xs text-(--color-accent-cyan)">ETH/USD</span>,{' '}
-            <span className="font-mono text-xs text-(--color-accent-cyan)">USDC/USD</span>),
+            <span className="rounded border border-(--color-magenta-200) bg-(--color-magenta-50) px-1.5 py-0.5 font-mono text-xs text-(--color-magenta-700)">ETH/USD</span>,{' '}
+            <span className="rounded border border-(--color-magenta-200) bg-(--color-magenta-50) px-1.5 py-0.5 font-mono text-xs text-(--color-magenta-700)">USDC/USD</span>),
             CoinGecko historical API as fallback. Cached per-block. Every row carries{' '}
             <code className="font-mono text-xs">source</code> and{' '}
             <code className="font-mono text-xs">source_ref</code>. No peg assumed.
@@ -366,14 +366,14 @@ await client.invoice.payERC20(walletClient, invoiceId)`}
         </div>
       </section>
 
-      <div className="mt-16 rounded-xl border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/5 p-6">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-(--color-accent-cyan)">
+      <div className="mt-16 rounded-2xl border border-(--color-magenta-200) bg-(--color-magenta-50) p-8 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-(--color-magenta-700)">
           Open Source
         </p>
-        <h3 className="mt-2 text-lg font-bold text-(--color-text-primary)">
+        <h3 className="mt-3 text-lg font-semibold text-(--color-text-primary)">
           The framework lives on GitHub
         </h3>
-        <p className="mt-2 text-sm text-(--color-text-secondary)">
+        <p className="mt-2 max-w-2xl text-sm text-(--color-text-secondary)">
           The on-chain contracts, TypeScript SDK, and subgraph are published as an open-source
           framework. The app you are reading this on is a reference implementation that consumes
           the framework.
@@ -382,9 +382,9 @@ await client.invoice.payERC20(walletClient, invoiceId)`}
           href="https://github.com/eyalban/agent-registry-framework"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-block rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 font-mono text-sm text-(--color-accent-cyan) hover:bg-(--color-accent-cyan)/20"
+          className="mt-5 inline-flex items-center gap-2 rounded-full bg-(--color-magenta-700) px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800)"
         >
-          View on GitHub &rarr;
+          View on GitHub <span aria-hidden>→</span>
         </a>
       </div>
     </div>
@@ -395,7 +395,7 @@ function Anchor({ href, children }: { href: string; children: React.ReactNode })
   return (
     <Link
       href={href}
-      className="rounded-md border border-(--color-border) bg-(--color-surface) px-3 py-1.5 font-mono text-xs text-(--color-text-secondary) transition-colors hover:border-(--color-accent-cyan)/40 hover:text-(--color-accent-cyan)"
+      className="rounded-full border border-(--color-border) bg-white px-3.5 py-1.5 text-xs font-medium text-(--color-text-secondary) transition-colors hover:border-(--color-magenta-300) hover:text-(--color-magenta-700)"
     >
       {children}
     </Link>
@@ -405,7 +405,7 @@ function Anchor({ href, children }: { href: string; children: React.ReactNode })
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <li className="flex gap-3">
-      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-(--color-accent-cyan)/10 font-mono text-[11px] font-bold text-(--color-accent-cyan)">
+      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) font-mono text-[11px] font-semibold text-(--color-magenta-700)">
         {n}
       </span>
       <span className="pt-0.5 leading-relaxed">{children}</span>

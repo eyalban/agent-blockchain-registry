@@ -44,15 +44,18 @@ export function RegistrationWizard() {
 
   if (!isConnected) {
     return (
-      <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-12 text-center">
-        <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-2xl bg-(--color-surface) glow-cyan-sm">
-          <span className="text-3xl">🔗</span>
+      <div className="rounded-2xl border border-(--color-border) bg-white p-12 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-(--color-magenta-50) text-(--color-magenta-700)">
+          <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}>
+            <path d="M9 7h-3a3 3 0 100 6h3M15 17h3a3 3 0 100-6h-3M8 12h8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-(--color-text-primary)">
-          Connect Your Wallet
+        <h3 className="mt-5 text-lg font-semibold text-(--color-text-primary)">
+          Connect your wallet
         </h3>
-        <p className="mt-2 text-sm text-(--color-text-secondary)">
-          Connect your wallet to register an agent on the blockchain.
+        <p className="mt-2 max-w-sm mx-auto text-sm text-(--color-text-secondary)">
+          Registration mints an ERC-8004 agent NFT on Base. You&rsquo;ll need a
+          wallet to sign the transaction.
         </p>
       </div>
     )
@@ -110,37 +113,41 @@ export function RegistrationWizard() {
   }
 
   return (
-    <div className="rounded-2xl border border-(--color-border) bg-(--color-surface)">
+    <div className="overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       {/* Step indicator */}
-      <div className="flex items-center justify-center gap-1 border-b border-(--color-border) px-6 py-4">
+      <div className="flex items-center justify-center gap-1 border-b border-(--color-border) bg-(--color-bg-secondary) px-6 py-4">
         {STEPS.map((step, i) => (
-          <div key={step.id} className="flex items-center gap-1">
+          <div key={step.id} className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => i < currentStepIndex ? setCurrentStep(step.id) : undefined}
+              onClick={() => (i < currentStepIndex ? setCurrentStep(step.id) : undefined)}
               className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all ${
                 i === currentStepIndex
-                  ? 'bg-(--color-accent-cyan) text-(--color-bg-primary) glow-cyan-sm'
+                  ? 'bg-(--color-magenta-700) text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)]'
                   : i < currentStepIndex
-                    ? 'bg-(--color-accent-green) text-(--color-bg-primary)'
-                    : 'bg-(--color-bg-secondary) text-(--color-text-muted) border border-(--color-border)'
+                    ? 'bg-(--color-magenta-100) text-(--color-magenta-700)'
+                    : 'border border-(--color-border) bg-white text-(--color-text-muted)'
               }`}
             >
               {i < currentStepIndex ? '✓' : i + 1}
             </button>
-            <span className={`hidden text-xs sm:inline ${
-              i === currentStepIndex
-                ? 'font-medium text-(--color-text-primary)'
-                : 'text-(--color-text-muted)'
-            }`}>
+            <span
+              className={`hidden text-xs sm:inline ${
+                i === currentStepIndex
+                  ? 'font-medium text-(--color-text-primary)'
+                  : 'text-(--color-text-muted)'
+              }`}
+            >
               {step.label}
             </span>
             {i < STEPS.length - 1 && (
-              <div className={`mx-1 h-px w-6 ${
-                i < currentStepIndex
-                  ? 'bg-(--color-accent-green)/40'
-                  : 'bg-(--color-border)'
-              }`} />
+              <div
+                className={`mx-1 h-px w-6 ${
+                  i < currentStepIndex
+                    ? 'bg-(--color-magenta-300)'
+                    : 'bg-(--color-border)'
+                }`}
+              />
             )}
           </div>
         ))}
@@ -152,8 +159,8 @@ export function RegistrationWizard() {
         {currentStep === 'info' && (
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary) font-mono">
-                Agent Name <span className="text-(--color-accent-red)">*</span>
+              <label htmlFor="name" className="block text-xs font-medium tracking-tight text-(--color-text-primary)">
+                Agent Name <span className="text-(--color-magenta-700)">*</span>
               </label>
               <input
                 id="name"
@@ -162,12 +169,12 @@ export function RegistrationWizard() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="My DeFi Agent"
                 maxLength={100}
-                className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all duration-200 focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+                className="mt-1 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               />
             </div>
             <div>
-              <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary) font-mono">
-                Description <span className="text-(--color-accent-red)">*</span>
+              <label htmlFor="description" className="block text-xs font-medium tracking-tight text-(--color-text-primary)">
+                Description <span className="text-(--color-magenta-700)">*</span>
               </label>
               <textarea
                 id="description"
@@ -176,12 +183,12 @@ export function RegistrationWizard() {
                 placeholder="Describe what your agent does, its capabilities, and how it can be reached..."
                 maxLength={2000}
                 rows={4}
-                className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all duration-200 focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+                className="mt-1 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               />
               <p className="mt-1 text-xs text-(--color-text-muted) font-mono">{description.length}/2000</p>
             </div>
             <div>
-              <label htmlFor="imageUrl" className="block text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary) font-mono">
+              <label htmlFor="imageUrl" className="block text-xs font-medium tracking-tight text-(--color-text-primary)">
                 Image URL (optional)
               </label>
               <input
@@ -190,7 +197,7 @@ export function RegistrationWizard() {
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 placeholder="https://example.com/agent-avatar.png"
-                className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all duration-200 focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+                className="mt-1 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               />
             </div>
           </div>
@@ -203,14 +210,14 @@ export function RegistrationWizard() {
               Add a service endpoint so other agents can interact with yours. This is optional.
             </p>
             <div>
-              <label htmlFor="serviceType" className="block text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary) font-mono">
+              <label htmlFor="serviceType" className="block text-xs font-medium tracking-tight text-(--color-text-primary)">
                 Service Type
               </label>
               <select
                 id="serviceType"
                 value={serviceType}
                 onChange={(e) => setServiceType(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+                className="mt-1 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               >
                 <option value="a2a">A2A (Agent-to-Agent)</option>
                 <option value="mcp">MCP (Model Context Protocol)</option>
@@ -219,7 +226,7 @@ export function RegistrationWizard() {
               </select>
             </div>
             <div>
-              <label htmlFor="serviceUrl" className="block text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary) font-mono">
+              <label htmlFor="serviceUrl" className="block text-xs font-medium tracking-tight text-(--color-text-primary)">
                 Service URL
               </label>
               <input
@@ -228,7 +235,7 @@ export function RegistrationWizard() {
                 value={serviceUrl}
                 onChange={(e) => setServiceUrl(e.target.value)}
                 placeholder="https://my-agent.example.com/api"
-                className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all duration-200 focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+                className="mt-1 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               />
             </div>
           </div>
@@ -246,10 +253,10 @@ export function RegistrationWizard() {
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium font-mono transition-all ${
+                  className={`rounded-full px-3 py-1.5 font-mono text-xs font-medium transition-all ${
                     tags.includes(tag)
-                      ? 'bg-(--color-accent-cyan) text-(--color-bg-primary) glow-cyan-sm'
-                      : 'border border-(--color-border) bg-(--color-bg-secondary) text-(--color-text-secondary) hover:border-(--color-border-bright) hover:text-(--color-text-primary)'
+                      ? 'bg-(--color-magenta-700) text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)]'
+                      : 'border border-(--color-border) bg-white text-(--color-text-secondary) hover:border-(--color-magenta-300) hover:bg-(--color-magenta-50) hover:text-(--color-magenta-700)'
                   }`}
                 >
                   {tag}
@@ -264,12 +271,12 @@ export function RegistrationWizard() {
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomTag())}
                 placeholder="Add custom tag..."
                 maxLength={32}
-                className="flex-1 rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all duration-200 focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+                className="flex-1 rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               />
               <button
                 type="button"
                 onClick={addCustomTag}
-                className="rounded-lg border border-(--color-border-bright) bg-(--color-bg-secondary) px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-surface-hover) hover:text-(--color-text-primary)"
+                className="rounded-xl border border-(--color-border) bg-white px-4 py-2.5 text-sm font-medium text-(--color-text-primary) transition-colors hover:border-(--color-magenta-300) hover:text-(--color-magenta-700)"
               >
                 Add
               </button>
@@ -281,43 +288,46 @@ export function RegistrationWizard() {
         {/* Step 4: Review */}
         {currentStep === 'review' && (
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-(--color-text-primary)">Review Your Agent</h3>
-            <div className="gradient-border rounded-xl bg-(--color-bg-secondary) p-4">
+            <h3 className="text-lg font-semibold text-(--color-text-primary)">Review your agent</h3>
+            <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-secondary) p-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-(--color-accent-cyan) to-(--color-accent-violet) text-lg font-bold text-white glow-cyan-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-(--color-magenta-500) to-(--color-magenta-700) text-lg font-semibold text-white">
                   {name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
                   <p className="font-semibold text-(--color-text-primary)">{name}</p>
-                  <p className="text-xs text-(--color-text-muted) font-mono">ERC-8004 Agent</p>
+                  <p className="font-mono text-xs text-(--color-text-muted)">ERC-8004 agent</p>
                 </div>
               </div>
               <p className="mt-3 text-sm text-(--color-text-secondary)">{description}</p>
               {tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {tags.map((tag) => (
-                    <span key={tag} className="rounded-md border border-(--color-accent-cyan)/20 bg-(--color-accent-cyan)/5 px-2 py-0.5 text-xs font-medium text-(--color-accent-cyan) font-mono">
+                    <span
+                      key={tag}
+                      className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2.5 py-0.5 font-mono text-xs font-medium text-(--color-magenta-700)"
+                    >
                       {tag}
                     </span>
                   ))}
                 </div>
               )}
               {serviceUrl && (
-                <p className="mt-3 text-xs text-(--color-text-muted) font-mono">
+                <p className="mt-3 font-mono text-xs text-(--color-text-muted)">
                   Service: {serviceType.toUpperCase()} at {serviceUrl}
                 </p>
               )}
             </div>
-            <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-4">
-              <p className="text-sm text-(--color-text-secondary)">
-                Registration fee:{' '}
-                <span className="font-semibold text-(--color-text-primary) font-mono">
-                  {feeLoading ? '...' : fee ? `${formatEther(fee)} ETH` : 'Free'}
-                </span>
-              </p>
-              <p className="mt-1 text-xs text-(--color-text-muted)">
-                Gas fees are additional and paid by your wallet.
-              </p>
+            <div className="flex items-baseline justify-between rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <div>
+                <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-(--color-text-muted)">
+                  Registration fee
+                </p>
+                <p className="mt-1 font-mono text-lg font-semibold text-(--color-text-primary)">
+                  {feeLoading ? '…' : fee ? `${formatEther(fee)} ETH` : 'Free'}
+                </p>
+              </div>
+              <p className="text-xs text-(--color-text-muted)">+ gas fees</p>
             </div>
           </div>
         )}
@@ -326,11 +336,11 @@ export function RegistrationWizard() {
         {currentStep === 'submit' && (
           <div className="space-y-4">
             {isUploading && (
-              <div className="rounded-xl border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/5 p-4 glow-cyan-sm">
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
-                  <p className="text-sm font-medium text-(--color-accent-cyan)">
-                    Uploading agent card to IPFS...
+              <div className="rounded-2xl border border-(--color-magenta-200) bg-(--color-magenta-50) p-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-(--color-magenta-700) border-t-transparent" />
+                  <p className="text-sm font-medium text-(--color-magenta-700)">
+                    Uploading agent card to IPFS…
                   </p>
                 </div>
               </div>
@@ -344,14 +354,16 @@ export function RegistrationWizard() {
             />
             {isSuccess && (
               <div className="text-center">
-                <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-2xl bg-(--color-accent-green)/10 glow-green">
-                  <span className="text-3xl">🎉</span>
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                  <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                    <path d="M5 12l5 5 9-11" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
-                <h3 className="mt-3 text-lg font-semibold text-(--color-text-primary)">
-                  Agent Registered!
+                <h3 className="mt-4 text-lg font-semibold text-(--color-text-primary)">
+                  Agent registered
                 </h3>
-                <p className="mt-1 text-sm text-(--color-text-secondary)">
-                  Your agent is now on the blockchain and discoverable by others.
+                <p className="mt-2 text-sm text-(--color-text-secondary)">
+                  Your agent is now on Base and discoverable by any ERC-8004 client.
                 </p>
               </div>
             )}
@@ -361,12 +373,12 @@ export function RegistrationWizard() {
 
       {/* Navigation */}
       {currentStep !== 'submit' && (
-        <div className="flex items-center justify-between border-t border-(--color-border) px-6 py-4">
+        <div className="flex items-center justify-between border-t border-(--color-border) bg-(--color-bg-secondary) px-6 py-4">
           <button
             type="button"
             onClick={() => setCurrentStep(STEPS[currentStepIndex - 1]!.id)}
             disabled={currentStepIndex === 0}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-(--color-bg-secondary) hover:text-(--color-text-primary) disabled:invisible"
+            className="rounded-full px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition-colors hover:bg-white hover:text-(--color-text-primary) disabled:invisible"
           >
             Back
           </button>
@@ -374,7 +386,7 @@ export function RegistrationWizard() {
             <button
               type="button"
               onClick={handleSubmit}
-              className="rounded-lg bg-(--color-accent-cyan) px-6 py-2 text-sm font-semibold text-(--color-bg-primary) transition-all hover:brightness-110 glow-cyan-sm"
+              className="rounded-full bg-(--color-magenta-700) px-6 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800)"
             >
               Register Agent
             </button>
@@ -383,7 +395,7 @@ export function RegistrationWizard() {
               type="button"
               onClick={() => setCurrentStep(STEPS[currentStepIndex + 1]!.id)}
               disabled={!canGoNext}
-              className="rounded-lg bg-(--color-accent-cyan) px-6 py-2 text-sm font-semibold text-(--color-bg-primary) transition-all hover:brightness-110 glow-cyan-sm disabled:opacity-40 disabled:glow-none"
+              className="rounded-full bg-(--color-magenta-700) px-6 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:opacity-40 disabled:shadow-none"
             >
               Next
             </button>

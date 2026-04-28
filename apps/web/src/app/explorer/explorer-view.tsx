@@ -14,8 +14,8 @@ const ActivityChart = dynamic(
   () => import('@/components/explorer/activity-chart').then((m) => m.ActivityChart),
   {
     loading: () => (
-      <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-(--color-border) bg-(--color-bg-secondary)">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+      <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-(--color-border) bg-white">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-magenta-500) border-t-transparent" />
       </div>
     ),
     ssr: false,
@@ -84,61 +84,62 @@ export function ExplorerView() {
 
   return (
     <div>
-      <div className="grid gap-4 sm:grid-cols-4">
-        <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5 glow-cyan-sm">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted)">Agents</p>
-          <p className="mt-1 font-mono text-2xl font-bold text-(--color-accent-cyan)">{stats ? stats.totalAgents : '...'}</p>
+      <div className="grid grid-cols-2 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:grid-cols-4 sm:divide-x">
+        <div className="px-6 py-5">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">Agents</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-(--color-text-primary)">
+            {stats ? stats.totalAgents.toLocaleString() : '—'}
+          </p>
         </div>
-        <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5 glow-violet">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted)">Transactions</p>
-          <p className="mt-1 font-mono text-2xl font-bold text-(--color-accent-violet-bright)">{stats ? stats.totalTransactions : '...'}</p>
+        <div className="px-6 py-5">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">Transactions</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-(--color-text-primary)">
+            {stats ? stats.totalTransactions.toLocaleString() : '—'}
+          </p>
         </div>
-        <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted)">Network</p>
-          <p className="mt-1 flex items-center gap-2 font-mono text-sm text-(--color-text-primary)">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--color-accent-green) opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-(--color-accent-green)" />
+        <div className="px-6 py-5">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">Network</p>
+          <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-600" />
             </span>
             Base Sepolia
           </p>
         </div>
-        <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted)">Source</p>
-          <p className="mt-1 font-mono text-xs text-(--color-text-secondary)">On-chain via Blockscout</p>
+        <div className="px-6 py-5">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">Source</p>
+          <p className="mt-2 font-mono text-xs text-(--color-text-secondary)">On-chain via Blockscout</p>
         </div>
       </div>
 
-      <div className="mt-8 gradient-border rounded-2xl bg-(--color-surface) p-6">
-        <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted)">Transaction Activity</h3>
+      <div className="mt-6 rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">Transaction Activity</p>
         <div className="mt-4">
           <ActivityChart events={chartEvents} />
         </div>
       </div>
 
-      <div className="mt-8 gradient-border rounded-2xl bg-(--color-surface) p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--color-accent-green) opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-(--color-accent-green)" />
-            </span>
-            <h3 className="text-lg font-semibold text-(--color-text-primary)">Transaction Log</h3>
+      <div className="mt-6 overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="flex items-center justify-between border-b border-(--color-border) px-6 py-4">
+          <div>
+            <h3 className="text-base font-semibold text-(--color-text-primary)">Transaction log</h3>
+            <p className="text-xs text-(--color-text-muted)">Latest activity across every indexed agent</p>
           </div>
           <span className="font-mono text-xs text-(--color-text-muted)">{transactions.length} transactions</span>
         </div>
 
         {isLoading ? (
-          <div className="mt-6 flex items-center justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+          <div className="flex items-center justify-center py-16">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-(--color-magenta-500) border-t-transparent" />
           </div>
         ) : transactions.length === 0 ? (
-          <div className="mt-6 py-8 text-center text-sm text-(--color-text-secondary)">No transactions found.</div>
+          <div className="py-12 text-center text-sm text-(--color-text-secondary)">No transactions found.</div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-(--color-border)">
+                <tr className="border-b border-(--color-border) bg-(--color-bg-secondary)">
                   <th className="px-3 py-2.5 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Time</th>
                   <th className="px-3 py-2.5 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Agent</th>
                   <th className="px-3 py-2.5 text-left font-mono text-xs font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">Dir</th>
@@ -150,7 +151,7 @@ export function ExplorerView() {
               </thead>
               <tbody>
                 {transactions.slice(0, 50).map((tx) => (
-                  <tr key={`${tx.tx_hash}-${tx.agent_id}`} className="border-b border-(--color-border)/30 transition-colors hover:bg-(--color-surface-hover)">
+                  <tr key={`${tx.tx_hash}-${tx.agent_id}`} className="border-b border-(--color-border) transition-colors hover:bg-(--color-magenta-50)">
                     <td
                       className="px-3 py-2 font-mono text-[11px] text-(--color-text-muted) whitespace-nowrap"
                       title={`${new Date(tx.block_timestamp).toLocaleString()} (${formatRelativeTime(tx.block_timestamp)} ago)`}
@@ -158,7 +159,7 @@ export function ExplorerView() {
                       {formatCompactDateTime(tx.block_timestamp)}
                     </td>
                     <td className="px-3 py-2">
-                      <Link href={`/agents/${tx.agent_id}`} className="font-mono text-xs text-(--color-accent-cyan) hover:underline">#{tx.agent_id}</Link>
+                      <Link href={`/agents/${tx.agent_id}`} className="font-mono text-xs font-medium text-(--color-magenta-700) hover:underline">#{tx.agent_id}</Link>
                     </td>
                     <td className="px-3 py-2">
                       <span className={`font-mono text-xs font-medium ${tx.direction === 'incoming' ? 'text-(--color-accent-green)' : 'text-(--color-accent-red)'}`}>
@@ -176,7 +177,7 @@ export function ExplorerView() {
                       <p className="font-mono text-[10px] text-(--color-text-muted)">{tx.counterparty.slice(0, 8)}...{tx.counterparty.slice(-4)}</p>
                     </td>
                     <td className="px-3 py-2">
-                      <a href={`https://sepolia.basescan.org/tx/${tx.tx_hash}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[10px] text-(--color-text-muted) hover:text-(--color-accent-cyan)">
+                      <a href={`https://sepolia.basescan.org/tx/${tx.tx_hash}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[10px] text-(--color-text-muted) hover:text-(--color-magenta-700)">
                         {tx.tx_hash.slice(0, 8)}...
                       </a>
                     </td>

@@ -43,17 +43,17 @@ export function CompanyDetailView({ companyId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--color-magenta-500) border-t-transparent" />
       </div>
     )
   }
 
   if (!data) {
     return (
-      <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-10 text-center">
+      <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-10 text-center">
         <p className="text-sm text-(--color-text-secondary)">
           Company not found.{' '}
-          <Link href="/companies" className="text-(--color-accent-cyan) hover:underline">
+          <Link href="/companies" className="font-medium text-(--color-magenta-700) hover:underline">
             Back to directory
           </Link>
         </p>
@@ -68,46 +68,45 @@ export function CompanyDetailView({ companyId }: Props) {
     <div>
       <Link
         href="/companies"
-        className="inline-flex items-center gap-1 text-sm text-(--color-text-secondary) transition-colors hover:text-(--color-accent-cyan)"
+        className="inline-flex items-center gap-1 text-sm text-(--color-text-secondary) transition-colors hover:text-(--color-magenta-700)"
       >
         ← Back to Companies
       </Link>
 
-      <div className="mt-4 flex items-start gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-(--color-accent-cyan) to-(--color-accent-violet) text-2xl font-bold text-white glow-cyan">
-          {(data.name ?? 'CO').slice(0, 2).toUpperCase()}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold text-(--color-text-primary)">
-            {data.name ?? `Company #${data.companyId}`}
-          </h1>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-(--color-text-secondary)">
-            <span className="font-mono text-(--color-text-muted)">
-              Company #{data.companyId}
-            </span>
-            <span className="text-(--color-border-bright)">·</span>
-            <a
-              href={ADDRESS_EXPLORER_URL(env.chainId, data.ownerAddress)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono transition-colors hover:text-(--color-accent-cyan)"
-            >
-              Owner: {truncateAddress(data.ownerAddress)}
-            </a>
-            {data.jurisdictionCode && (
-              <>
-                <span className="text-(--color-border-bright)">·</span>
-                <span className="font-mono text-(--color-accent-cyan)">
+      <div className="mt-5 rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="flex items-start gap-5">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-(--color-magenta-500) to-(--color-magenta-700) text-2xl font-semibold text-white shadow-[0_8px_20px_-8px_rgba(219,39,119,0.40)]">
+            {(data.name ?? 'CO').slice(0, 2).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-3xl font-semibold tracking-tight text-(--color-text-primary)">
+              {data.name ?? `Company #${data.companyId}`}
+            </h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-(--color-text-secondary)">
+              <span className="font-mono text-(--color-text-muted)">
+                Company #{data.companyId}
+              </span>
+              <span className="text-(--color-border-bright)">·</span>
+              <a
+                href={ADDRESS_EXPLORER_URL(env.chainId, data.ownerAddress)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono transition-colors hover:text-(--color-magenta-700)"
+              >
+                Owner: {truncateAddress(data.ownerAddress)}
+              </a>
+              {data.jurisdictionCode && (
+                <span className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 font-mono text-xs font-medium text-(--color-magenta-700)">
                   {data.jurisdictionCode}
                 </span>
-              </>
+              )}
+            </div>
+            {data.description && (
+              <p className="mt-3 text-sm leading-relaxed text-(--color-text-secondary)">
+                {data.description}
+              </p>
             )}
           </div>
-          {data.description && (
-            <p className="mt-2 text-sm text-(--color-text-secondary)">
-              {data.description}
-            </p>
-          )}
         </div>
       </div>
 
@@ -118,10 +117,10 @@ export function CompanyDetailView({ companyId }: Props) {
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
-              className={`rounded-t-lg px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`-mb-px whitespace-nowrap rounded-t-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                 tab === t.id
-                  ? 'border-b-2 border-(--color-accent-cyan) text-(--color-accent-cyan) text-glow-cyan'
-                  : 'text-(--color-text-muted) hover:text-(--color-text-secondary)'
+                  ? 'border-b-2 border-(--color-magenta-700) text-(--color-magenta-700)'
+                  : 'border-b-2 border-transparent text-(--color-text-secondary) hover:text-(--color-text-primary)'
               }`}
             >
               {t.label}
@@ -152,7 +151,7 @@ function OverviewTab({ data }: { data: NonNullable<ReturnType<typeof useCompany>
       <Stat label="Agents" value={String(data.members.length)} />
       <Stat label="Treasuries" value={String(data.treasuries.length)} />
       <Stat label="Jurisdiction" value={data.jurisdictionCode ?? '—'} mono />
-      <div className="sm:col-span-3 rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
+      <div className="sm:col-span-3 rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
           Metadata URI
         </p>
@@ -191,8 +190,8 @@ function AgentsTab({
   return (
     <div className="space-y-6">
       {isOwner && (
-        <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-accent-amber)">
+        <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-magenta-700)">
             Add Agent
           </p>
           <p className="mt-1 text-xs text-(--color-text-secondary)">
@@ -200,7 +199,7 @@ function AgentsTab({
           </p>
           <div className="mt-3 flex gap-2">
             <input
-              className="flex-1 rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 font-mono text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+              className="flex-1 rounded-lg border border-(--color-border) bg-white px-3 py-2 font-mono text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               placeholder="Agent ID (e.g. 4898)"
               value={agentIdInput}
               onChange={(e) => setAgentIdInput(e.target.value.replace(/\D/g, ''))}
@@ -209,7 +208,7 @@ function AgentsTab({
               type="button"
               disabled={!agentIdInput || isPending || isConfirming}
               onClick={() => addAgent(data.companyId, agentIdInput)}
-              className="rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 text-sm text-(--color-accent-cyan) hover:bg-(--color-accent-cyan)/20 disabled:opacity-40"
+              className="rounded-md border border-(--color-magenta-200) bg-(--color-magenta-50) px-4 py-2 text-sm font-medium text-(--color-magenta-700) hover:bg-(--color-magenta-100) disabled:opacity-40"
             >
               {isPending ? 'Sign…' : isConfirming ? 'Confirming…' : 'Add'}
             </button>
@@ -223,13 +222,13 @@ function AgentsTab({
       )}
 
       {data.members.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-8 text-center">
+        <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-10 text-center">
           <p className="text-sm text-(--color-text-secondary)">No agents yet.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-(--color-border)">
+        <div className="overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <table className="w-full">
-            <thead className="bg-(--color-bg-secondary)">
+            <thead className="border-b border-(--color-border) bg-(--color-bg-secondary)">
               <tr>
                 <Th>Agent</Th>
                 <Th>Added</Th>
@@ -246,7 +245,7 @@ function AgentsTab({
                   <td className="px-4 py-3">
                     <Link
                       href={`/agents/${m.agentId}`}
-                      className="text-sm text-(--color-accent-cyan) hover:underline"
+                      className="text-sm font-medium text-(--color-magenta-700) hover:underline"
                     >
                       {m.name ? (
                         <>
@@ -268,7 +267,7 @@ function AgentsTab({
                       href={`https://sepolia.basescan.org/tx/${m.addedTxHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-xs text-(--color-text-muted) hover:text-(--color-accent-cyan)"
+                      className="font-mono text-xs text-(--color-text-muted) hover:text-(--color-magenta-700)"
                     >
                       {m.addedTxHash.slice(0, 10)}…
                     </a>
@@ -323,8 +322,8 @@ function TreasuriesTab({
   return (
     <div className="space-y-6">
       {isOwner && (
-        <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-accent-amber)">
+        <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-magenta-700)">
             Add Treasury
           </p>
           <p className="mt-1 text-xs text-(--color-text-secondary)">
@@ -333,14 +332,14 @@ function TreasuriesTab({
           </p>
           <div className="mt-3 space-y-2">
             <input
-              className="w-full rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 font-mono text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+              className="w-full rounded-lg border border-(--color-border) bg-white px-3 py-2 font-mono text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
               placeholder="0x…"
               value={addressInput}
               onChange={(e) => setAddressInput(e.target.value.trim())}
             />
             <div className="flex gap-2">
               <input
-                className="flex-1 rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+                className="flex-1 rounded-lg border border-(--color-border) bg-white px-3 py-2 text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
                 placeholder="Label (optional) — e.g. 'ops', 'payroll'"
                 value={labelInput}
                 onChange={(e) => setLabelInput(e.target.value)}
@@ -356,7 +355,7 @@ function TreasuriesTab({
                     labelInput.trim() || undefined,
                   )
                 }
-                className="rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 text-sm text-(--color-accent-cyan) hover:bg-(--color-accent-cyan)/20 disabled:opacity-40"
+                className="rounded-md border border-(--color-magenta-200) bg-(--color-magenta-50) px-4 py-2 text-sm font-medium text-(--color-magenta-700) hover:bg-(--color-magenta-100) disabled:opacity-40"
               >
                 {isPending ? 'Sign…' : isConfirming ? 'Confirming…' : 'Add'}
               </button>
@@ -371,15 +370,15 @@ function TreasuriesTab({
       )}
 
       {data.treasuries.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-8 text-center">
+        <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-10 text-center">
           <p className="text-sm text-(--color-text-secondary)">
             No treasuries yet.
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-(--color-border)">
+        <div className="overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <table className="w-full">
-            <thead className="bg-(--color-bg-secondary)">
+            <thead className="border-b border-(--color-border) bg-(--color-bg-secondary)">
               <tr>
                 <Th>Address</Th>
                 <Th>Label</Th>
@@ -398,7 +397,7 @@ function TreasuriesTab({
                       href={ADDRESS_EXPLORER_URL(env.chainId, t.address)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-xs text-(--color-accent-cyan) hover:underline"
+                      className="font-mono text-xs text-(--color-magenta-700) hover:underline"
                     >
                       {truncateAddress(t.address)}
                     </a>
@@ -469,7 +468,7 @@ function TaxRatesTab({ companyId }: { companyId: string }) {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-(--color-accent-amber)/30 bg-(--color-accent-amber)/5 p-4 text-sm text-(--color-accent-amber)">
+      <div className="rounded-2xl border border-(--color-magenta-200) bg-(--color-magenta-50) p-4 text-sm text-(--color-magenta-700)">
         {error}
       </div>
     )
@@ -477,19 +476,19 @@ function TaxRatesTab({ companyId }: { companyId: string }) {
 
   if (!info) {
     return (
-      <div className="h-24 animate-pulse rounded-xl border border-(--color-border) bg-(--color-surface)" />
+      <div className="h-24 animate-pulse rounded-2xl border border-(--color-border) bg-white" />
     )
   }
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
-        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
+      <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
           Applicable rate today
         </p>
         {info.resolved ? (
           <div className="mt-2 space-y-1">
-            <p className="text-2xl font-bold text-(--color-accent-cyan)">
+            <p className="text-3xl font-semibold tracking-tight text-(--color-text-primary)">
               {(info.resolved.rate * 100).toFixed(3)}%
             </p>
             <p className="text-xs text-(--color-text-secondary)">
@@ -502,7 +501,7 @@ function TaxRatesTab({ companyId }: { companyId: string }) {
             </p>
           </div>
         ) : (
-          <p className="mt-2 text-sm text-(--color-accent-amber)">
+          <p className="mt-2 text-sm text-(--color-magenta-700)">
             Tax rate source required — no OECD entry for {info.jurisdictionCode}{' '}
             and no company override exists. Net income cannot be computed until
             an override with a supporting tax filing is provided.
@@ -511,9 +510,9 @@ function TaxRatesTab({ companyId }: { companyId: string }) {
       </div>
 
       {info.history.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-(--color-border)">
+        <div className="overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <table className="w-full">
-            <thead className="bg-(--color-bg-secondary)">
+            <thead className="border-b border-(--color-border) bg-(--color-bg-secondary)">
               <tr>
                 <Th>Rate</Th>
                 <Th>Type</Th>
@@ -552,7 +551,7 @@ function TaxRatesTab({ companyId }: { companyId: string }) {
 
 function Stat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
+    <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
         {label}
       </p>

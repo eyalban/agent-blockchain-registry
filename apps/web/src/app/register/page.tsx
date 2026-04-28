@@ -9,11 +9,16 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Register Agent</h1>
-      <p className="mt-2 text-gray-600 dark:text-gray-400">
-        Register your AI agent on Base blockchain. Each agent can only be registered once via
-        ERC-8004.
+    <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-(--color-magenta-700)">
+        Onboarding
+      </p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-(--color-text-primary)">
+        Register an Agent
+      </h1>
+      <p className="mt-3 max-w-xl text-(--color-text-secondary)">
+        Mint an ERC-8004 agent NFT on Base. Each agent can only be registered once
+        and produces a portable identity that any compliant client can resolve.
       </p>
 
       <div className="mt-8">

@@ -61,17 +61,17 @@ export function InvoiceDetailView({ invoiceId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--color-magenta-500) border-t-transparent" />
       </div>
     )
   }
 
   if (!data) {
     return (
-      <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-10 text-center">
+      <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-10 text-center">
         <p className="text-sm text-(--color-text-secondary)">
           Invoice not found.{' '}
-          <Link href="/invoices" className="text-(--color-accent-cyan) hover:underline">
+          <Link href="/invoices" className="font-medium text-(--color-magenta-700) hover:underline">
             Back to all invoices
           </Link>
         </p>
@@ -90,27 +90,27 @@ export function InvoiceDetailView({ invoiceId }: Props) {
     <div>
       <Link
         href="/invoices"
-        className="inline-flex items-center gap-1 text-sm text-(--color-text-secondary) transition-colors hover:text-(--color-accent-cyan)"
+        className="inline-flex items-center gap-1 text-sm text-(--color-text-secondary) transition-colors hover:text-(--color-magenta-700)"
       >
         ← Back to Invoices
       </Link>
 
-      <div className="mt-4 flex items-start justify-between gap-4">
+      <div className="mt-5 flex items-start justify-between gap-4 rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <div className="min-w-0">
           <p className="font-mono text-xs text-(--color-text-muted)">
             Invoice #{data.invoiceId}
           </p>
-          <h1 className="mt-1 text-3xl font-bold text-(--color-text-primary)">
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-(--color-text-primary)">
             {memo?.title ?? `Invoice #${data.invoiceId}`}
           </h1>
         </div>
         <span
-          className={`rounded-md px-3 py-1 text-xs font-mono uppercase tracking-[0.1em] ${
+          className={`rounded-full px-3 py-1 font-mono text-xs uppercase tracking-[0.12em] ${
             data.status === 'paid'
-              ? 'border border-(--color-accent-green)/30 bg-(--color-accent-green)/10 text-(--color-accent-green)'
+              ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
               : data.status === 'cancelled'
-                ? 'border border-(--color-accent-red)/30 bg-(--color-accent-red)/10 text-(--color-accent-red)'
-                : 'border border-(--color-accent-amber)/30 bg-(--color-accent-amber)/10 text-(--color-accent-amber)'
+                ? 'border border-red-200 bg-red-50 text-red-700'
+                : 'border border-(--color-magenta-200) bg-(--color-magenta-50) text-(--color-magenta-700)'
           }`}
         >
           {data.status}
@@ -123,7 +123,7 @@ export function InvoiceDetailView({ invoiceId }: Props) {
             href={ADDRESS_EXPLORER_URL(env.chainId, data.issuerAddress)}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-sm text-(--color-accent-cyan) hover:underline"
+            className="font-mono text-sm font-medium text-(--color-magenta-700) hover:underline"
           >
             {truncateAddress(data.issuerAddress)}
           </a>
@@ -143,7 +143,7 @@ export function InvoiceDetailView({ invoiceId }: Props) {
             href={ADDRESS_EXPLORER_URL(env.chainId, data.payerAddress)}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-sm text-(--color-accent-cyan) hover:underline"
+            className="font-mono text-sm font-medium text-(--color-magenta-700) hover:underline"
           >
             {truncateAddress(data.payerAddress)}
           </a>
@@ -160,12 +160,13 @@ export function InvoiceDetailView({ invoiceId }: Props) {
         </Card>
       </div>
 
-      <div className="mt-4 rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
-        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
+      <div className="mt-4 rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
           Amount
         </p>
-        <p className="mt-1 text-3xl font-bold text-(--color-text-primary)">
-          {humanAmount.toFixed(data.tokenSymbol === 'USDC' ? 2 : 6)} {data.tokenSymbol}
+        <p className="mt-2 text-4xl font-semibold tracking-tight text-(--color-text-primary)">
+          {humanAmount.toFixed(data.tokenSymbol === 'USDC' ? 2 : 6)}{' '}
+          <span className="text-2xl text-(--color-text-secondary)">{data.tokenSymbol}</span>
         </p>
         {data.amountUsdAtIssue !== null && (
           <p className="mt-1 text-sm text-(--color-text-secondary)">
@@ -180,7 +181,7 @@ export function InvoiceDetailView({ invoiceId }: Props) {
       </div>
 
       {memo?.description && (
-        <div className="mt-4 rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
+        <div className="mt-4 rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
             Description
           </p>
@@ -190,7 +191,7 @@ export function InvoiceDetailView({ invoiceId }: Props) {
         </div>
       )}
 
-      <div className="mt-4 rounded-xl border border-(--color-border) bg-(--color-surface) p-5 space-y-2">
+      <div className="mt-4 rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] space-y-2">
         <Detail
           label="Memo URI"
           value={data.memoUri}
@@ -218,11 +219,11 @@ export function InvoiceDetailView({ invoiceId }: Props) {
       </div>
 
       {(canPay || canCancel) && (
-        <div className="mt-6 rounded-xl border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/5 p-5">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-accent-cyan)">
+        <div className="mt-6 rounded-2xl border border-(--color-magenta-200) bg-(--color-magenta-50) p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
             Actions
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             {canPay && !isNative && (
               <button
                 type="button"
@@ -230,7 +231,7 @@ export function InvoiceDetailView({ invoiceId }: Props) {
                   approve(data.tokenAddress as `0x${string}`, BigInt(data.amountRaw))
                 }
                 disabled={isPending || isConfirming}
-                className="rounded-md border border-(--color-accent-cyan)/30 bg-(--color-accent-cyan)/10 px-4 py-2 text-sm text-(--color-accent-cyan) hover:bg-(--color-accent-cyan)/20 disabled:opacity-40"
+                className="rounded-full border border-(--color-magenta-200) bg-white px-4 py-2 text-sm font-semibold text-(--color-magenta-700) transition-colors hover:bg-(--color-magenta-100) disabled:opacity-40"
               >
                 1. Approve {data.tokenSymbol}
               </button>
@@ -247,7 +248,7 @@ export function InvoiceDetailView({ invoiceId }: Props) {
                   })
                 }
                 disabled={isPending || isConfirming}
-                className="rounded-md bg-gradient-to-r from-(--color-accent-cyan) to-(--color-accent-violet) px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40"
+                className="rounded-full bg-(--color-magenta-700) px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:opacity-40"
               >
                 {isNative ? '2. Pay' : '2. Pay'} {humanAmount.toFixed(2)}{' '}
                 {data.tokenSymbol}
@@ -258,39 +259,39 @@ export function InvoiceDetailView({ invoiceId }: Props) {
                 type="button"
                 onClick={() => cancel(data.invoiceId)}
                 disabled={isPending || isConfirming}
-                className="rounded-md border border-(--color-accent-red)/30 bg-(--color-accent-red)/10 px-4 py-2 text-sm text-(--color-accent-red) hover:bg-(--color-accent-red)/20 disabled:opacity-40"
+                className="rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 disabled:opacity-40"
               >
                 Cancel Invoice
               </button>
             )}
           </div>
           {(isPending || isConfirming) && (
-            <p className="mt-3 text-xs text-(--color-text-muted)">
+            <p className="mt-3 text-xs text-(--color-text-secondary)">
               {isPending ? 'Waiting for wallet…' : 'Confirming on-chain…'}
             </p>
           )}
           {(error || mirrorError) && (
-            <p className="mt-3 text-xs text-(--color-accent-red)">
+            <p className="mt-3 text-xs text-red-700">
               {error?.message ?? mirrorError}
             </p>
           )}
           {hash && (
-            <p className="mt-2 font-mono text-[10px] text-(--color-text-muted)">
+            <p className="mt-3 font-mono text-[10px] text-(--color-text-muted)">
               Last tx:{' '}
               <a
                 href={TX_EXPLORER_URL(env.chainId, hash)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-(--color-accent-cyan)"
+                className="hover:text-(--color-magenta-800)"
               >
                 {hash.slice(0, 10)}…
               </a>
             </p>
           )}
           {!isNative && canPay && (
-            <p className="mt-3 text-[11px] text-(--color-text-muted)">
-              ERC-20 payments require a one-time <code>approve</code> before{' '}
-              <code>pay</code>. USDC on Base mainnet supports EIP-2612 permit
+            <p className="mt-3 text-[11px] text-(--color-text-secondary)">
+              ERC-20 payments require a one-time <code className="font-mono">approve</code> before{' '}
+              <code className="font-mono">pay</code>. USDC on Base mainnet supports EIP-2612 permit
               (single tx) — enhancement tracked for v1.1.
             </p>
           )}
@@ -302,11 +303,11 @@ export function InvoiceDetailView({ invoiceId }: Props) {
 
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-4">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
+    <div className="rounded-2xl border border-(--color-border) bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-(--color-text-muted)">
         {label}
       </p>
-      <div className="mt-1.5">{children}</div>
+      <div className="mt-2">{children}</div>
     </div>
   )
 }
@@ -335,7 +336,7 @@ function Detail({
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${valueClass} hover:text-(--color-accent-cyan)`}
+          className={`${valueClass} hover:text-(--color-magenta-700)`}
         >
           {value}
         </a>

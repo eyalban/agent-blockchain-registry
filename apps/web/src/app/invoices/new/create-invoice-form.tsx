@@ -100,11 +100,11 @@ export function CreateInvoiceForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-5 rounded-xl border border-(--color-border) bg-(--color-surface) p-6"
+      className="space-y-5 rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
     >
       <Field label="Payer (wallet)" required>
         <input
-          className="w-full rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 font-mono text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+          className="w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 font-mono text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
           placeholder="0x…"
           value={payer}
           onChange={(e) => setPayer(e.target.value.trim())}
@@ -114,7 +114,7 @@ export function CreateInvoiceForm() {
       <div className="grid grid-cols-[1fr,auto] gap-3">
         <Field label="Amount" required>
           <input
-            className="w-full rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 font-mono text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+            className="w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 font-mono text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
             placeholder="100"
             value={amount}
             onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
@@ -123,7 +123,7 @@ export function CreateInvoiceForm() {
         </Field>
         <Field label="Token" required>
           <select
-            className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 font-mono text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+            className="rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 font-mono text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
             value={tokenSymbol}
             onChange={(e) => setTokenSymbol(e.target.value as 'ETH' | 'USDC')}
           >
@@ -135,7 +135,7 @@ export function CreateInvoiceForm() {
 
       <Field label="Title / Service" required>
         <input
-          className="w-full rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+          className="w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
           maxLength={256}
           placeholder="e.g. Market analysis — Q1 2026"
           value={title}
@@ -147,14 +147,14 @@ export function CreateInvoiceForm() {
         <textarea
           rows={3}
           maxLength={4096}
-          className="w-full rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) focus:border-(--color-accent-cyan) focus:outline-none"
+          className="w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
       </Field>
 
       {!isConnected && (
-        <p className="rounded-md border border-(--color-accent-amber)/30 bg-(--color-accent-amber)/5 p-3 text-sm text-(--color-accent-amber)">
+        <p className="rounded-xl border border-(--color-magenta-200) bg-(--color-magenta-50) p-3 text-sm text-(--color-magenta-700)">
           Connect your wallet to sign the invoice creation tx.
         </p>
       )}
@@ -162,7 +162,7 @@ export function CreateInvoiceForm() {
       <button
         type="submit"
         disabled={!canSubmit}
-        className="w-full rounded-lg bg-gradient-to-r from-(--color-accent-cyan) to-(--color-accent-violet) px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-full rounded-full bg-(--color-magenta-700) px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
       >
         {isUploading
           ? 'Uploading memo to IPFS…'
@@ -176,7 +176,7 @@ export function CreateInvoiceForm() {
       </button>
 
       {(uploadError || error || mirrorError) && (
-        <p className="text-sm text-(--color-accent-red)">
+        <p className="text-sm text-red-700">
           {uploadError || error?.message || mirrorError}
         </p>
       )}
@@ -188,7 +188,7 @@ export function CreateInvoiceForm() {
             href={TX_EXPLORER_URL(env.chainId, hash)}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-(--color-accent-cyan) hover:underline"
+            className="text-(--color-magenta-700) hover:underline"
           >
             {hash.slice(0, 10)}…{hash.slice(-6)}
           </Link>
@@ -209,9 +209,9 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-(--color-text-muted)">
+      <label className="block text-sm font-medium text-(--color-text-primary)">
         {label}
-        {required && <span className="ml-1 text-(--color-accent-amber)">*</span>}
+        {required && <span className="ml-1 text-(--color-magenta-700)">*</span>}
       </label>
       {children}
     </div>

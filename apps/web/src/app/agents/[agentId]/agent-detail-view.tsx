@@ -48,7 +48,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-(--color-magenta-500) border-t-transparent" />
       </div>
     )
   }
@@ -70,81 +70,85 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
       {/* Back link */}
       <Link
         href="/agents"
-        className="inline-flex items-center gap-1 text-sm text-(--color-text-secondary) transition-colors hover:text-(--color-accent-cyan)"
+        className="inline-flex items-center gap-1 text-sm text-(--color-text-secondary) transition-colors hover:text-(--color-magenta-700)"
       >
         ← Back to Registry
       </Link>
 
       {/* Agent header */}
-      <div className="mt-4 flex items-start gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-(--color-accent-cyan) to-(--color-accent-violet) text-2xl font-bold text-white glow-cyan">
-          {agentName.slice(0, 2).toUpperCase()}
-        </div>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-(--color-text-primary)">{agentName}</h1>
-          <div className="mt-1 flex items-center gap-3 text-sm text-(--color-text-secondary)">
-            <span className="font-mono text-(--color-text-muted)">Agent #{agentId}</span>
-            {owner && (
-              <>
-                <span className="text-(--color-border-bright)">·</span>
-                <a
-                  href={ADDRESS_EXPLORER_URL(84532, owner)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-mono transition-colors hover:text-(--color-accent-cyan)"
-                >
-                  Owner: {truncateAddress(owner)}
-                </a>
-              </>
+      <div className="mt-5 rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="flex items-start gap-5">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-(--color-magenta-500) to-(--color-magenta-700) text-2xl font-semibold text-white shadow-[0_8px_20px_-8px_rgba(219,39,119,0.40)]">
+            {agentName.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex-1">
+            <h1 className="text-3xl font-semibold tracking-tight text-(--color-text-primary)">
+              {agentName}
+            </h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-(--color-text-secondary)">
+              <span className="font-mono text-(--color-text-muted)">Agent #{agentId}</span>
+              {owner && (
+                <>
+                  <span className="text-(--color-border-bright)">·</span>
+                  <a
+                    href={ADDRESS_EXPLORER_URL(84532, owner)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono transition-colors hover:text-(--color-magenta-700)"
+                  >
+                    Owner: {truncateAddress(owner)}
+                  </a>
+                </>
+              )}
+            </div>
+            {tags && tags.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2.5 py-0.5 font-mono text-xs font-medium text-(--color-magenta-700)"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
-          {tags && tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-md border border-(--color-accent-cyan)/20 bg-(--color-accent-cyan)/5 px-2 py-0.5 text-xs font-medium text-(--color-accent-cyan) font-mono"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Stats */}
-        <div className="hidden gap-4 sm:flex">
-          <div className="rounded-xl border border-(--color-border) bg-(--color-surface) px-4 py-2 text-center glow-cyan-sm">
-            <p className="text-lg font-bold text-(--color-text-primary)">
-              {count !== undefined ? count.toString() : '—'}
-            </p>
-            <p className="text-xs text-(--color-text-muted) font-mono uppercase tracking-[0.1em]">
-              Feedback
-            </p>
-          </div>
-          <div className="rounded-xl border border-(--color-border) bg-(--color-surface) px-4 py-2 text-center glow-amber">
-            <p className="text-lg font-bold text-(--color-accent-amber)">
-              {summaryValue !== undefined ? summaryValue.toString() : '—'}
-            </p>
-            <p className="text-xs text-(--color-text-muted) font-mono uppercase tracking-[0.1em]">
-              Score
-            </p>
+          {/* Stats */}
+          <div className="hidden gap-3 sm:flex">
+            <div className="rounded-xl border border-(--color-border) bg-(--color-bg-secondary) px-5 py-3 text-center">
+              <p className="text-2xl font-semibold tracking-tight text-(--color-text-primary)">
+                {count !== undefined ? count.toString() : '—'}
+              </p>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-(--color-text-muted)">
+                Feedback
+              </p>
+            </div>
+            <div className="rounded-xl border border-(--color-magenta-200) bg-(--color-magenta-50) px-5 py-3 text-center">
+              <p className="text-2xl font-semibold tracking-tight text-(--color-magenta-700)">
+                {summaryValue !== undefined ? summaryValue.toString() : '—'}
+              </p>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-(--color-magenta-700)/80">
+                Score
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="mt-8 border-b border-(--color-border)">
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-t-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+              className={`-mb-px whitespace-nowrap rounded-t-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'border-b-2 border-(--color-accent-cyan) text-(--color-accent-cyan) text-glow-cyan'
-                  : 'text-(--color-text-muted) hover:text-(--color-text-secondary)'
+                  ? 'border-b-2 border-(--color-magenta-700) text-(--color-magenta-700)'
+                  : 'border-b-2 border-transparent text-(--color-text-secondary) hover:text-(--color-text-primary)'
               }`}
             >
               {tab.label}
@@ -156,30 +160,32 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
       {/* Tab content */}
       <div className="py-6">
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {agentCard.description && (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted) font-mono">
-                  Description
-                </h3>
-                <p className="mt-2 text-(--color-text-primary)">{agentCard.description}</p>
-              </div>
-            )}
-            {tokenURI && (
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted) font-mono">
-                  Agent URI
-                </h3>
-                <p className="mt-2 break-all font-mono text-sm text-(--color-text-secondary)">
-                  {tokenURI.length > 100 ? tokenURI.slice(0, 100) + '...' : tokenURI}
-                </p>
-              </div>
-            )}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:col-span-2">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
+                Description
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-(--color-text-primary)">
+                {agentCard.description || 'No description provided.'}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-text-muted)">
+                Agent URI
+              </p>
+              <p className="mt-3 break-all font-mono text-xs text-(--color-text-secondary)">
+                {tokenURI
+                  ? tokenURI.length > 120
+                    ? tokenURI.slice(0, 120) + '…'
+                    : tokenURI
+                  : '—'}
+              </p>
+            </div>
           </div>
         )}
 
         {activeTab === 'reputation' && (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Trust score overview */}
             <TrustScore
               count={count}
@@ -188,10 +194,10 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
             />
 
             {/* Give feedback */}
-            <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-6">
-              <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-accent-amber)">
+            <div className="rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
                 Give Feedback
-              </h3>
+              </p>
               <div className="mt-4">
                 <FeedbackForm agentId={agentIdBigInt} />
               </div>
@@ -202,31 +208,31 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
         {activeTab === 'transactions' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-accent-violet-bright)">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
                 On-Chain Transactions
-              </h3>
+              </p>
               <button
                 type="button"
                 onClick={sync}
                 disabled={isSyncing}
-                className="rounded-lg border border-(--color-accent-cyan)/20 bg-(--color-accent-cyan)/5 px-3 py-1.5 font-mono text-xs text-(--color-accent-cyan) transition-colors hover:bg-(--color-accent-cyan)/10 disabled:opacity-50"
+                className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-3.5 py-1.5 font-mono text-xs font-medium text-(--color-magenta-700) transition-colors hover:bg-(--color-magenta-100) disabled:opacity-50"
               >
-                {isSyncing ? 'Syncing...' : 'Sync from chain'}
+                {isSyncing ? 'Syncing…' : 'Sync from chain'}
               </button>
             </div>
 
             {txLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-(--color-accent-cyan) border-t-transparent" />
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-(--color-magenta-500) border-t-transparent" />
               </div>
             ) : transactions.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-8 text-center">
+              <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-10 text-center">
                 <p className="text-sm text-(--color-text-secondary)">
                   No transactions found. Click &ldquo;Sync from chain&rdquo; to scan the blockchain.
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-(--color-border) bg-(--color-surface)">
+              <div className="overflow-x-auto rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-(--color-border)">
@@ -279,7 +285,7 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                             href={`https://sepolia.basescan.org/tx/${tx.tx_hash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-mono text-xs text-(--color-text-muted) hover:text-(--color-accent-cyan)"
+                            className="font-mono text-xs text-(--color-text-muted) hover:text-(--color-magenta-700)"
                           >
                             {tx.tx_hash.slice(0, 8)}...
                           </a>
@@ -302,18 +308,19 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
               taxComputedReason={financialData?.taxComputedReason}
             />
             {financialData?.breakdown && Object.keys(financialData.breakdown).length > 0 && (
-              <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-6">
-                <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-muted)">
+              <div className="rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
                   Transaction Breakdown
-                </h3>
-                <div className="mt-3 space-y-2">
+                </p>
+                <div className="mt-4 divide-y divide-(--color-border)">
                   {Object.entries(financialData.breakdown).map(([label, data]) => (
-                    <div key={label} className="flex items-center justify-between">
-                      <span className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-2 py-0.5 font-mono text-xs text-(--color-text-muted)">
+                    <div key={label} className="flex items-center justify-between py-2.5">
+                      <span className="rounded-md border border-(--color-border) bg-(--color-bg-secondary) px-2 py-0.5 font-mono text-xs text-(--color-text-secondary)">
                         {label}
                       </span>
-                      <span className="font-mono text-sm text-(--color-text-secondary)">
-                        {(data as { count: number; totalEth: number }).count} txs &middot; {(data as { count: number; totalEth: number }).totalEth.toFixed(6)} ETH
+                      <span className="font-mono text-sm text-(--color-text-primary)">
+                        {(data as { count: number; totalEth: number }).count} txs &middot;{' '}
+                        {(data as { count: number; totalEth: number }).totalEth.toFixed(6)} ETH
                       </span>
                     </div>
                   ))}
@@ -324,11 +331,13 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
         )}
 
         {activeTab === 'validations' && (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-(--color-border) bg-(--color-bg-secondary) py-12">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-(--color-accent-green)/10">
-              <span className="text-2xl">✅</span>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-(--color-border-bright) bg-white py-14">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-(--color-magenta-50) text-(--color-magenta-700)">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                <path d="M9 12l2 2 4-4M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
-            <p className="mt-3 text-sm text-(--color-text-secondary)">
+            <p className="mt-4 text-sm text-(--color-text-secondary)">
               Validation center coming in Phase 3
             </p>
           </div>

@@ -22,7 +22,7 @@ export function PaymentForm({ recipientAddress, recipientName }: PaymentFormProp
 
   if (!isConnected) {
     return (
-      <div className="rounded-xl border border-dashed border-(--color-border-bright) bg-(--color-bg-secondary) p-8 text-center">
+      <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-10 text-center">
         <p className="text-sm text-(--color-text-secondary)">
           Connect your wallet to send payments.
         </p>
@@ -45,7 +45,7 @@ export function PaymentForm({ recipientAddress, recipientName }: PaymentFormProp
     <form onSubmit={handleSend} className="space-y-5">
       {/* Recipient */}
       <div>
-        <label htmlFor="pay-to" className="block font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary)">
+        <label htmlFor="pay-to" className="block text-sm font-medium text-(--color-text-primary)">
           Recipient Address
         </label>
         <input
@@ -55,16 +55,16 @@ export function PaymentForm({ recipientAddress, recipientName }: PaymentFormProp
           onChange={(e) => setTo(e.target.value)}
           placeholder="0x..."
           disabled={Boolean(recipientAddress)}
-          className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 font-mono text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm disabled:opacity-60"
+          className="mt-1.5 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 font-mono text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20 disabled:opacity-60"
         />
         {recipientName && (
-          <p className="mt-1 text-xs text-(--color-accent-cyan)">{recipientName}</p>
+          <p className="mt-1.5 text-xs font-medium text-(--color-magenta-700)">{recipientName}</p>
         )}
       </div>
 
       {/* Amount */}
       <div>
-        <label htmlFor="pay-amount" className="block font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary)">
+        <label htmlFor="pay-amount" className="block text-sm font-medium text-(--color-text-primary)">
           Amount (ETH)
         </label>
         <input
@@ -75,13 +75,13 @@ export function PaymentForm({ recipientAddress, recipientName }: PaymentFormProp
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="0.01"
-          className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 font-mono text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+          className="mt-1.5 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 font-mono text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
         />
       </div>
 
       {/* Memo */}
       <div>
-        <label htmlFor="pay-memo" className="block font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-text-secondary)">
+        <label htmlFor="pay-memo" className="block text-sm font-medium text-(--color-text-primary)">
           Memo <span className="normal-case tracking-normal text-(--color-text-muted)">(optional, on-chain)</span>
         </label>
         <input
@@ -91,7 +91,7 @@ export function PaymentForm({ recipientAddress, recipientName }: PaymentFormProp
           onChange={(e) => setMemo(e.target.value)}
           placeholder="Payment for agent services"
           maxLength={100}
-          className="mt-1 w-full rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-2 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) transition-all focus:border-(--color-accent-cyan) focus:outline-none focus:glow-cyan-sm"
+          className="mt-1.5 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) placeholder-(--color-text-muted) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-all focus:border-(--color-magenta-500) focus:outline-none focus:ring-2 focus:ring-(--color-magenta-500)/20"
         />
       </div>
 
@@ -106,9 +106,9 @@ export function PaymentForm({ recipientAddress, recipientName }: PaymentFormProp
       <button
         type="submit"
         disabled={!to || !amount || isPending || isConfirming}
-        className="w-full rounded-xl bg-gradient-to-r from-(--color-accent-cyan) to-(--color-accent-cyan-dim) py-3 text-sm font-semibold text-(--color-bg-primary) transition-all hover:opacity-90 glow-cyan-sm disabled:opacity-50"
+        className="w-full rounded-full bg-(--color-magenta-700) py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
       >
-        {isPending ? 'Confirm in wallet...' : isConfirming ? 'Sending...' : `Send ${amount || '0'} ETH`}
+        {isPending ? 'Confirm in wallet…' : isConfirming ? 'Sending…' : `Send ${amount || '0'} ETH`}
       </button>
     </form>
   )

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi'
 
 import { useSession } from '@/hooks/use-session'
 import { truncateAddress } from '@/lib/utils'
@@ -12,7 +12,10 @@ export function ConnectButton() {
   const { address, isConnected } = useAccount()
   const { connect, connectors, isPending } = useConnect()
   const { disconnect } = useDisconnect()
+  const { signMessageAsync } = useSignMessage()
   const [open, setOpen] = useState(false)
+  const [linking, setLinking] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -25,18 +28,51 @@ export function ConnectButton() {
     return () => document.removeEventListener('mousedown', onClick)
   }, [open])
 
-  // Auto-link a freshly connected wallet to the signed-in account so the user
-  // doesn't have to click a separate "link" button. Idempotent on the server.
-  useEffect(() => {
-    if (!user || !isConnected || !address) return
-    const lower = address.toLowerCase()
-    if (user.wallets.includes(lower)) return
-    void fetch('/api/v1/auth/link-wallet', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ walletAddress: lower }),
-    }).then(() => refresh())
-  }, [user, isConnected, address, refresh])
+  // Verifiable wallet link: ask the wallet to sign a server-issued
+  // challenge that includes the user id and a fresh nonce. The server
+  // recovers the signer with viem.verifyMessage and only then writes
+  // the link. This means a user can't claim an address they don't
+  // control, and the unique constraint on user_wallets.wallet_address
+  // means a given address never attaches to two accounts.
+  async function linkConnectedWallet(): Promise<void> {
+    if (!address) return
+    setLinking(true)
+    setLinkError(null)
+    try {
+      const challengeRes = await fetch('/api/v1/auth/wallet/challenge', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ walletAddress: address }),
+      })
+      if (!challengeRes.ok) {
+        const data = (await challengeRes.json().catch(() => ({}))) as { error?: string }
+        throw new Error(data.error ?? 'Could not start wallet link')
+      }
+      const { message } = (await challengeRes.json()) as { message: string }
+      const signature = await signMessageAsync({ message })
+      const verifyRes = await fetch('/api/v1/auth/wallet/verify', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ walletAddress: address, signature }),
+      })
+      if (!verifyRes.ok) {
+        const data = (await verifyRes.json().catch(() => ({}))) as { error?: string }
+        throw new Error(data.error ?? 'Verification failed')
+      }
+      await refresh()
+    } catch (err) {
+      setLinkError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLinking(false)
+    }
+  }
+
+  async function unlinkWallet(addr: string): Promise<void> {
+    await fetch(`/api/v1/auth/wallet/unlink?walletAddress=${addr}`, {
+      method: 'DELETE',
+    })
+    await refresh()
+  }
 
   if (isLoading) {
     return <div className="h-9 w-24 animate-pulse rounded-full bg-(--color-border)" />
@@ -46,6 +82,11 @@ export function ConnectButton() {
   // the dropdown.
   if (user) {
     const initial = (user.displayName || user.email).slice(0, 1).toUpperCase()
+    const connectedNotLinked =
+      isConnected &&
+      address &&
+      !user.wallets.includes(address.toLowerCase())
+
     return (
       <div ref={dropdownRef} className="relative">
         <button
@@ -64,7 +105,7 @@ export function ConnectButton() {
           </svg>
         </button>
         {open && (
-          <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_12px_32px_-12px_rgba(15,23,42,0.18)]">
+          <div className="absolute right-0 mt-2 w-80 overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_12px_32px_-12px_rgba(15,23,42,0.18)]">
             <div className="border-b border-(--color-border) px-4 py-3">
               <p className="truncate text-sm font-semibold text-(--color-text-primary)">
                 {user.displayName ?? user.email}
@@ -73,22 +114,23 @@ export function ConnectButton() {
                 <p className="truncate text-xs text-(--color-text-muted)">{user.email}</p>
               )}
             </div>
+            <Link
+              href="/workspace"
+              onClick={() => setOpen(false)}
+              className="block border-b border-(--color-border) px-4 py-3 text-sm font-medium text-(--color-text-primary) transition-colors hover:bg-(--color-magenta-50) hover:text-(--color-magenta-700)"
+            >
+              My workspace
+              <span className="ml-1 text-(--color-text-muted)">&rarr;</span>
+            </Link>
             <div className="px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
-                Wallets
+                Verified wallets
               </p>
-              {user.wallets.length === 0 && !isConnected ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const c = connectors[0]
-                    if (c) connect({ connector: c })
-                  }}
-                  disabled={isPending}
-                  className="mt-2 w-full rounded-lg border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-2 text-sm font-medium text-(--color-magenta-700) transition-colors hover:bg-(--color-magenta-100) disabled:opacity-50"
-                >
-                  {isPending ? 'Connecting…' : 'Link a wallet'}
-                </button>
+              {user.wallets.length === 0 ? (
+                <p className="mt-2 text-xs text-(--color-text-muted)">
+                  No wallets linked yet. Connect one and sign the challenge to
+                  attribute on-chain agents and companies to your account.
+                </p>
               ) : (
                 <ul className="mt-2 space-y-1.5">
                   {user.wallets.map((w) => (
@@ -96,30 +138,60 @@ export function ConnectButton() {
                       key={w}
                       className="flex items-center justify-between gap-2 rounded-lg border border-(--color-border) bg-(--color-bg-secondary) px-3 py-1.5 font-mono text-xs"
                     >
-                      <span>{truncateAddress(w as `0x${string}`)}</span>
-                      {isConnected && address?.toLowerCase() === w && (
-                        <span className="flex h-1.5 w-1.5 rounded-full bg-(--color-accent-green)" />
-                      )}
+                      <span className="flex items-center gap-2">
+                        {isConnected && address?.toLowerCase() === w && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        )}
+                        <span>{truncateAddress(w as `0x${string}`)}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => unlinkWallet(w)}
+                        className="text-[10px] uppercase tracking-[0.1em] text-(--color-text-muted) hover:text-red-700"
+                      >
+                        Remove
+                      </button>
                     </li>
                   ))}
-                  {isConnected &&
-                    address &&
-                    !user.wallets.includes(address.toLowerCase()) && (
-                      <li className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-(--color-border-bright) bg-white px-3 py-1.5 font-mono text-xs text-(--color-text-muted)">
-                        <span>Linking {truncateAddress(address)}…</span>
-                      </li>
-                    )}
                 </ul>
+              )}
+
+              {!isConnected && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const c = connectors[0]
+                    if (c) connect({ connector: c })
+                  }}
+                  disabled={isPending}
+                  className="mt-3 w-full rounded-lg border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-2 text-sm font-medium text-(--color-magenta-700) transition-colors hover:bg-(--color-magenta-100) disabled:opacity-50"
+                >
+                  {isPending ? 'Connecting…' : '+ Connect a wallet'}
+                </button>
+              )}
+
+              {connectedNotLinked && (
+                <button
+                  type="button"
+                  onClick={linkConnectedWallet}
+                  disabled={linking}
+                  className="mt-3 w-full rounded-lg bg-(--color-magenta-700) px-3 py-2 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:opacity-50"
+                >
+                  {linking
+                    ? 'Sign in your wallet…'
+                    : `Verify ${truncateAddress(address!)} to link`}
+                </button>
+              )}
+              {linkError && (
+                <p className="mt-2 text-xs text-red-700">{linkError}</p>
               )}
             </div>
             <div className="border-t border-(--color-border) bg-(--color-bg-secondary)">
               {isConnected && (
                 <button
                   type="button"
-                  onClick={() => {
-                    disconnect()
-                  }}
-                  className="block w-full px-4 py-2.5 text-left text-sm text-(--color-text-secondary) transition-colors hover:bg-(--color-magenta-50) hover:text-(--color-magenta-700)"
+                  onClick={() => disconnect()}
+                  className="block w-full px-4 py-2.5 text-left text-sm text-(--color-text-secondary) transition-colors hover:bg-white hover:text-(--color-magenta-700)"
                 >
                   Disconnect wallet
                 </button>
@@ -131,7 +203,7 @@ export function ConnectButton() {
                   setOpen(false)
                   if (isConnected) disconnect()
                 }}
-                className="block w-full border-t border-(--color-border) px-4 py-2.5 text-left text-sm font-medium text-(--color-text-primary) transition-colors hover:bg-(--color-magenta-50) hover:text-(--color-magenta-700)"
+                className="block w-full border-t border-(--color-border) px-4 py-2.5 text-left text-sm font-medium text-(--color-text-primary) transition-colors hover:bg-white hover:text-(--color-magenta-700)"
               >
                 Sign out
               </button>

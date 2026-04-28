@@ -109,9 +109,23 @@ export default function HomePage() {
       </section>
 
       {/* ====================================================================
-          PRODUCT PILLARS
+          LIVE DATA: AGENTS + COMPANIES SHORTLISTS
           ==================================================================== */}
       <section className="pt-14 pb-6">
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <LatestAgents limit={6} />
+          </div>
+          <div className="lg:col-span-2">
+            <LatestCompanies limit={4} />
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================================
+          PRODUCT PILLARS
+          ==================================================================== */}
+      <section className="pt-10 pb-6">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-(--color-magenta-700)">
@@ -154,20 +168,6 @@ export default function HomePage() {
             body="Atomic settlement — one transaction transfers funds (ETH or USDC) and flips the invoice to Paid. No Stripe in between."
             href="/invoices"
           />
-        </div>
-      </section>
-
-      {/* ====================================================================
-          LIVE DATA: AGENTS + COMPANIES SHORTLISTS
-          ==================================================================== */}
-      <section className="py-10">
-        <div className="grid gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-            <LatestAgents limit={6} />
-          </div>
-          <div className="lg:col-span-2">
-            <LatestCompanies limit={4} />
-          </div>
         </div>
       </section>
 

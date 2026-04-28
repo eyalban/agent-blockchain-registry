@@ -48,7 +48,7 @@ export function ProtocolStats() {
   }, [])
 
   return (
-    <div className="grid grid-cols-2 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:grid-cols-4 md:divide-x">
+    <div className="grid grid-cols-1 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:grid-cols-3 sm:divide-x">
       <StatBox
         label="Registered agents"
         value={stats ? stats.totalAgents.toLocaleString() : '—'}
@@ -61,7 +61,6 @@ export function ProtocolStats() {
         label="Transactions tracked"
         value={stats ? stats.totalTransactions.toLocaleString() : '—'}
       />
-      <StatBox label="Network" value="Base Sepolia" sub="Chain 84532" />
     </div>
   )
 }

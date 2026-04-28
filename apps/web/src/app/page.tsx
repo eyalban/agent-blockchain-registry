@@ -6,6 +6,11 @@ import { LatestCompanies } from '@/components/agents/latest-companies'
 
 const GITHUB_URL = 'https://github.com/eyalban/agent-registry-framework'
 
+// Server-render fresh data on each visit so the shortlists are in the
+// initial HTML — no client-side fetch waterfall before first paint.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default function HomePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

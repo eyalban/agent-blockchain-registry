@@ -1,33 +1,16 @@
-'use client'
-
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 
-interface CompanyRow {
-  readonly companyId: string
-  readonly name: string | null
-  readonly description: string | null
-  readonly jurisdictionCode: string | null
-  readonly founderAddress: string
-}
+import { listCompanies } from '@/lib/db'
 
-export function LatestCompanies({ limit = 4 }: { readonly limit?: number }) {
-  const [companies, setCompanies] = useState<CompanyRow[] | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    fetch(`/api/v1/companies?limit=${limit}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { data?: CompanyRow[] } | null) => {
-        if (!cancelled) setCompanies(data?.data ?? [])
-      })
-      .catch(() => {
-        if (!cancelled) setCompanies([])
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [limit])
+export async function LatestCompanies({ limit = 4 }: { readonly limit?: number }) {
+  const { rows } = await listCompanies(limit, 0).catch(() => ({ rows: [] }))
+  const companies = rows.map((r) => ({
+    companyId: r.company_id,
+    name: r.name,
+    description: r.description,
+    jurisdictionCode: r.jurisdiction_code,
+    founderAddress: r.founder_address,
+  }))
 
   return (
     <div className="overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
@@ -48,14 +31,7 @@ export function LatestCompanies({ limit = 4 }: { readonly limit?: number }) {
         </Link>
       </div>
       <div className="grid grid-cols-1 divide-y divide-(--color-border) sm:grid-cols-2 sm:divide-y-0">
-        {companies === null ? (
-          Array.from({ length: limit }).map((_, i) => (
-            <div key={i} className="space-y-2 px-6 py-5 sm:border-b sm:border-(--color-border)">
-              <div className="h-4 w-40 animate-pulse rounded bg-(--color-border)" />
-              <div className="h-3 w-56 animate-pulse rounded bg-(--color-border)/60" />
-            </div>
-          ))
-        ) : companies.length === 0 ? (
+        {companies.length === 0 ? (
           <div className="col-span-full px-6 py-10 text-center text-sm text-(--color-text-muted)">
             No companies created yet.
           </div>

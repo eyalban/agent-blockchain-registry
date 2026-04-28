@@ -8,7 +8,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { invoiceId } = await params
-  return { title: `Invoice #${invoiceId} · Statemate` }
+  return { title: `Invoice #${invoiceId} · statem8` }
 }
 
 export default async function InvoiceDetailPage({ params }: Props) {

@@ -14,7 +14,7 @@ export const wagmiConfig = createConfig({
   connectors: [
     injected(),
     coinbaseWallet({
-      appName: 'Statemate',
+      appName: 'statem8',
       preference: 'smartWalletOnly',
     }),
   ],

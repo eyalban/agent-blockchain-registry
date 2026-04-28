@@ -17,7 +17,7 @@ const COOLDOWN_MS = 30_000
 /**
  * POST /api/v1/faucet
  *
- * Fund an EOA on Base Sepolia from the Statemate-managed Coinbase CDP
+ * Fund an EOA on Base Sepolia from the statem8-managed Coinbase CDP
  * faucet. Intended for autonomous-agent onboarding via the framework
  * README, where the agent generates a fresh key and needs ETH to pay
  * for its own registration without involving the user.

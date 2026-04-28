@@ -4,81 +4,98 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* ===== Frontier Color System ===== */
-  --color-bg-primary: #06070a;
-  --color-bg-secondary: #0a0e17;
-  --color-surface: #0f1520;
-  --color-surface-hover: #141c2b;
-  --color-border: #1a2235;
-  --color-border-bright: #243049;
+  /* ===== statem8 — premium financial light theme =====
+     White canvas, magenta accents. Token names retain their
+     historical "cyan"/"violet" labels so existing usage continues
+     to compile; the values are the new magenta palette. */
 
-  --color-accent-cyan: #00e5ff;
-  --color-accent-cyan-dim: #00b8d4;
-  --color-accent-violet: #7c3aed;
-  --color-accent-violet-bright: #a78bfa;
-  --color-accent-amber: #f59e0b;
-  --color-accent-green: #00ff88;
-  --color-accent-red: #ff3366;
+  --color-bg-primary: #fafaf7;
+  --color-bg-secondary: #f5f5f1;
+  --color-surface: #ffffff;
+  --color-surface-hover: #fdf2f8;
+  --color-border: #e6e6ea;
+  --color-border-bright: #cfcfd6;
 
-  --color-text-primary: #e2e8f0;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #475569;
+  /* Brand magentas, derived from the logo gradient */
+  --color-magenta-50: #fdf2f8;
+  --color-magenta-100: #fce7f3;
+  --color-magenta-200: #fbcfe8;
+  --color-magenta-300: #f9a8d4;
+  --color-magenta-400: #f472b6;
+  --color-magenta-500: #ec4899;
+  --color-magenta-600: #db2777;
+  --color-magenta-700: #be185d;
+  --color-magenta-800: #9d174d;
+  --color-magenta-900: #831843;
+
+  /* Legacy accent slots — remapped to magenta */
+  --color-accent-cyan: #db2777;
+  --color-accent-cyan-dim: #be185d;
+  --color-accent-violet: #ec4899;
+  --color-accent-violet-bright: #f472b6;
+  --color-accent-amber: #b45309;
+  --color-accent-green: #047857;
+  --color-accent-red: #b91c1c;
+
+  --color-text-primary: #0a0a0f;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
 }
 
-/* ===== Base Dark Theme ===== */
+/* ===== Base light theme ===== */
 body {
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
+  font-feature-settings: 'cv11', 'ss01';
 }
 
-/* ===== Grid Background ===== */
+/* ===== Subtle textures ===== */
 .grid-bg {
   background-image:
-    linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
 .dot-bg {
-  background-image: radial-gradient(rgba(0, 229, 255, 0.07) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
-/* ===== Glow Effects ===== */
+/* ===== Soft glows (subtle for a financial feel) ===== */
 .glow-cyan {
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.15), 0 0 60px rgba(0, 229, 255, 0.05);
+  box-shadow: 0 8px 24px -8px rgba(219, 39, 119, 0.35);
 }
 
 .glow-cyan-sm {
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.12);
+  box-shadow: 0 4px 12px -4px rgba(219, 39, 119, 0.18);
 }
 
 .glow-violet {
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.2), 0 0 60px rgba(124, 58, 237, 0.06);
+  box-shadow: 0 8px 24px -8px rgba(236, 72, 153, 0.30);
 }
 
 .glow-amber {
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 4px 12px -4px rgba(180, 83, 9, 0.18);
 }
 
 .glow-green {
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.15);
+  box-shadow: 0 4px 12px -4px rgba(4, 120, 87, 0.15);
 }
 
 .glow-red {
-  box-shadow: 0 0 15px rgba(255, 51, 102, 0.15);
+  box-shadow: 0 4px 12px -4px rgba(185, 28, 28, 0.15);
 }
 
-/* Text glow */
 .text-glow-cyan {
-  text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+  text-shadow: none;
 }
 
 .text-glow-violet {
-  text-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+  text-shadow: none;
 }
 
-/* ===== Gradient Borders ===== */
+/* ===== Gradient borders ===== */
 .gradient-border {
   position: relative;
   border: 1px solid transparent;
@@ -90,7 +107,7 @@ body {
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(124, 58, 237, 0.3), rgba(0, 229, 255, 0.1));
+  background: linear-gradient(135deg, rgba(219, 39, 119, 0.45), rgba(236, 72, 153, 0.30), rgba(219, 39, 119, 0.15));
   z-index: -1;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
@@ -113,7 +130,7 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.4; }
+  0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
 
@@ -152,7 +169,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-primary);
+  background: var(--color-bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -161,13 +178,13 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent-cyan-dim);
+  background: var(--color-magenta-400);
 }
 
 /* ===== Selection ===== */
 ::selection {
-  background: rgba(0, 229, 255, 0.2);
-  color: #fff;
+  background: rgba(236, 72, 153, 0.22);
+  color: var(--color-text-primary);
 }
 
 /* ===== White-paper prose (rendered from markdown) ===== */
@@ -210,21 +227,21 @@ body {
   margin: 0.35rem 0;
 }
 .whitepaper-prose a {
-  color: var(--color-accent-cyan);
+  color: var(--color-magenta-700);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 .whitepaper-prose a:hover {
-  color: #fff;
+  color: var(--color-magenta-900);
 }
 .whitepaper-prose code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.85em;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
+  background: var(--color-magenta-50);
+  border: 1px solid var(--color-magenta-200);
   border-radius: 4px;
   padding: 0.1em 0.35em;
-  color: var(--color-accent-cyan);
+  color: var(--color-magenta-700);
 }
 .whitepaper-prose pre {
   background: var(--color-bg-secondary);
@@ -241,7 +258,7 @@ body {
   color: var(--color-text-primary);
 }
 .whitepaper-prose blockquote {
-  border-left: 3px solid var(--color-border-bright);
+  border-left: 3px solid var(--color-magenta-300);
   padding-left: 1rem;
   margin: 1rem 0;
   color: var(--color-text-muted);

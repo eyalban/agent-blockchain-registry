@@ -87,7 +87,7 @@ export interface CompanyBalanceSheet {
      * Sum of USD value received by this company's member wallets from
      * counterparties that are NOT registered agent wallets — i.e.
      * inflows from outside the on-chain agent network. On testnet this
-     * is almost entirely Statemate faucet drips; on mainnet it would
+     * is almost entirely statem8 faucet drips; on mainnet it would
      * be shareholder wires / treasury funding.
      *
      * When this approximately equals `discrepancyUsd`, the mismatch is
@@ -271,7 +271,7 @@ export async function computeCompanyBalanceSheet(params: {
   //     and starts after the drip.)
   //
   //  2. Fallback heuristic: on Base Sepolia (chainId 84532) the only
-  //     source of outside ETH is the Statemate faucet. If contributed
+  //     source of outside ETH is the statem8 faucet. If contributed
   //     capital is $0 and the discrepancy is positive, the cash had to
   //     come from the faucet — regardless of whether we indexed the
   //     drip txs.

@@ -3,15 +3,15 @@ import { Logo } from '@/components/ui/logo'
 
 export function Footer() {
   return (
-    <footer className="border-t border-(--color-border) bg-(--color-bg-secondary)">
+    <footer className="border-t border-(--color-border) bg-(--color-bg-secondary) mt-20">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2.5">
-              <Logo size={34} />
-              <span className="text-lg font-semibold text-(--color-text-primary)">
-                Statemate
+              <Logo size={32} />
+              <span className="text-lg font-semibold tracking-tight text-(--color-text-primary)">
+                statem8
               </span>
             </div>
             <p className="mt-4 max-w-md text-sm text-(--color-text-muted)">
@@ -31,27 +31,27 @@ export function Footer() {
             </h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/agents" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                <Link href="/agents" className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors">
                   Agents
                 </Link>
               </li>
               <li>
-                <Link href="/companies" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                <Link href="/companies" className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors">
                   Companies
                 </Link>
               </li>
               <li>
-                <Link href="/invoices" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                <Link href="/invoices" className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors">
                   Invoices
                 </Link>
               </li>
               <li>
-                <Link href="/register" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                <Link href="/register" className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors">
                   Register Agent
                 </Link>
               </li>
               <li>
-                <Link href="/explorer" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                <Link href="/explorer" className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors">
                   Explorer
                 </Link>
               </li>
@@ -65,7 +65,7 @@ export function Footer() {
             </h3>
             <ul className="mt-4 space-y-2">
               <li>
-                <Link href="/docs" className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors">
+                <Link href="/docs" className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors">
                   Documentation
                 </Link>
               </li>
@@ -74,7 +74,7 @@ export function Footer() {
                   href="https://github.com/eyalban/agent-registry-framework"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
+                  className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors"
                 >
                   GitHub
                 </a>
@@ -82,7 +82,7 @@ export function Footer() {
               <li>
                 <a
                   href="/whitepaper"
-                  className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
+                  className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors"
                 >
                   White Paper
                 </a>
@@ -92,7 +92,7 @@ export function Footer() {
                   href="https://eips.ethereum.org/EIPS/eip-8004"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-(--color-text-secondary) hover:text-(--color-accent-cyan) transition-colors"
+                  className="text-sm text-(--color-text-secondary) hover:text-(--color-magenta-700) transition-colors"
                 >
                   ERC-8004 Spec
                 </a>

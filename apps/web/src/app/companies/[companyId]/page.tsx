@@ -9,7 +9,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { companyId } = await params
   return {
-    title: `Company #${companyId} · Statemate`,
+    title: `Company #${companyId} · statem8`,
     description: `Details for agentic company #${companyId}.`,
   }
 }

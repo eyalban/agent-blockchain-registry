@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Statemate | Trustless AI Agents on Base',
-    template: '%s | Statemate',
+    default: 'statem8 | Trustless AI Agents on Base',
+    template: '%s | statem8',
   },
   description:
     'Discover, register, and interact with AI agents on Base blockchain using the ERC-8004 Trustless Agents standard.',
@@ -39,8 +39,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-(--color-bg-primary) text-(--color-text-primary)">
         <Providers>
-          <div className="dot-bg fixed inset-0 z-0 pointer-events-none" />
-          <div className="relative z-10 flex min-h-full flex-col">
+          <div className="relative flex min-h-full flex-col">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />

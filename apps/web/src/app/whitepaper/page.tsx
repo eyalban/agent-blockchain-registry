@@ -4,9 +4,9 @@ import type { Metadata } from 'next'
 import { Marked } from 'marked'
 
 export const metadata: Metadata = {
-  title: 'White Paper · Statemate',
+  title: 'White Paper · statem8',
   description:
-    'Provenance-first accounting for agentic companies — the Statemate white paper.',
+    'Provenance-first accounting for agentic companies — the statem8 white paper.',
 }
 
 // Read at build time. The .md file is co-located under src/content so it

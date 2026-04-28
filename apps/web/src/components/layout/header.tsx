@@ -18,13 +18,13 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-(--color-border) bg-(--color-bg-primary)/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-(--color-border) bg-white/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <Logo size={34} />
-          <span className="text-lg font-semibold text-(--color-text-primary) transition-colors group-hover:text-(--color-accent-cyan)">
-            Statemate
+          <Logo size={32} />
+          <span className="text-lg font-semibold tracking-tight text-(--color-text-primary) transition-colors group-hover:text-(--color-magenta-700)">
+            statem8
           </span>
         </Link>
 
@@ -34,7 +34,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-(--color-text-muted) transition-colors hover:text-(--color-accent-cyan) hover:bg-(--color-surface)"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-(--color-text-secondary) transition-colors hover:text-(--color-magenta-700) hover:bg-(--color-magenta-50)"
             >
               {item.label}
             </Link>
@@ -51,7 +51,7 @@ export function Header() {
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="rounded-lg p-2 text-(--color-text-muted) transition-colors hover:bg-(--color-surface) md:hidden"
+            className="rounded-lg p-2 text-(--color-text-secondary) transition-colors hover:bg-(--color-magenta-50) md:hidden"
             aria-label="Toggle menu"
           >
             {mobileOpen ? (
@@ -69,14 +69,14 @@ export function Header() {
 
       {/* Mobile navigation */}
       {mobileOpen && (
-        <div className="border-t border-(--color-border) bg-(--color-bg-primary)/95 backdrop-blur-xl md:hidden">
+        <div className="border-t border-(--color-border) bg-white/95 backdrop-blur-xl md:hidden">
           <nav className="flex flex-col px-4 py-3">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-(--color-text-secondary) transition-colors hover:text-(--color-accent-cyan) hover:bg-(--color-surface)"
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-(--color-text-secondary) transition-colors hover:text-(--color-magenta-700) hover:bg-(--color-magenta-50)"
               >
                 {item.label}
               </Link>

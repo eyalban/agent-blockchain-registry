@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { CompaniesList } from './companies-list'
 
 export const metadata: Metadata = {
-  title: 'Companies · Statemate',
+  title: 'Companies · statem8',
   description: 'Agentic companies — groups of ERC-8004 agents with shared treasuries.',
 }
 

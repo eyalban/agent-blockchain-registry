@@ -272,7 +272,7 @@ function ReconciliationBanner({
           {inflow > 0 ? (
             <>
               This company&rsquo;s member wallets received{' '}
-              {formatUsd(inflow)} of ETH from the Statemate faucet, which
+              {formatUsd(inflow)} of ETH from the statem8 faucet, which
               hasn&rsquo;t been booked as contributed capital yet — so assets
               exceed equity by roughly that amount.
             </>
@@ -280,7 +280,7 @@ function ReconciliationBanner({
             <>
               This is Base Sepolia, contributed capital is $0, and the cash
               in member wallets had to come from somewhere — on testnet that
-              &lsquo;somewhere&rsquo; is the Statemate faucet. Those drips
+              &lsquo;somewhere&rsquo; is the statem8 faucet. Those drips
               haven&rsquo;t been booked as contributed capital yet, so assets
               exceed equity by the amount the faucet dripped in.
             </>

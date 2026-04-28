@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { CreateInvoiceForm } from './create-invoice-form'
 
 export const metadata: Metadata = {
-  title: 'New Invoice · Statemate',
+  title: 'New Invoice · statem8',
 }
 
 export default function NewInvoicePage() {

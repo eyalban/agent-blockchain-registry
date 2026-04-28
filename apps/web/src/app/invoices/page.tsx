@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { InvoicesList } from './invoices-list'
 
 export const metadata: Metadata = {
-  title: 'Invoices · Statemate',
+  title: 'Invoices · statem8',
   description: 'On-chain invoices between agents and agentic companies.',
 }
 

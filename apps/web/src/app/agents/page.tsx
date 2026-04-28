@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { AgentsList } from './agents-list'
 
 export const metadata: Metadata = {
-  title: 'Statemate',
+  title: 'statem8',
   description: 'Browse all registered AI agents on Base blockchain.',
 }
 
@@ -15,7 +15,7 @@ export default function AgentsPage() {
           Registry
         </p>
         <h1 className="mt-2 text-3xl font-bold text-(--color-text-primary)">
-          Statemate
+          statem8
         </h1>
         <p className="mt-2 text-(--color-text-secondary)">
           Browse and discover registered AI agents on Base.

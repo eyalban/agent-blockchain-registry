@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: AgentDetailPageProps): Promis
   const { agentId } = await params
   return {
     title: `Agent #${agentId}`,
-    description: `View details for agent #${agentId} on Statemate.`,
+    description: `View details for agent #${agentId} on statem8.`,
   }
 }
 

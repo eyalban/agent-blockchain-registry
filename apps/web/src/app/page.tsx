@@ -11,38 +11,38 @@ export default function HomePage() {
       {/* ====================================================================
           HERO
           ==================================================================== */}
-      <section className="relative py-24 text-center">
+      <section className="relative py-28 text-center">
         <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2">
-          <div className="h-[500px] w-[800px] rounded-full bg-gradient-to-b from-cyan-500/10 via-violet-500/5 to-transparent blur-3xl" />
+          <div className="h-[520px] w-[860px] rounded-full bg-[radial-gradient(closest-side,rgba(236,72,153,0.18),rgba(236,72,153,0.05),transparent)] blur-2xl" />
         </div>
 
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full border border-(--color-border-bright) bg-(--color-surface)/80 px-4 py-1.5 text-sm font-mono backdrop-blur-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--color-accent-green) opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-(--color-accent-green)" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-3.5 py-1.5 text-xs font-medium tracking-wide">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--color-magenta-500) opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-(--color-magenta-600)" />
             </span>
-            <span className="text-(--color-accent-green)">LIVE</span>
-            <span className="text-(--color-text-muted)">|</span>
+            <span className="text-(--color-magenta-700) uppercase tracking-[0.14em]">Live</span>
+            <span className="text-(--color-magenta-300)">/</span>
             <span className="text-(--color-text-secondary)">Base Sepolia</span>
           </div>
 
-          <h1 className="mt-8 text-5xl font-bold tracking-tight sm:text-7xl">
-            <span className="text-(--color-text-primary)">Financial infrastructure</span>
+          <h1 className="mt-8 text-5xl font-semibold tracking-[-0.02em] text-(--color-text-primary) sm:text-7xl">
+            Financial infrastructure
             <br />
-            <span className="bg-gradient-to-r from-(--color-accent-cyan) via-(--color-accent-violet-bright) to-(--color-accent-cyan) bg-clip-text text-transparent animate-gradient text-glow-cyan">
-              for agentic companies
+            <span className="bg-gradient-to-r from-(--color-magenta-700) via-(--color-magenta-500) to-(--color-magenta-700) bg-clip-text text-transparent animate-gradient">
+              for agentic companies.
             </span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-(--color-text-secondary)">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-(--color-text-secondary)">
             On-chain identity, reputation, companies, invoices, and provenance-first
             accounting for AI agents. Built on{' '}
             <a
               href="https://eips.ethereum.org/EIPS/eip-8004"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-(--color-accent-cyan) hover:underline"
+              className="font-medium text-(--color-magenta-700) hover:underline"
             >
               ERC-8004
             </a>
@@ -52,7 +52,7 @@ export default function HomePage() {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/companies/new"
-              className="group relative rounded-xl bg-gradient-to-r from-(--color-accent-cyan) to-(--color-accent-cyan-dim) px-7 py-3.5 text-sm font-semibold text-(--color-bg-primary) transition-all hover:scale-105 glow-cyan"
+              className="group relative rounded-full bg-(--color-magenta-700) px-7 py-3.5 text-sm font-semibold text-white transition-all hover:bg-(--color-magenta-800) glow-cyan"
             >
               Create a Company
               <span className="ml-2 inline-block transition-transform group-hover:translate-x-0.5">
@@ -61,13 +61,13 @@ export default function HomePage() {
             </Link>
             <Link
               href="/invoices/new"
-              className="rounded-xl border border-(--color-accent-violet)/40 bg-(--color-accent-violet)/10 px-7 py-3.5 text-sm font-semibold text-(--color-accent-violet-bright) backdrop-blur-sm transition-all hover:bg-(--color-accent-violet)/20"
+              className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-7 py-3.5 text-sm font-semibold text-(--color-magenta-700) transition-all hover:bg-(--color-magenta-100)"
             >
               Issue an Invoice
             </Link>
             <Link
               href="/docs"
-              className="rounded-xl border border-(--color-border-bright) bg-(--color-surface)/60 px-7 py-3.5 text-sm font-semibold text-(--color-text-primary) backdrop-blur-sm transition-all hover:border-(--color-accent-cyan)/40 hover:bg-(--color-surface)"
+              className="rounded-full border border-(--color-border-bright) bg-white px-7 py-3.5 text-sm font-semibold text-(--color-text-primary) transition-all hover:border-(--color-magenta-300) hover:text-(--color-magenta-700)"
             >
               Read the Docs
             </Link>
@@ -78,7 +78,7 @@ export default function HomePage() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-(--color-accent-cyan)"
+              className="hover:text-(--color-magenta-700)"
             >
               GitHub &rarr;
             </a>
@@ -86,7 +86,7 @@ export default function HomePage() {
             <span className="mx-2">&middot;</span>
             <Link
               href={WHITEPAPER_URL}
-              className="hover:text-(--color-accent-cyan)"
+              className="hover:text-(--color-magenta-700)"
             >
               White paper &rarr;
             </Link>
@@ -105,7 +105,7 @@ export default function HomePage() {
           PROTOCOL BANNER
           ==================================================================== */}
       <section className="py-4">
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-xl border border-(--color-border) bg-(--color-surface)/40 px-6 py-3 font-mono text-xs text-(--color-text-muted)">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 rounded-full border border-(--color-border) bg-white px-6 py-3 font-mono text-xs text-(--color-text-secondary) shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <span className="text-(--color-accent-cyan)">ERC-8004</span>
           <span>&bull;</span>
           <span>Identity</span>
@@ -296,7 +296,7 @@ export default function HomePage() {
               </a>
             </div>
           </div>
-          <div className="rounded-xl border border-(--color-border) bg-(--color-bg-secondary) p-5 font-mono text-sm">
+          <div className="rounded-2xl border border-(--color-border) bg-white p-5 font-mono text-sm shadow-[0_8px_24px_-12px_rgba(15,23,42,0.10)]">
             <div className="flex items-center gap-2 border-b border-(--color-border) pb-3 text-xs text-(--color-text-muted)">
               <span className="h-3 w-3 rounded-full bg-red-500/60" />
               <span className="h-3 w-3 rounded-full bg-yellow-500/60" />
@@ -374,7 +374,7 @@ export default function HomePage() {
           FOR GRADERS / EVALUATORS
           ==================================================================== */}
       <section className="border-t border-(--color-border) py-16">
-        <div className="rounded-2xl border border-(--color-accent-cyan)/30 bg-gradient-to-br from-(--color-accent-cyan)/5 via-(--color-surface)/40 to-(--color-accent-violet)/5 p-10">
+        <div className="rounded-2xl border border-(--color-magenta-200) bg-gradient-to-br from-(--color-magenta-50) via-white to-(--color-magenta-100) p-10 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
           <p className="font-mono text-xs tracking-[0.2em] text-(--color-accent-cyan) uppercase">
             MIT Media Lab &middot; AI Studio, Spring 2026
           </p>
@@ -470,7 +470,7 @@ function FeatureCard({
   const a = accentMap[accent]
   const inner = (
     <div
-      className={`group h-full rounded-2xl border border-(--color-border) bg-(--color-surface)/40 p-7 backdrop-blur-sm transition-all ${a.hoverBorder} ${a.glow}`}
+      className={`group h-full rounded-2xl border border-(--color-border) bg-white p-7 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all ${a.hoverBorder} ${a.glow}`}
     >
       <div className="flex items-start justify-between">
         <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${a.iconBg}`}>
@@ -524,7 +524,7 @@ function Step({
   return (
     <Link
       href={href}
-      className="group rounded-2xl border border-(--color-border) bg-(--color-surface)/40 p-6 backdrop-blur-sm transition-all hover:border-(--color-accent-cyan)/30 hover:glow-cyan-sm"
+      className="group rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:border-(--color-magenta-300) hover:shadow-[0_8px_24px_-12px_rgba(219,39,119,0.25)]"
     >
       <div className="flex items-center gap-3">
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-(--color-accent-cyan)/10 font-mono text-sm font-bold text-(--color-accent-cyan)">

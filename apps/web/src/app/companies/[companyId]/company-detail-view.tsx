@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 
@@ -11,6 +12,7 @@ import { CompanyIncomeStatement } from '@/components/financials/company-income-s
 import { useAddAgentToCompany } from '@/hooks/use-add-agent-to-company'
 import { useAddTreasury } from '@/hooks/use-add-treasury'
 import { useCompany } from '@/hooks/use-company'
+import { useSession } from '@/hooks/use-session'
 import { env } from '@/lib/env'
 import { truncateAddress } from '@/lib/utils'
 
@@ -39,6 +41,8 @@ export function CompanyDetailView({ companyId }: Props) {
   const [tab, setTab] = useState<Tab>('overview')
   const { data, isLoading, reload } = useCompany(companyId)
   const { address } = useAccount()
+  const { user } = useSession()
+  const [showDelete, setShowDelete] = useState(false)
 
   if (isLoading) {
     return (
@@ -61,8 +65,13 @@ export function CompanyDetailView({ companyId }: Props) {
     )
   }
 
-  const isOwner =
-    address && data.ownerAddress.toLowerCase() === address.toLowerCase()
+  // Owner check: the connected browser wallet matches, OR the email-
+  // account user has a verified wallet that matches. Either path is
+  // proof of ownership and grants destructive operations like delete.
+  const ownerLower = data.ownerAddress.toLowerCase()
+  const browserOwns = address?.toLowerCase() === ownerLower
+  const sessionOwns = user?.wallets.some((w) => w.toLowerCase() === ownerLower) ?? false
+  const isOwner = browserOwns || sessionOwns
 
   return (
     <div>
@@ -156,7 +165,153 @@ export function CompanyDetailView({ companyId }: Props) {
         {tab === 'balance_sheet' && <CompanyBalanceSheet companyId={data.companyId} />}
         {tab === 'taxes' && <TaxRatesTab companyId={data.companyId} />}
       </div>
+
+      {isOwner && (
+        <DangerZone
+          companyId={data.companyId}
+          companyName={data.name ?? `Company #${data.companyId}`}
+          open={showDelete}
+          onOpen={() => setShowDelete(true)}
+          onClose={() => setShowDelete(false)}
+        />
+      )}
     </div>
+  )
+}
+
+function DangerZone({
+  companyId,
+  companyName,
+  open,
+  onOpen,
+  onClose,
+}: {
+  readonly companyId: string
+  readonly companyName: string
+  readonly open: boolean
+  readonly onOpen: () => void
+  readonly onClose: () => void
+}) {
+  const router = useRouter()
+  const [confirmName, setConfirmName] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const matches =
+    confirmName.trim().toLowerCase() === companyName.trim().toLowerCase()
+
+  async function deleteCompany(): Promise<void> {
+    setSubmitting(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/v1/companies/${companyId}/delete`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ confirmName: confirmName.trim() }),
+      })
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string }
+        throw new Error(data.error ?? `Delete failed (${res.status})`)
+      }
+      router.push('/workspace')
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed')
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <>
+      <section className="mt-10 rounded-2xl border border-red-200 bg-red-50/40 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-red-700">
+          Danger zone
+        </p>
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-xl">
+            <h3 className="text-sm font-semibold text-(--color-text-primary)">
+              Delete this company
+            </h3>
+            <p className="mt-1 text-sm text-(--color-text-secondary)">
+              Removes the company and its members + treasuries from the
+              statem8 mirror. The on-chain CompanyRegistry record cannot be
+              undone — agents that were members stay on chain and remain in
+              the agent registry. Invoices keep their on-chain integrity.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onOpen}
+            className="shrink-0 rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50"
+          >
+            Delete company
+          </button>
+        </div>
+      </section>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-company-title"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !submitting) onClose()
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-(--color-border) bg-white p-6 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.45)]">
+            <h2
+              id="delete-company-title"
+              className="text-lg font-semibold tracking-tight text-(--color-text-primary)"
+            >
+              Delete &ldquo;{companyName}&rdquo;?
+            </h2>
+            <p className="mt-2 text-sm text-(--color-text-secondary)">
+              Type the company&rsquo;s name below to confirm. This removes it
+              from the platform completely. Member agents are not deleted.
+            </p>
+
+            <label className="mt-5 block text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
+              Company name
+            </label>
+            <input
+              type="text"
+              value={confirmName}
+              onChange={(e) => setConfirmName(e.target.value)}
+              placeholder={companyName}
+              autoFocus
+              disabled={submitting}
+              className="mt-1.5 w-full rounded-xl border border-(--color-border) bg-white px-3.5 py-2.5 text-sm text-(--color-text-primary) shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-300/30 disabled:opacity-50"
+            />
+
+            {error && (
+              <p className="mt-3 text-sm text-red-700" role="alert">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-6 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={submitting}
+                className="rounded-full px-4 py-2 text-sm font-medium text-(--color-text-secondary) transition-colors hover:text-(--color-text-primary) disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={deleteCompany}
+                disabled={!matches || submitting}
+                className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(220,38,38,0.45)] transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 disabled:shadow-none"
+              >
+                {submitting ? 'Deleting…' : 'Delete company'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

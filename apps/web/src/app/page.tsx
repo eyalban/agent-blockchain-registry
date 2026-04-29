@@ -20,6 +20,12 @@ export default async function HomePage() {
           HERO
           ==================================================================== */}
       <section className="relative pt-16 pb-10">
+        {/* Decorative magenta dot field — masked to fade toward the bottom
+            so it doesn't bleed into the data sections below. */}
+        <div
+          aria-hidden="true"
+          className="magenta-dot-bg pointer-events-none absolute -inset-x-8 -top-8 bottom-0 -z-10"
+        />
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-1 text-xs font-medium">

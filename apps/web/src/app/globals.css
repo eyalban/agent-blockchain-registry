@@ -62,6 +62,18 @@ body {
   background-size: 28px 28px;
 }
 
+/* Subtle magenta dot field used as a decorative backdrop on the
+   homepage hero. Fades out toward the bottom + edges so the data
+   sections below stay clean. */
+.magenta-dot-bg {
+  background-image: radial-gradient(rgba(219, 39, 119, 0.16) 1.1px, transparent 1.4px);
+  background-size: 22px 22px;
+  mask-image:
+    radial-gradient(120% 80% at 50% 0%, #000 35%, transparent 90%);
+  -webkit-mask-image:
+    radial-gradient(120% 80% at 50% 0%, #000 35%, transparent 90%);
+}
+
 /* ===== Soft glows (subtle for a financial feel) ===== */
 .glow-cyan {
   box-shadow: 0 8px 24px -8px rgba(219, 39, 119, 0.35);

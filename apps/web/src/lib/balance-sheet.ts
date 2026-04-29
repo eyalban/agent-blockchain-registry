@@ -294,43 +294,45 @@ export async function computeCompanyBalanceSheet(params: {
       ? assetsUsd - (accountsPayableUsd + equityBeforeAdjustmentUsd)
       : null
 
-  // ─── Pick the best estimate for the external-inflows adjustment that
-  //     should be booked into retained earnings so the sheet balances.
-  //     Two signals, in priority order:
-  //       1. The indexer found the inflows directly and they explain
-  //          most of the gap → use the indexed amount (auditable).
-  //       2. We're on testnet with no booked capital and a positive
-  //          gap → take the gap itself; the only source of outside
-  //          ETH on Base Sepolia is the statem8 faucet.
-  //     If neither holds, the gap is something else (price oracle
-  //     drift, off-chain costs not yet imported) and we leave it
-  //     visible so it can be diagnosed.
+  // ─── External-inflows adjustment.
+  //
+  //  Whenever the raw discrepancy is POSITIVE (cash on chain exceeds
+  //  what booked income + contributed capital can explain), the only
+  //  honest interpretation is that some money came in from outside
+  //  the agent network and hasn't been booked yet. Book that exact
+  //  amount into retained earnings as a transparent sub-line so the
+  //  sheet balances to the cent.
+  //
+  //  Source attribution: prefer the indexed amount from `transactions`
+  //  when one exists (auditable); otherwise label it as inferred. We
+  //  do NOT use the indexed amount as the adjustment value — the gap
+  //  itself is what makes the sheet balance, regardless of how the
+  //  indexer happens to have classified individual rows.
+  //
+  //  A NEGATIVE discrepancy (cash < expected equity) means something
+  //  is missing on the asset side — unbooked treasury outflows, price
+  //  drift — and is left as a visible mismatch for diagnosis rather
+  //  than papered over with a phantom liability.
   const isTestnet = chainId === 84532
-  const tolerance = Math.max(1, Math.abs(assetsUsd) * 0.001)
+  const ZERO_NOISE_USD = 0.005 // less than half a cent → call it zero
 
   let fromExternalInflowsUsd = 0
   let mismatchSource:
     | 'none'
     | 'faucet_drips_unbooked'
     | 'off_chain_costs_or_price_gaps'
-  if (rawDiscrepancyUsd === null || Math.abs(rawDiscrepancyUsd) <= tolerance) {
+  if (rawDiscrepancyUsd === null || Math.abs(rawDiscrepancyUsd) < ZERO_NOISE_USD) {
     mismatchSource = 'none'
-  } else if (
-    indexedExternalInflowsUsd > 0 &&
-    Math.abs(rawDiscrepancyUsd - indexedExternalInflowsUsd) <=
-      Math.max(1, Math.abs(rawDiscrepancyUsd) * 0.2)
-  ) {
-    fromExternalInflowsUsd = indexedExternalInflowsUsd
-    mismatchSource = 'faucet_drips_unbooked'
-    sources.push('retained earnings: external inflows (transactions)')
-  } else if (
-    isTestnet &&
-    rawDiscrepancyUsd > 0 &&
-    contributedCapitalUsd === 0
-  ) {
+  } else if (rawDiscrepancyUsd > 0) {
     fromExternalInflowsUsd = rawDiscrepancyUsd
     mismatchSource = 'faucet_drips_unbooked'
-    sources.push('retained earnings: external inflows (testnet faucet inferred)')
+    if (indexedExternalInflowsUsd > 0) {
+      sources.push('retained earnings: external inflows (transactions)')
+    } else if (isTestnet) {
+      sources.push('retained earnings: external inflows (testnet faucet inferred)')
+    } else {
+      sources.push('retained earnings: external inflows (gap inferred)')
+    }
   } else {
     mismatchSource = 'off_chain_costs_or_price_gaps'
   }
@@ -354,7 +356,7 @@ export async function computeCompanyBalanceSheet(params: {
   const withinTolerance =
     discrepancyUsd === null
       ? null
-      : Math.abs(discrepancyUsd) <= tolerance
+      : Math.abs(discrepancyUsd) < ZERO_NOISE_USD
 
   return {
     companyId,

@@ -18,6 +18,8 @@ export interface WorkspaceAgent {
   ownerAddress: string
   name: string | null
   description: string | null
+  companyId: string | null
+  companyName: string | null
 }
 
 export interface WorkspaceCompany {
@@ -48,23 +50,41 @@ export async function getUserAgents(
   wallets: readonly string[],
 ): Promise<WorkspaceAgent[]> {
   if (wallets.length === 0) return []
+  // LEFT JOIN the agent's most recent active membership so the workspace
+  // can render a "Member of <Company>" badge next to each agent.
+  // DISTINCT ON keeps a single row per agent_id even if the schema ever
+  // allows multiple memberships.
   const rows = (await sql`
-    SELECT agent_id, owner_address, name, description
-    FROM agents_cache
-    WHERE chain_id = ${CHAIN_ID}
-      AND LOWER(owner_address) = ANY(${wallets as string[]})
-    ORDER BY agent_id::numeric DESC
+    SELECT DISTINCT ON (a.agent_id)
+      a.agent_id,
+      a.owner_address,
+      a.name,
+      a.description,
+      m.company_id,
+      c.name AS company_name
+    FROM agents_cache a
+    LEFT JOIN company_members m
+      ON m.agent_id = a.agent_id AND m.removed_at IS NULL
+    LEFT JOIN companies c
+      ON c.company_id = m.company_id
+    WHERE a.chain_id = ${CHAIN_ID}
+      AND LOWER(a.owner_address) = ANY(${wallets as string[]})
+    ORDER BY a.agent_id, m.added_at DESC NULLS LAST
   `) as Array<{
     agent_id: string
     owner_address: string
     name: string | null
     description: string | null
+    company_id: string | null
+    company_name: string | null
   }>
   return rows.map((r) => ({
     agentId: r.agent_id,
     ownerAddress: r.owner_address,
     name: r.name,
     description: r.description,
+    companyId: r.company_id,
+    companyName: r.company_name,
   }))
 }
 

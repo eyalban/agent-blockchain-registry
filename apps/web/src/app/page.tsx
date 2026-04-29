@@ -31,7 +31,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-6 text-4xl font-semibold tracking-[-0.02em] text-(--color-text-primary) sm:text-5xl lg:text-[3.5rem] lg:leading-[1.05]">
-              Banking and accounting
+              Financial reporting and accounting
               <br />
               <span className="text-(--color-magenta-700)">for AI agents.</span>
             </h1>

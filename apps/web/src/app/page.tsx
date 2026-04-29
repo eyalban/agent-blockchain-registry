@@ -19,11 +19,20 @@ export default async function HomePage() {
       {/* ====================================================================
           HERO
           ==================================================================== */}
-      <section className="relative overflow-hidden pt-16 pb-10">
-        {/* Decorative concentric-rings-of-dots motif anchored to the
-            top-right of the hero. Sits behind everything (-z-10), pure
-            SVG, fades out via opacity ramp on the outer rings. */}
-        <DotRings className="pointer-events-none absolute -right-24 -top-16 -z-10 h-[640px] w-[640px] opacity-90" />
+      <section className="relative pt-16 pb-10">
+        {/* Decorative concentric-rings-of-dots motifs flanking the
+            hero. Both sit behind everything (-z-10); both are pure
+            SVG with an opacity ramp on outer rings + a radial mask
+            so the SVG edges fade naturally instead of getting hard-
+            clipped by parent overflow. */}
+        <DotRings
+          className="pointer-events-none absolute -right-24 -top-24 -z-10 h-[640px] w-[640px] opacity-90 [mask-image:radial-gradient(closest-side,black_70%,transparent_100%)] [-webkit-mask-image:radial-gradient(closest-side,black_70%,transparent_100%)]"
+          variant="large"
+        />
+        <DotRings
+          className="pointer-events-none absolute -left-48 top-12 -z-10 h-[420px] w-[420px] opacity-90 [mask-image:radial-gradient(closest-side,black_70%,transparent_100%)] [-webkit-mask-image:radial-gradient(closest-side,black_70%,transparent_100%)]"
+          variant="small"
+        />
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-1 text-xs font-medium">
@@ -268,38 +277,86 @@ export default async function HomePage() {
  * Pure deterministic SVG — generated once at module load, no client
  * JS, accessible via aria-hidden.
  */
-const DOT_RINGS = (() => {
-  const center = 320
-  const rings: Array<{ cx: number; cy: number; r: number; opacity: number }> = []
-  for (let ring = 1; ring <= 11; ring++) {
-    const radius = ring * 26
-    const dotCount = Math.max(8, ring * 8)
-    // Outer rings fade so the eye is drawn to the center anchor.
+interface RingsConfig {
+  readonly size: number
+  readonly ringCount: number
+  readonly ringSpacing: number
+  readonly dotsPerRing: number
+  readonly dotRadius: number
+}
+
+interface RingDot {
+  cx: number
+  cy: number
+  r: number
+  opacity: number
+}
+
+function generateRings(cfg: RingsConfig): RingDot[] {
+  const center = cfg.size / 2
+  const dots: RingDot[] = []
+  for (let ring = 1; ring <= cfg.ringCount; ring++) {
+    const radius = ring * cfg.ringSpacing
+    const dotCount = Math.max(cfg.dotsPerRing, ring * cfg.dotsPerRing)
     const opacity = Math.max(0.18, 0.7 - ring * 0.05)
     for (let i = 0; i < dotCount; i++) {
       const angle = (i / dotCount) * Math.PI * 2
-      rings.push({
+      dots.push({
         cx: center + Math.cos(angle) * radius,
         cy: center + Math.sin(angle) * radius,
-        r: 1.6,
+        r: cfg.dotRadius,
         opacity,
       })
     }
   }
-  return rings
-})()
+  return dots
+}
 
-function DotRings({ className }: { readonly className?: string }) {
+const HERO_LARGE = {
+  size: 640,
+  dots: generateRings({
+    size: 640,
+    ringCount: 11,
+    ringSpacing: 26,
+    dotsPerRing: 8,
+    dotRadius: 1.6,
+  }),
+}
+
+// Tighter ring spacing + smaller diameter → reads as a more
+// concentrated motif than the large one. Anchored to the top-left of
+// the hero in the JSX above; the headline is large enough that
+// partial overlap is fine.
+const HERO_SMALL = {
+  size: 420,
+  dots: generateRings({
+    size: 420,
+    ringCount: 13,
+    ringSpacing: 15,
+    dotsPerRing: 6,
+    dotRadius: 1.3,
+  }),
+}
+
+function DotRings({
+  className,
+  variant = 'large',
+}: {
+  readonly className?: string
+  readonly variant?: 'large' | 'small'
+}) {
+  const v = variant === 'small' ? HERO_SMALL : HERO_LARGE
+  const center = v.size / 2
   return (
     <svg
-      width="640"
-      height="640"
-      viewBox="0 0 640 640"
+      width={v.size}
+      height={v.size}
+      viewBox={`0 0 ${v.size} ${v.size}`}
       aria-hidden="true"
       className={className}
     >
-      <circle cx={320} cy={320} r={2.4} fill="rgb(219, 39, 119)" opacity={0.85} />
-      {DOT_RINGS.map((d, i) => (
+      <circle cx={center} cy={center} r={2.4} fill="rgb(219, 39, 119)" opacity={0.85} />
+      {v.dots.map((d, i) => (
         <circle
           key={i}
           cx={d.cx}

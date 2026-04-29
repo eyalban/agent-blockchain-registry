@@ -170,14 +170,12 @@ export default async function WorkspacePage() {
                     <p className="truncate text-xs text-(--color-text-secondary)">
                       {a.description || `Owner ${truncateAddress(a.ownerAddress as `0x${string}`)}`}
                     </p>
-                  </div>
-                  {a.companyId && (
-                    <span className="hidden rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-(--color-magenta-700) sm:inline-block">
-                      <span className="normal-case tracking-normal">
-                        {a.companyName ?? `Company #${a.companyId}`}
+                    {a.companyId && (
+                      <span className="mt-1 inline-block rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 text-[10px] font-medium text-(--color-magenta-700)">
+                        Member of {a.companyName ?? `Company #${a.companyId}`}
                       </span>
-                    </span>
-                  )}
+                    )}
+                  </div>
                   <span className="font-mono text-xs text-(--color-text-muted)">
                     #{a.agentId}
                   </span>

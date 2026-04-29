@@ -86,7 +86,6 @@ export function AgentsList({ initialAgents }: AgentsListProps) {
               <tr>
                 <Th>Agent</Th>
                 <Th>ID</Th>
-                <Th>Company</Th>
                 <Th>Tags</Th>
                 <Th>Owner</Th>
               </tr>
@@ -98,37 +97,36 @@ export function AgentsList({ initialAgents }: AgentsListProps) {
                   className="border-b border-(--color-border) last:border-b-0 transition-colors hover:bg-(--color-magenta-50)"
                 >
                   <td className="px-4 py-3.5">
-                    <Link
-                      href={`/agents/${agent.agentId}`}
-                      className="flex items-center gap-3"
-                    >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--color-magenta-100) to-(--color-magenta-200) font-mono text-xs font-bold text-(--color-magenta-700)">
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/agents/${agent.agentId}`}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--color-magenta-100) to-(--color-magenta-200) font-mono text-xs font-bold text-(--color-magenta-700)"
+                      >
                         {agent.name.slice(0, 2).toUpperCase()}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-(--color-text-primary)">
+                      </Link>
+                      <div className="min-w-0">
+                        <Link
+                          href={`/agents/${agent.agentId}`}
+                          className="block truncate text-sm font-medium text-(--color-text-primary) hover:text-(--color-magenta-700)"
+                        >
                           {agent.name}
-                        </span>
+                        </Link>
                         <span className="block truncate text-xs text-(--color-text-secondary)">
                           {agent.description || 'No description'}
                         </span>
-                      </span>
-                    </Link>
+                        {agent.companyId && (
+                          <Link
+                            href={`/companies/${agent.companyId}`}
+                            className="mt-1 inline-block rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 text-[10px] font-medium text-(--color-magenta-700) hover:bg-(--color-magenta-100)"
+                          >
+                            Member of {agent.companyName ?? `Company #${agent.companyId}`}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3.5 font-mono text-xs text-(--color-text-muted)">
                     #{agent.agentId}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    {agent.companyId ? (
-                      <Link
-                        href={`/companies/${agent.companyId}`}
-                        className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 text-xs font-medium text-(--color-magenta-700) hover:bg-(--color-magenta-100)"
-                      >
-                        {agent.companyName ?? `Company #${agent.companyId}`}
-                      </Link>
-                    ) : (
-                      <span className="text-xs text-(--color-text-muted)">—</span>
-                    )}
                   </td>
                   <td className="px-4 py-3.5">
                     {agent.tags.length > 0 ? (

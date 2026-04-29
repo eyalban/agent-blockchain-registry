@@ -20,14 +20,22 @@ type Tab =
   | 'overview'
   | 'agents'
   | 'treasuries'
+  | 'invoices'
   | 'financials'
   | 'balance_sheet'
   | 'taxes'
 
-const TABS: { id: Tab; label: string }[] = [
+interface TabDef {
+  id: Tab
+  label: string
+  ownerOnly?: boolean
+}
+
+const TABS: TabDef[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'agents', label: 'Agents' },
   { id: 'treasuries', label: 'Treasuries' },
+  { id: 'invoices', label: 'Invoices', ownerOnly: true },
   { id: 'financials', label: 'Income Statement' },
   { id: 'balance_sheet', label: 'Balance Sheet' },
   { id: 'taxes', label: 'Tax Rates' },
@@ -136,7 +144,7 @@ export function CompanyDetailView({ companyId }: Props) {
 
       <div className="mt-8 border-b border-(--color-border)">
         <div className="flex gap-1 overflow-x-auto">
-          {TABS.map((t) => (
+          {TABS.filter((t) => !t.ownerOnly || isOwner).map((t) => (
             <button
               key={t.id}
               type="button"
@@ -161,6 +169,7 @@ export function CompanyDetailView({ companyId }: Props) {
         {tab === 'treasuries' && (
           <TreasuriesTab data={data} isOwner={!!isOwner} onChange={reload} />
         )}
+        {tab === 'invoices' && isOwner && <InvoicesTab companyId={data.companyId} />}
         {tab === 'financials' && <CompanyIncomeStatement companyId={data.companyId} />}
         {tab === 'balance_sheet' && <CompanyBalanceSheet companyId={data.companyId} />}
         {tab === 'taxes' && <TaxRatesTab companyId={data.companyId} />}
@@ -175,6 +184,173 @@ export function CompanyDetailView({ companyId }: Props) {
           onClose={() => setShowDelete(false)}
         />
       )}
+    </div>
+  )
+}
+
+interface InvoiceRow {
+  invoiceId: string
+  direction: 'incoming' | 'outgoing'
+  issuerAddress: string
+  payerAddress: string
+  tokenSymbol: string
+  amountRaw: string
+  amountUsdAtIssue: number | null
+  status: 'issued' | 'paid' | 'cancelled'
+  issuedAt: string
+  issuedTxHash: string
+}
+
+function InvoicesTab({ companyId }: { readonly companyId: string }) {
+  const [rows, setRows] = useState<InvoiceRow[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/v1/companies/${companyId}/invoices`, { cache: 'no-store' })
+      .then(async (r) => {
+        if (!r.ok) {
+          const data = (await r.json().catch(() => ({}))) as { error?: string }
+          throw new Error(data.error ?? `Request failed (${r.status})`)
+        }
+        return r.json() as Promise<{ data: InvoiceRow[] }>
+      })
+      .then((j) => {
+        if (!cancelled) setRows(j.data)
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Failed to load invoices')
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [companyId])
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50/40 p-4 text-sm text-red-700">
+        {error}
+      </div>
+    )
+  }
+  if (rows === null) {
+    return (
+      <div className="h-32 animate-pulse rounded-2xl border border-(--color-border) bg-white" />
+    )
+  }
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-(--color-border-bright) bg-white p-12 text-center">
+        <p className="text-sm text-(--color-text-secondary)">
+          No invoices issued by or payable to this company yet.
+        </p>
+        <Link
+          href="/invoices/new"
+          className="mt-4 inline-block rounded-full bg-(--color-magenta-700) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--color-magenta-800)"
+        >
+          + New invoice
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-xs text-(--color-text-muted)">
+          {rows.length} invoice{rows.length === 1 ? '' : 's'}
+        </p>
+        <Link
+          href="/invoices/new"
+          className="text-sm font-medium text-(--color-magenta-700) hover:text-(--color-magenta-800)"
+        >
+          + New invoice
+        </Link>
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <table className="w-full">
+          <thead className="border-b border-(--color-border) bg-(--color-bg-secondary)">
+            <tr>
+              <Th>#</Th>
+              <Th>Direction</Th>
+              <Th>Counterparty</Th>
+              <Th right>Amount</Th>
+              <Th right>USD</Th>
+              <Th>Status</Th>
+              <Th>Issued</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((inv) => {
+              const counterparty =
+                inv.direction === 'outgoing' ? inv.payerAddress : inv.issuerAddress
+              const human =
+                Number(inv.amountRaw) /
+                10 ** (inv.tokenSymbol === 'USDC' ? 6 : 18)
+              return (
+                <tr
+                  key={inv.invoiceId}
+                  className="border-b border-(--color-border) last:border-b-0 transition-colors hover:bg-(--color-magenta-50)"
+                >
+                  <td className="px-4 py-3.5">
+                    <Link
+                      href={`/invoices/${inv.invoiceId}`}
+                      className="font-mono text-sm font-medium text-(--color-magenta-700) hover:underline"
+                    >
+                      #{inv.invoiceId}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <span
+                      className={`rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] ${
+                        inv.direction === 'incoming'
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                          : 'border-(--color-magenta-200) bg-(--color-magenta-50) text-(--color-magenta-700)'
+                      }`}
+                    >
+                      {inv.direction === 'incoming' ? 'Receivable' : 'Payable'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3.5 font-mono text-xs text-(--color-text-secondary)">
+                    {truncateAddress(counterparty as `0x${string}`)}
+                  </td>
+                  <td className="px-4 py-3.5 text-right font-mono text-sm tabular-nums text-(--color-text-primary)">
+                    {human.toFixed(inv.tokenSymbol === 'USDC' ? 2 : 6)}{' '}
+                    <span className="text-(--color-text-muted)">{inv.tokenSymbol}</span>
+                  </td>
+                  <td className="px-4 py-3.5 text-right font-mono text-xs text-(--color-text-secondary)">
+                    {inv.amountUsdAtIssue !== null
+                      ? inv.amountUsdAtIssue.toLocaleString('en-US', {
+                          style: 'currency',
+                          currency: 'USD',
+                          maximumFractionDigits: 2,
+                        })
+                      : '—'}
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <span
+                      className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${
+                        inv.status === 'paid'
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                          : inv.status === 'cancelled'
+                            ? 'border-red-200 bg-red-50 text-red-700'
+                            : 'border-(--color-magenta-200) bg-(--color-magenta-50) text-(--color-magenta-700)'
+                      }`}
+                    >
+                      {inv.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3.5 text-xs text-(--color-text-muted)">
+                    {new Date(inv.issuedAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

@@ -10,6 +10,8 @@ export interface AgentListItem {
   readonly description: string
   readonly image: string
   readonly tags: string[]
+  readonly companyId: string | null
+  readonly companyName: string | null
 }
 
 /**
@@ -45,6 +47,8 @@ export function useAgents(): {
             name?: string | null
             description?: string | null
             image?: string | null
+            companyId?: string | null
+            companyName?: string | null
           }>
         }
 
@@ -78,6 +82,8 @@ export function useAgents(): {
             description: description ?? '',
             image: image ?? '',
             tags: [],
+            companyId: agent.companyId ?? null,
+            companyName: agent.companyName ?? null,
           }
         })
 

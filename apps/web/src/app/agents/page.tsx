@@ -61,6 +61,8 @@ export default async function AgentsPage() {
             description: a.description ?? '',
             image: a.image ?? '',
             tags: [],
+            companyId: a.companyId,
+            companyName: a.companyName,
           }))}
         />
       </div>

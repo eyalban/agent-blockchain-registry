@@ -74,6 +74,8 @@ export function AgentsList({ initialAgents }: AgentsListProps) {
               description={agent.description}
               tags={agent.tags}
               owner={agent.owner}
+              companyId={agent.companyId}
+              companyName={agent.companyName}
             />
           ))}
         </div>
@@ -84,6 +86,7 @@ export function AgentsList({ initialAgents }: AgentsListProps) {
               <tr>
                 <Th>Agent</Th>
                 <Th>ID</Th>
+                <Th>Company</Th>
                 <Th>Tags</Th>
                 <Th>Owner</Th>
               </tr>
@@ -114,6 +117,18 @@ export function AgentsList({ initialAgents }: AgentsListProps) {
                   </td>
                   <td className="px-4 py-3.5 font-mono text-xs text-(--color-text-muted)">
                     #{agent.agentId}
+                  </td>
+                  <td className="px-4 py-3.5">
+                    {agent.companyId ? (
+                      <Link
+                        href={`/companies/${agent.companyId}`}
+                        className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2 py-0.5 text-xs font-medium text-(--color-magenta-700) hover:bg-(--color-magenta-100)"
+                      >
+                        {agent.companyName ?? `Company #${agent.companyId}`}
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-(--color-text-muted)">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3.5">
                     {agent.tags.length > 0 ? (

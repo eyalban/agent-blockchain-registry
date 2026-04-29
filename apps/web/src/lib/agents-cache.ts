@@ -26,6 +26,8 @@ export interface AgentRow {
   readonly name: string | null
   readonly description: string | null
   readonly image: string | null
+  readonly companyId: string | null
+  readonly companyName: string | null
 }
 
 interface AgentCacheRow {
@@ -65,7 +67,43 @@ function rowToAgent(row: AgentCacheRow): AgentRow {
     name: row.name,
     description: row.description,
     image: row.image,
+    companyId: null,
+    companyName: null,
   }
+}
+
+/**
+ * Look up the (active) company an agent belongs to. An agent has at
+ * most one active membership in practice — the schema PK is
+ * (company_id, agent_id) but the indexer marks past memberships with
+ * `removed_at`, so we filter on that and pick the most recent
+ * membership defensively in case of edge cases.
+ */
+async function getMemberships(
+  agentIds: readonly string[],
+): Promise<Map<string, { companyId: string; companyName: string | null }>> {
+  if (agentIds.length === 0) return new Map()
+  const rows = (await sql`
+    SELECT DISTINCT ON (m.agent_id)
+      m.agent_id,
+      m.company_id,
+      c.name AS company_name
+    FROM company_members m
+    LEFT JOIN companies c ON c.company_id = m.company_id
+    WHERE m.agent_id = ANY(${agentIds as string[]})
+      AND m.removed_at IS NULL
+    ORDER BY m.agent_id, m.added_at DESC
+  `) as Array<{
+    agent_id: string
+    company_id: string
+    company_name: string | null
+  }>
+
+  const map = new Map<string, { companyId: string; companyName: string | null }>()
+  for (const r of rows) {
+    map.set(r.agent_id, { companyId: r.company_id, companyName: r.company_name })
+  }
+  return map
 }
 
 /**
@@ -175,6 +213,8 @@ async function fetchAndCache(agentId: string): Promise<AgentRow | null> {
       name: card && typeof card.name === 'string' ? card.name : null,
       description: card && typeof card.description === 'string' ? card.description : null,
       image: card && typeof card.image === 'string' ? card.image : null,
+      companyId: null,
+      companyName: null,
     }
     await writeCache({ ...row, metadataResolved: card !== null })
     return row
@@ -246,5 +286,15 @@ export async function getAgentsPage(
     if (fresh) data.push(fresh)
   }
 
-  return { data, total }
+  // Merge active company membership in one round-trip so each row
+  // can render a "member of <Company>" badge.
+  const memberships = await getMemberships(data.map((r) => r.agentId))
+  const dataWithCompany = data.map((r) => {
+    const m = memberships.get(r.agentId)
+    return m
+      ? { ...r, companyId: m.companyId, companyName: m.companyName }
+      : r
+  })
+
+  return { data: dataWithCompany, total }
 }

@@ -273,3 +273,10 @@ body {
   border-top: 1px solid var(--color-border);
   margin: 2rem 0;
 }
+
+/* ===== Print: hide chrome, render the marked region cleanly ===== */
+@media print {
+  body { background: #fff; }
+  header, footer, nav, .print\:hidden { display: none !important; }
+  .print-only-area { padding: 0 !important; }
+}

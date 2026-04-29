@@ -2,6 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 
+import { ExportButtons, type CsvRow } from './export-buttons'
+
 interface CashLine {
   address: string
   source: 'treasury' | 'member_agent'
@@ -88,17 +90,85 @@ export function CompanyBalanceSheet({ companyId }: { companyId: string }) {
   }
   if (!data) return null
 
+  const csvRows: CsvRow[] = [
+    { label: 'As of', value: data.asOf },
+    { label: 'Block', value: String(data.blockNumber ?? '') },
+    { label: '', value: '' },
+    { label: '— Assets —', value: '' },
+    { label: 'Cash (on-chain)', value: String(data.assets.cashTotalUsd) },
+    ...data.assets.cash.map((c) => ({
+      label: `  ${c.tokenSymbol} @ ${c.address.slice(0, 10)}…`,
+      value: c.balanceUsd === null ? '' : String(c.balanceUsd),
+    })),
+    { label: 'Accounts Receivable', value: String(data.assets.accountsReceivableUsd) },
+    { label: 'Total Assets', value: String(data.assets.totalUsd) },
+    { label: '', value: '' },
+    { label: '— Liabilities —', value: '' },
+    { label: 'Accounts Payable', value: String(data.liabilities.accountsPayableUsd) },
+    { label: 'Total Liabilities', value: String(data.liabilities.totalUsd) },
+    { label: '', value: '' },
+    { label: '— Equity —', value: '' },
+    {
+      label: 'Contributed Capital',
+      value: String(data.equity.contributedCapital.totalUsd),
+    },
+    {
+      label: 'Retained Earnings',
+      value: data.equity.retainedEarningsUsd === null
+        ? ''
+        : String(data.equity.retainedEarningsUsd),
+    },
+    ...(data.equity.retainedEarningsBreakdown
+      ? [
+          {
+            label: '  from income statement',
+            value: data.equity.retainedEarningsBreakdown.fromIncomeStatementUsd === null
+              ? ''
+              : String(data.equity.retainedEarningsBreakdown.fromIncomeStatementUsd),
+          },
+          {
+            label: '  from external inflows',
+            value: String(data.equity.retainedEarningsBreakdown.fromExternalInflowsUsd),
+          },
+        ]
+      : []),
+    {
+      label: 'Total Equity',
+      value: data.equity.totalUsd === null ? '' : String(data.equity.totalUsd),
+    },
+    { label: '', value: '' },
+    {
+      label: 'Total Liabilities + Equity',
+      value: data.reconciliation.liabilitiesPlusEquityUsd === null
+        ? ''
+        : String(data.reconciliation.liabilitiesPlusEquityUsd),
+    },
+    {
+      label: 'Discrepancy',
+      value: data.reconciliation.discrepancyUsd === null
+        ? ''
+        : String(data.reconciliation.discrepancyUsd),
+    },
+  ]
+
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-accent-amber)">
-          Balance Sheet · USD · As Of {data.asOf}
-        </h3>
-        {data.blockNumber !== null && (
-          <p className="mt-1 font-mono text-[10px] text-(--color-text-muted)">
-            Block {data.blockNumber.toLocaleString()}
-          </p>
-        )}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-accent-amber)">
+            Balance Sheet · USD · As Of {data.asOf}
+          </h3>
+          {data.blockNumber !== null && (
+            <p className="mt-1 font-mono text-[10px] text-(--color-text-muted)">
+              Block {data.blockNumber.toLocaleString()}
+            </p>
+          )}
+        </div>
+        <ExportButtons
+          filename={`balance-sheet-${companyId}-${data.asOf}`}
+          title={`Balance Sheet · Company #${companyId} · As Of ${data.asOf}`}
+          rows={csvRows}
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

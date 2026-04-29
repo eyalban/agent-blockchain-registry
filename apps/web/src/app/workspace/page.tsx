@@ -104,40 +104,6 @@ export default async function WorkspacePage() {
       )}
 
       <Section
-        title="Your agents"
-        viewAllHref="/agents"
-        empty="No agents are attributed to your verified wallets yet."
-      >
-        {agents.length > 0 && (
-          <ul className="divide-y divide-(--color-border)">
-            {agents.slice(0, 8).map((a) => (
-              <li key={a.agentId}>
-                <Link
-                  href={`/agents/${a.agentId}`}
-                  className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-(--color-magenta-50)"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--color-magenta-100) to-(--color-magenta-200) font-mono text-xs font-bold text-(--color-magenta-700)">
-                    {(a.name ?? a.agentId).slice(0, 2).toUpperCase()}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-(--color-text-primary)">
-                      {a.name ?? `Agent #${a.agentId}`}
-                    </p>
-                    <p className="truncate text-xs text-(--color-text-secondary)">
-                      {a.description || `Owner ${truncateAddress(a.ownerAddress as `0x${string}`)}`}
-                    </p>
-                  </div>
-                  <span className="font-mono text-xs text-(--color-text-muted)">
-                    #{a.agentId}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-
-      <Section
         title="Your companies"
         viewAllHref="/companies"
         empty="You have not founded or been transferred ownership of a company."
@@ -174,6 +140,40 @@ export default async function WorkspacePage() {
                       {c.jurisdictionCode}
                     </span>
                   )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      <Section
+        title="Your agents"
+        viewAllHref="/agents"
+        empty="No agents are attributed to your verified wallets yet."
+      >
+        {agents.length > 0 && (
+          <ul className="divide-y divide-(--color-border)">
+            {agents.slice(0, 8).map((a) => (
+              <li key={a.agentId}>
+                <Link
+                  href={`/agents/${a.agentId}`}
+                  className="flex items-center gap-4 px-6 py-4 transition-colors hover:bg-(--color-magenta-50)"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-(--color-magenta-100) to-(--color-magenta-200) font-mono text-xs font-bold text-(--color-magenta-700)">
+                    {(a.name ?? a.agentId).slice(0, 2).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-(--color-text-primary)">
+                      {a.name ?? `Agent #${a.agentId}`}
+                    </p>
+                    <p className="truncate text-xs text-(--color-text-secondary)">
+                      {a.description || `Owner ${truncateAddress(a.ownerAddress as `0x${string}`)}`}
+                    </p>
+                  </div>
+                  <span className="font-mono text-xs text-(--color-text-muted)">
+                    #{a.agentId}
+                  </span>
                 </Link>
               </li>
             ))}

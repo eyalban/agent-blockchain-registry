@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 import { useAgentDetail } from '@/hooks/use-agent-detail'
@@ -44,6 +44,26 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
   const { data: financialData, isLoading: financialsLoading } = useIncomeStatement(agentId)
   const { transactions, isLoading: txLoading, isSyncing, sync } = useAgentTransactions(agentId)
   const walletNames = useWalletNames(transactions.map((tx) => tx.counterparty))
+
+  // Active company membership for the header badge.
+  const [company, setCompany] = useState<{
+    companyId: string
+    name: string | null
+  } | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/v1/agents/${agentId}/company`)
+      .then((r) => (r.ok ? r.json() : { company: null }))
+      .then((j: { company: { companyId: string; name: string | null } | null }) => {
+        if (!cancelled) setCompany(j.company)
+      })
+      .catch(() => {
+        if (!cancelled) setCompany(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [agentId])
 
   if (isLoading) {
     return (
@@ -98,6 +118,17 @@ export function AgentDetailView({ agentId }: AgentDetailViewProps) {
                   >
                     Owner: {truncateAddress(owner)}
                   </a>
+                </>
+              )}
+              {company && (
+                <>
+                  <span className="text-(--color-border-bright)">·</span>
+                  <Link
+                    href={`/companies/${company.companyId}`}
+                    className="rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2.5 py-0.5 text-xs font-medium text-(--color-magenta-700) hover:bg-(--color-magenta-100)"
+                  >
+                    Member of {company.name ?? `Company #${company.companyId}`}
+                  </Link>
                 </>
               )}
             </div>

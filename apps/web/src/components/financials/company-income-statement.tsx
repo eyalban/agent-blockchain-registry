@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
+import { ExportButtons, type CsvRow } from './export-buttons'
+
 interface TaxRate {
   rate: number
   rateType: 'statutory' | 'effective' | 'override'
@@ -85,9 +87,38 @@ export function CompanyIncomeStatement({ companyId }: { companyId: string }) {
     )
   }
 
+  const csvRows: CsvRow[] = [
+    { label: 'Period grouping', value: period },
+    { label: 'Intra-company transfers', value: 'eliminated' },
+    { label: '', value: '' },
+    { label: '— Totals (USD) —', value: '' },
+    { label: 'Revenue', value: String(data.totals.revenueUsd) },
+    { label: 'Cost of Goods Sold', value: String(-data.totals.cogsUsd) },
+    { label: 'Gross Profit', value: String(data.totals.grossProfitUsd) },
+    { label: 'Operating Expenses', value: String(-data.totals.opexUsd) },
+    { label: 'Operating Profit', value: String(data.totals.operatingProfitUsd) },
+    { label: 'Income Tax', value: String(data.totals.incomeTaxUsd) },
+    { label: 'Net Income', value: String(data.totals.netIncomeUsd) },
+    { label: '', value: '' },
+    { label: '— Per-period rows —', value: '' },
+    ...data.rows.flatMap((r) => [
+      { label: `${r.period}: Revenue`, value: String(r.revenueUsd) },
+      { label: `${r.period}: COGS`, value: String(-r.cogsUsd) },
+      { label: `${r.period}: Gross Profit`, value: String(r.grossProfitUsd) },
+      { label: `${r.period}: OpEx`, value: String(-r.opexUsd) },
+      {
+        label: `${r.period}: Operating Profit`,
+        value: String(r.operatingProfitUsd),
+      },
+      { label: `${r.period}: Income Tax`, value: String(r.incomeTaxUsd) },
+      { label: `${r.period}: Net Income`, value: String(r.netIncomeUsd) },
+      { label: '', value: '' },
+    ]),
+  ]
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-(--color-accent-amber)">
             Income Statement · USD
@@ -97,6 +128,11 @@ export function CompanyIncomeStatement({ companyId }: { companyId: string }) {
             intra-company transfers eliminated
           </p>
         </div>
+        <ExportButtons
+          filename={`income-statement-${companyId}-${period}`}
+          title={`Income Statement · Company #${companyId} · ${period}`}
+          rows={csvRows}
+        />
         <div className="flex gap-1 rounded-md border border-(--color-border) bg-(--color-bg-secondary) p-1">
           {(['monthly', 'quarterly', 'ytd', 'total'] as const).map((p) => (
             <button

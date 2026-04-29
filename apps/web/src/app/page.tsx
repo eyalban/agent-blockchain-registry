@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ProtocolStats } from '@/components/web3/protocol-stats'
 import { LatestAgents } from '@/components/agents/latest-agents'
 import { LatestCompanies } from '@/components/agents/latest-companies'
+import { getSessionUser } from '@/lib/auth'
 
 const GITHUB_URL = 'https://github.com/eyalban/agent-registry-framework'
 
@@ -11,7 +12,8 @@ const GITHUB_URL = 'https://github.com/eyalban/agent-registry-framework'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getSessionUser()
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       {/* ====================================================================
@@ -44,13 +46,23 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link
-                href="/signin"
-                className="inline-flex items-center gap-2 rounded-full bg-(--color-magenta-700) px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-all hover:bg-(--color-magenta-800)"
-              >
-                Sign in
-                <span className="text-base">&rarr;</span>
-              </Link>
+              {user ? (
+                <Link
+                  href="/workspace"
+                  className="inline-flex items-center gap-2 rounded-full bg-(--color-magenta-700) px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-all hover:bg-(--color-magenta-800)"
+                >
+                  Go to my workspace
+                  <span className="text-base">&rarr;</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/signin"
+                  className="inline-flex items-center gap-2 rounded-full bg-(--color-magenta-700) px-6 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-all hover:bg-(--color-magenta-800)"
+                >
+                  Sign in
+                  <span className="text-base">&rarr;</span>
+                </Link>
+              )}
               <Link
                 href="/agents"
                 className="inline-flex items-center gap-2 rounded-full border border-(--color-border-bright) bg-white px-6 py-3 text-sm font-semibold text-(--color-text-primary) transition-all hover:border-(--color-magenta-300) hover:text-(--color-magenta-700)"

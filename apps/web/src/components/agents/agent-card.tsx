@@ -9,6 +9,8 @@ interface AgentCardProps {
   readonly tags: readonly string[]
   readonly owner: string
   readonly featured?: boolean
+  readonly companyId?: string | null
+  readonly companyName?: string | null
 }
 
 export function AgentCard({
@@ -18,6 +20,8 @@ export function AgentCard({
   tags,
   owner,
   featured,
+  companyId,
+  companyName,
 }: AgentCardProps) {
   return (
     <Link
@@ -44,6 +48,14 @@ export function AgentCard({
       </div>
 
       <p className="mt-3 line-clamp-2 text-sm text-(--color-text-secondary)">{description}</p>
+
+      {companyId && (
+        <p className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-(--color-magenta-700)">
+          <span className="truncate normal-case tracking-normal">
+            Member of {companyName ?? `Company #${companyId}`}
+          </span>
+        </p>
+      )}
 
       {tags.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">

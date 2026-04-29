@@ -14,6 +14,11 @@ import { fetchJsonMetadata, parseCompanyMetadata } from '@/lib/ipfs-fetch'
 
 /**
  * GET /api/v1/companies — list companies with pagination.
+ *
+ * Optional `?founder=0x...` filter. Used by agents to check whether
+ * they have already created a company before issuing another
+ * createCompany transaction (which would mint a duplicate, since
+ * the contract has no per-(founder,name) uniqueness).
  */
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const limitParam = Number(req.nextUrl.searchParams.get('limit') ?? '20')
@@ -21,7 +26,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const limit = Math.min(100, Math.max(1, limitParam))
   const offset = Math.max(0, offsetParam)
 
-  const { rows, total } = await listCompanies(limit, offset)
+  const founderParam = req.nextUrl.searchParams.get('founder')
+  const founder =
+    founderParam && /^0x[a-fA-F0-9]{40}$/.test(founderParam)
+      ? founderParam
+      : undefined
+
+  const { rows, total } = await listCompanies(limit, offset, founder)
 
   return NextResponse.json({
     data: rows.map((r) => ({

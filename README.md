@@ -277,6 +277,18 @@ add yourself as the first member. You already have an on-chain agent
 identity (your AGENT_ID) and the wallet private key that controls it
 (AGENT_REGISTRY_OWNER_KEY in your environment).
 
+IDEMPOTENCY RULE — read this first.
+
+  On-chain calls are irreversible. CompanyRegistry.createCompany
+  produces a fresh, distinct company on every call — there is NO
+  contract-level dedup on (founder, name, description). If you call
+  it twice you will mint two companies and waste gas.
+
+  Therefore: if any single step below succeeds (you have a tx hash
+  or a returned id), persist that result IMMEDIATELY and never re-run
+  that step. On retry, resume at the next step that has not yet
+  succeeded.
+
 Endpoints and configuration:
 
   Website:      https://agent-registry-seven.vercel.app
@@ -293,33 +305,55 @@ Account attribution:
 
 Steps:
 
-1. Reuse your existing wallet (AGENT_REGISTRY_OWNER_KEY). The wallet
-   already holds your agent NFT, so it can also be the founder/owner
-   of a new company. If it doesn't have ~0.001 ETH on Base Sepolia,
-   stop and ask me to top it up via the Coinbase CDP faucet.
+1. Pre-check. Before doing anything on chain, ask the indexer whether
+   you already created a matching company:
+     GET https://agent-registry-seven.vercel.app/api/v1/companies?founder=<your wallet address>
+   In the response, look for any row whose `name` and `jurisdictionCode`
+   match the values above. If such a row exists, REUSE its companyId
+   and skip step 3 entirely (jump to step 4).
 
-2. Create the company:
-   - POST the metadata JSON {name, description, jurisdictionCode} to
-     /api/v1/companies/metadata. Capture the returned { uri }.
-   - Call company.createCompany(walletClient, { metadataURI: uri }).
-     Capture the returned companyId.
-   - Mirror the tx by POSTing { txHash } to /api/v1/companies.
+2. Confirm your wallet has ~0.001 ETH on Base Sepolia. If not, stop
+   and ask me to top it up via the Coinbase CDP faucet.
 
-3. Add yourself as the first member:
-   - Call company.addAgent(walletClient, companyId, AGENT_ID).
-   - POST { txHash } to /api/v1/companies/<companyId>/members.
+3. Create the company on chain — this is the only on-chain step in
+   the create flow. Run sub-steps in order; do NOT re-run sub-step
+   (b) on retry once you have a tx hash:
+     a. POST {name, description, jurisdictionCode} to
+        /api/v1/companies/metadata. Capture { uri }.
+     b. Call company.createCompany(walletClient, { metadataURI: uri }).
+        Capture { companyId, txHash } — both are required for the
+        next sub-step. If this throws, retry (b) with idempotency in
+        mind only if you do NOT already hold a txHash.
+     c. Mirror the tx so it appears in the registry:
+        POST {"txHash": "<txHash>"} to /api/v1/companies. The server
+        verifies the CompanyCreated event and stores it. This step
+        is safe to retry; mirroring is idempotent.
 
-4. Attribute the new company to my statem8 account with one HTTP call:
+4. Add yourself as the first member (skip-able if you already did it
+   on a previous attempt):
+     - Call company.addAgent(walletClient, companyId, AGENT_ID).
+     - POST {"txHash": "<txHash>"} to
+       /api/v1/companies/<companyId>/members.
+
+5. Attribute the new company to my statem8 account with one HTTP call:
      POST https://agent-registry-seven.vercel.app/api/v1/claim/company
        Authorization: Bearer <STATEM8_CLAIM_KEY>
        Body: {"companyId": "<companyId>"}
-   The agent itself is already attributed (you ran /api/v1/claim/agent
+   This call is idempotent — re-running it is a no-op. The agent
+   itself is already attributed (you ran /api/v1/claim/agent
    previously); no need to re-claim it.
 
-5. Reply with:
+6. Final verification. GET
+   /api/v1/companies?founder=<your wallet address>
+   and confirm there is exactly ONE row whose `name` matches the value
+   above. If there are two, you minted a duplicate — report it back
+   to me with both companyIds so I can resolve.
+
+7. Reply with:
    - companyId
    - the company URL: https://agent-registry-seven.vercel.app/companies/<companyId>
    - confirmation that the claim attribution succeeded
+   - confirmation that step 6 returned exactly one matching row
 ```
 
 ---

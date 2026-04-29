@@ -198,17 +198,22 @@ export async function getCompany(companyId: string): Promise<DbCompany | null> {
 export async function listCompanies(
   limit: number,
   offset: number,
+  founder?: string,
 ): Promise<{ rows: DbCompany[]; total: number }> {
+  const founderLower = founder?.toLowerCase() ?? null
   const rows = (await sql`
     SELECT company_id, chain_id, founder_address, owner_address, metadata_uri,
            name, description, logo_url, jurisdiction_code,
            created_tx_hash, created_block, created_at::text
-    FROM companies ORDER BY created_at DESC
+    FROM companies
+    WHERE (${founderLower}::text IS NULL OR founder_address = ${founderLower})
+    ORDER BY created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `) as DbCompany[]
-  const countRows = (await sql`SELECT COUNT(*)::int as c FROM companies`) as Array<{
-    c: number
-  }>
+  const countRows = (await sql`
+    SELECT COUNT(*)::int AS c FROM companies
+    WHERE (${founderLower}::text IS NULL OR founder_address = ${founderLower})
+  `) as Array<{ c: number }>
   return { rows, total: countRows[0]?.c ?? 0 }
 }
 

@@ -19,13 +19,11 @@ export default async function HomePage() {
       {/* ====================================================================
           HERO
           ==================================================================== */}
-      <section className="relative pt-16 pb-10">
-        {/* Decorative magenta dot field — masked to fade toward the bottom
-            so it doesn't bleed into the data sections below. */}
-        <div
-          aria-hidden="true"
-          className="magenta-dot-bg pointer-events-none absolute -inset-x-8 -top-8 bottom-0 -z-10"
-        />
+      <section className="relative overflow-hidden pt-16 pb-10">
+        {/* Decorative concentric-rings-of-dots motif anchored to the
+            top-right of the hero. Sits behind everything (-z-10), pure
+            SVG, fades out via opacity ramp on the outer rings. */}
+        <DotRings className="pointer-events-none absolute -right-24 -top-16 -z-10 h-[640px] w-[640px] opacity-90" />
         <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)]">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-1 text-xs font-medium">
@@ -260,6 +258,60 @@ export default async function HomePage() {
 }
 
 /* ===== Sub-components ===== */
+
+/**
+ * Concentric rings of magenta dots, each ring carrying more dots than
+ * the one inside it (proportional to its circumference) so the visual
+ * density stays even. Inner rings are slightly more opaque than outer
+ * rings so the motif fades naturally without needing a CSS mask.
+ *
+ * Pure deterministic SVG — generated once at module load, no client
+ * JS, accessible via aria-hidden.
+ */
+const DOT_RINGS = (() => {
+  const center = 320
+  const rings: Array<{ cx: number; cy: number; r: number; opacity: number }> = []
+  for (let ring = 1; ring <= 11; ring++) {
+    const radius = ring * 26
+    const dotCount = Math.max(8, ring * 8)
+    // Outer rings fade so the eye is drawn to the center anchor.
+    const opacity = Math.max(0.18, 0.7 - ring * 0.05)
+    for (let i = 0; i < dotCount; i++) {
+      const angle = (i / dotCount) * Math.PI * 2
+      rings.push({
+        cx: center + Math.cos(angle) * radius,
+        cy: center + Math.sin(angle) * radius,
+        r: 1.6,
+        opacity,
+      })
+    }
+  }
+  return rings
+})()
+
+function DotRings({ className }: { readonly className?: string }) {
+  return (
+    <svg
+      width="640"
+      height="640"
+      viewBox="0 0 640 640"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx={320} cy={320} r={2.4} fill="rgb(219, 39, 119)" opacity={0.85} />
+      {DOT_RINGS.map((d, i) => (
+        <circle
+          key={i}
+          cx={d.cx}
+          cy={d.cy}
+          r={d.r}
+          fill="rgb(219, 39, 119)"
+          opacity={d.opacity}
+        />
+      ))}
+    </svg>
+  )
+}
 
 function ConsoleRow({ label, value }: { readonly label: string; readonly value: string }) {
   return (

@@ -263,6 +263,39 @@ export function CompanyBalanceSheet({ companyId }: { companyId: string }) {
   )
 }
 
+/**
+ * Surfaces only genuine reconciliation warnings — a missing tax rate
+ * or an unexplained discrepancy. The previous "faucet was booked into
+ * retained earnings" green explainer was removed since the breakdown
+ * lines under Retained Earnings already show that information.
+ */
+function ReconciliationBanner({
+  recon,
+}: {
+  recon: BalanceSheet['reconciliation']
+}) {
+  if (recon.withinTolerance === null) {
+    return (
+      <div className="rounded-lg border border-(--color-accent-amber)/30 bg-(--color-accent-amber)/5 p-3">
+        <p className="text-xs text-(--color-accent-amber)">
+          Reconciliation skipped — retained earnings not computable until a tax
+          rate is resolvable (see Tax Rates tab).
+        </p>
+      </div>
+    )
+  }
+  if (recon.withinTolerance) return null
+  return (
+    <div className="rounded-lg border border-(--color-accent-red)/40 bg-(--color-accent-red)/5 p-3">
+      <p className="text-xs text-(--color-accent-red)">
+        Reconciliation mismatch: {formatUsd(recon.discrepancyUsd)}. Possible
+        causes: unrecorded capital contributions, missing off-chain cost
+        imports, or price-source gaps. Review source rows.
+      </p>
+    </div>
+  )
+}
+
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-(--color-border) bg-(--color-surface) p-5">
@@ -335,52 +368,3 @@ function TotalLine({ label, value }: { label: string; value: number | null }) {
   )
 }
 
-function ReconciliationBanner({
-  recon,
-}: {
-  recon: BalanceSheet['reconciliation']
-}) {
-  if (recon.withinTolerance === null) {
-    return (
-      <div className="rounded-lg border border-(--color-accent-amber)/30 bg-(--color-accent-amber)/5 p-3">
-        <p className="text-xs text-(--color-accent-amber)">
-          Reconciliation skipped — retained earnings not computable until a tax
-          rate is resolvable (see Tax Rates tab).
-        </p>
-      </div>
-    )
-  }
-  if (recon.withinTolerance) {
-    const inflow = recon.externalInflowsUsd ?? 0
-    if (recon.mismatchSource === 'faucet_drips_unbooked' && inflow > 0) {
-      return (
-        <div className="rounded-lg border border-(--color-accent-green)/30 bg-(--color-accent-green)/5 p-3">
-          <p className="text-xs text-(--color-accent-green)">
-            Balance sheet reconciled. {formatUsd(inflow)} of outside funding
-            (statem8 faucet on testnet) has been booked into retained earnings
-            so assets equal liabilities + equity. To reclassify it as
-            contributed capital, record the corresponding inflow on the
-            company.
-          </p>
-        </div>
-      )
-    }
-    return (
-      <div className="rounded-lg border border-(--color-accent-green)/30 bg-(--color-accent-green)/5 p-3">
-        <p className="text-xs text-(--color-accent-green)">
-          Balance sheet reconciled: assets ≈ liabilities + equity (diff{' '}
-          {formatUsd(recon.discrepancyUsd ?? 0)}).
-        </p>
-      </div>
-    )
-  }
-  return (
-    <div className="rounded-lg border border-(--color-accent-red)/40 bg-(--color-accent-red)/5 p-3">
-      <p className="text-xs text-(--color-accent-red)">
-        Reconciliation mismatch: {formatUsd(recon.discrepancyUsd)}. Possible
-        causes: unrecorded capital contributions, missing off-chain cost
-        imports, or price-source gaps. Review source rows.
-      </p>
-    </div>
-  )
-}

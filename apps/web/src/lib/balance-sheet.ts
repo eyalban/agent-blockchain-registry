@@ -115,7 +115,74 @@ export interface CompanyBalanceSheet {
   sources: string[]
 }
 
+/**
+ * Stale-while-revalidate wrapper around the raw computation. Repeat
+ * loads of the same company within FRESH_TTL_MS return the cached
+ * result instantly; loads between FRESH_TTL_MS and STALE_TTL_MS
+ * return the cached result AND kick off a background recompute.
+ * Beyond STALE_TTL_MS we recompute synchronously.
+ *
+ * In-process map; survives across requests on a long-lived server,
+ * resets on cold start. Concurrent calls coalesce on a single
+ * inflight promise so a burst of clicks doesn't fan out.
+ */
+const FRESH_TTL_MS = 30_000
+const STALE_TTL_MS = 5 * 60_000
+
+interface CacheEntry {
+  value: CompanyBalanceSheet
+  computedAt: number
+}
+const cache = new Map<string, CacheEntry>()
+const inflight = new Map<string, Promise<CompanyBalanceSheet>>()
+
+function cacheKey(params: { companyId: string; asOf?: string }): string {
+  return `${params.companyId}|${params.asOf ?? 'today'}`
+}
+
+async function recompute(params: {
+  companyId: string
+  asOf?: string
+}): Promise<CompanyBalanceSheet> {
+  const key = cacheKey(params)
+  const existing = inflight.get(key)
+  if (existing) return existing
+  const promise = (async () => {
+    try {
+      const value = await computeCompanyBalanceSheetUncached(params)
+      cache.set(key, { value, computedAt: Date.now() })
+      return value
+    } finally {
+      inflight.delete(key)
+    }
+  })()
+  inflight.set(key, promise)
+  return promise
+}
+
 export async function computeCompanyBalanceSheet(params: {
+  companyId: string
+  asOf?: string
+}): Promise<CompanyBalanceSheet> {
+  const key = cacheKey(params)
+  const entry = cache.get(key)
+  const now = Date.now()
+  if (entry) {
+    const age = now - entry.computedAt
+    if (age < FRESH_TTL_MS) {
+      return entry.value
+    }
+    if (age < STALE_TTL_MS) {
+      // Stale-while-revalidate: serve the cached value, refresh in
+      // the background.
+      void recompute(params)
+      return entry.value
+    }
+  }
+  return recompute(params)
+}
+
+async function computeCompanyBalanceSheetUncached(params: {
   companyId: string
   asOf?: string
 }): Promise<CompanyBalanceSheet> {
@@ -140,70 +207,88 @@ export async function computeCompanyBalanceSheet(params: {
   const latest = await client.getBlock({ blockTag: 'latest' })
   const blockNumber = Number(latest.number)
 
-  // ─── Cash: for every whitelisted token, for every treasury and member wallet
+  // ─── Cash. Build the wallet list (treasuries + member-agent
+  //     wallets) in two queries, then fan out all balance reads and
+  //     price lookups in parallel. Prices are fetched once per token
+  //     (not once per balance row), since they only depend on
+  //     token + block.
   const walletList: Array<{
     address: `0x${string}`
     source: CashLine['source']
     label?: string | null
     agentId?: string | null
-  }> = []
-  for (const t of treasuries) {
-    walletList.push({
-      address: t.address as `0x${string}`,
-      source: 'treasury',
-      label: t.label,
-    })
-  }
-  for (const m of members) {
-    // Look up the agent's linked wallets
-    const agentWallets = (await sql`
-      SELECT wallet_address FROM agent_wallets WHERE agent_id = ${m.agent_id}
-    `) as Array<{ wallet_address: string }>
-    for (const aw of agentWallets) {
+  }> = treasuries.map((t) => ({
+    address: t.address as `0x${string}`,
+    source: 'treasury',
+    label: t.label,
+  }))
+
+  if (members.length > 0) {
+    const memberWalletRows = (await sql`
+      SELECT agent_id, wallet_address FROM agent_wallets
+      WHERE agent_id = ANY(${members.map((m) => m.agent_id)})
+    `) as Array<{ agent_id: string; wallet_address: string }>
+    for (const r of memberWalletRows) {
       walletList.push({
-        address: aw.wallet_address as `0x${string}`,
+        address: r.wallet_address as `0x${string}`,
         source: 'member_agent',
-        agentId: m.agent_id,
+        agentId: r.agent_id,
       })
     }
   }
 
-  const cash: CashLine[] = []
-  let cashTotalUsd = 0
   const tokens = Object.values(SUPPORTED_TOKENS[chainId])
-  for (const entry of walletList) {
-    for (const token of tokens) {
-      const read = await readTokenBalance(chainId, entry.address, token)
-      if (!read || read.balanceRaw === 0n) continue
+  const blockTimestamp = new Date(Number(latest.timestamp) * 1000)
 
-      const price = await getTokenPriceUSD({
+  // One price call per token, not per (wallet, token).
+  const priceList = await Promise.all(
+    tokens.map(async (token) => ({
+      symbol: token.symbol,
+      price: await getTokenPriceUSD({
         chainId,
         token,
         blockNumber,
-        blockTimestamp: new Date(Number(latest.timestamp) * 1000),
-      })
-      if (price) {
-        sources.push(`${token.symbol} price: ${price.source}`)
-      }
+        blockTimestamp,
+      }),
+    })),
+  )
+  const priceMap = new Map(priceList.map((p) => [p.symbol, p.price]))
+  for (const { symbol, price } of priceList) {
+    if (price) sources.push(`${symbol} price: ${price.source}`)
+  }
 
-      const balanceUsd = price ? read.balanceHuman * price.usdPrice : null
-      if (balanceUsd !== null) cashTotalUsd += balanceUsd
+  // All (wallet, token) balance reads in one parallel batch.
+  const balancePairs = walletList.flatMap((entry) =>
+    tokens.map((token) => ({ entry, token })),
+  )
+  const balanceReads = await Promise.all(
+    balancePairs.map(async (p) => ({
+      ...p,
+      read: await readTokenBalance(chainId, p.entry.address, p.token),
+    })),
+  )
 
-      cash.push({
-        address: entry.address.toLowerCase(),
-        source: entry.source,
-        label: entry.label ?? null,
-        agentId: entry.agentId ?? null,
-        tokenSymbol: token.symbol,
-        tokenAddress: token.address,
-        balanceRaw: read.balanceRaw.toString(),
-        balanceHuman: read.balanceHuman,
-        usdPrice: price?.usdPrice ?? null,
-        usdPriceSource: price?.source ?? null,
-        balanceUsd,
-        readError: read.error,
-      })
-    }
+  const cash: CashLine[] = []
+  let cashTotalUsd = 0
+  for (const { entry, token, read } of balanceReads) {
+    if (!read || read.balanceRaw === 0n) continue
+    const price = priceMap.get(token.symbol) ?? null
+    const balanceUsd = price ? read.balanceHuman * price.usdPrice : null
+    if (balanceUsd !== null) cashTotalUsd += balanceUsd
+    cash.push({
+      address: entry.address.toLowerCase(),
+      source: entry.source,
+      label: entry.label ?? null,
+      agentId: entry.agentId ?? null,
+      tokenSymbol: token.symbol,
+      tokenAddress: token.address,
+      balanceRaw: read.balanceRaw.toString(),
+      balanceHuman: read.balanceHuman,
+      usdPrice: price?.usdPrice ?? null,
+      usdPriceSource: price?.source ?? null,
+      balanceUsd,
+      readError: read.error,
+    })
   }
 
   // ─── AR/AP: sum of unpaid invoices issued/received by this company.

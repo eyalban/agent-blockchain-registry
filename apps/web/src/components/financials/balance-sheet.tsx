@@ -28,6 +28,10 @@ interface BalanceSheet {
   equity: {
     contributedCapital: { totalUsd: number }
     retainedEarningsUsd: number | null
+    retainedEarningsBreakdown?: {
+      fromIncomeStatementUsd: number | null
+      fromExternalInflowsUsd: number
+    }
     totalUsd: number | null
   }
   reconciliation: {
@@ -161,8 +165,20 @@ export function CompanyBalanceSheet({ companyId }: { companyId: string }) {
           <Line
             label="Retained Earnings"
             value={data.equity.retainedEarningsUsd}
-            hint="Cumulative net income since inception"
+            hint="Cumulative net income + outside funding (see breakdown)"
           />
+          {data.equity.retainedEarningsBreakdown && (
+            <div className="ml-3 border-l border-(--color-border) pl-3">
+              <SubLine
+                label="from income statement"
+                value={data.equity.retainedEarningsBreakdown.fromIncomeStatementUsd}
+              />
+              <SubLine
+                label="from external inflows (e.g. faucet)"
+                value={data.equity.retainedEarningsBreakdown.fromExternalInflowsUsd}
+              />
+            </div>
+          )}
           <Subtotal label="Total Equity" value={data.equity.totalUsd} />
 
           <TotalLine
@@ -212,6 +228,17 @@ function Line({
   )
 }
 
+function SubLine({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div className="flex items-center justify-between py-0.5">
+      <span className="text-xs text-(--color-text-muted)">{label}</span>
+      <span className="font-mono text-xs text-(--color-text-secondary)">
+        {formatUsd(value)}
+      </span>
+    </div>
+  )
+}
+
 function Subtotal({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="flex items-center justify-between border-t border-(--color-border) py-1 mt-0.5">
@@ -254,38 +281,25 @@ function ReconciliationBanner({
     )
   }
   if (recon.withinTolerance) {
+    const inflow = recon.externalInflowsUsd ?? 0
+    if (recon.mismatchSource === 'faucet_drips_unbooked' && inflow > 0) {
+      return (
+        <div className="rounded-lg border border-(--color-accent-green)/30 bg-(--color-accent-green)/5 p-3">
+          <p className="text-xs text-(--color-accent-green)">
+            Balance sheet reconciled. {formatUsd(inflow)} of outside funding
+            (statem8 faucet on testnet) has been booked into retained earnings
+            so assets equal liabilities + equity. To reclassify it as
+            contributed capital, record the corresponding inflow on the
+            company.
+          </p>
+        </div>
+      )
+    }
     return (
       <div className="rounded-lg border border-(--color-accent-green)/30 bg-(--color-accent-green)/5 p-3">
         <p className="text-xs text-(--color-accent-green)">
           Balance sheet reconciled: assets ≈ liabilities + equity (diff{' '}
           {formatUsd(recon.discrepancyUsd ?? 0)}).
-        </p>
-      </div>
-    )
-  }
-  if (recon.mismatchSource === 'faucet_drips_unbooked') {
-    const inflow = recon.externalInflowsUsd ?? 0
-    return (
-      <div className="rounded-lg border border-(--color-accent-amber)/40 bg-(--color-accent-amber)/5 p-3">
-        <p className="text-xs text-(--color-accent-amber)">
-          Reconciliation mismatch: {formatUsd(recon.discrepancyUsd)}.{' '}
-          {inflow > 0 ? (
-            <>
-              This company&rsquo;s member wallets received{' '}
-              {formatUsd(inflow)} of ETH from the statem8 faucet, which
-              hasn&rsquo;t been booked as contributed capital yet — so assets
-              exceed equity by roughly that amount.
-            </>
-          ) : (
-            <>
-              This is Base Sepolia, contributed capital is $0, and the cash
-              in member wallets had to come from somewhere — on testnet that
-              &lsquo;somewhere&rsquo; is the statem8 faucet. Those drips
-              haven&rsquo;t been booked as contributed capital yet, so assets
-              exceed equity by the amount the faucet dripped in.
-            </>
-          )}{' '}
-          Record these inflows as capital contributions to reconcile.
         </p>
       </div>
     )

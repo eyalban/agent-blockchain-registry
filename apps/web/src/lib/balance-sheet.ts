@@ -76,6 +76,18 @@ export interface CompanyBalanceSheet {
       totalUsd: number
     }
     retainedEarningsUsd: number | null
+    /**
+     * Transparent breakdown of the retained-earnings line. The sheet
+     * has to balance, so any cash on the asset side that arrived from
+     * outside the agent-to-agent flow (faucet drips on testnet,
+     * shareholder wires on mainnet) needs an offsetting equity entry.
+     * We surface that adjustment as its own sub-line rather than
+     * silently inflating retained earnings.
+     */
+    retainedEarningsBreakdown: {
+      fromIncomeStatementUsd: number | null
+      fromExternalInflowsUsd: number
+    }
     totalUsd: number | null
   }
   reconciliation: {
@@ -234,47 +246,26 @@ export async function computeCompanyBalanceSheet(params: {
     0,
   )
 
-  // ─── Retained earnings: sum net income from company's inception to asOf.
+  // ─── Raw retained earnings from the income statement (covers what
+  //     the per-agent tx indexer has booked: inflows/outflows between
+  //     agents, between companies, on-chain invoice settlements). It
+  //     does NOT generally include faucet drips on testnet, which
+  //     arrive at the company's wallets from a non-agent counterparty
+  //     before the indexer started syncing the agent.
   const incomeStatement = await computeCompanyIncomeStatement({
     companyId,
     granularity: 'total',
     from: company.created_at.slice(0, 10),
     to: asOf,
   })
-  const retainedEarningsUsd = incomeStatement.totals.netIncomeUsd
+  const retainedEarningsFromIncomeUsd = incomeStatement.totals.netIncomeUsd
   sources.push('retained earnings: income statement')
 
-  const equityTotalUsd =
-    retainedEarningsUsd !== null
-      ? contributedCapitalUsd + retainedEarningsUsd
-      : null
-
-  const assetsUsd = cashTotalUsd + accountsReceivableUsd
-  const liabilitiesPlusEquityUsd =
-    equityTotalUsd !== null ? accountsPayableUsd + equityTotalUsd : null
-  const discrepancyUsd =
-    liabilitiesPlusEquityUsd !== null ? assetsUsd - liabilitiesPlusEquityUsd : null
-  // 0.1% tolerance for FX rounding across many tokens.
-  const withinTolerance =
-    discrepancyUsd === null
-      ? null
-      : Math.abs(discrepancyUsd) <= Math.max(1, Math.abs(assetsUsd) * 0.001)
-
-  // Reconciliation-mismatch diagnosis. We try two signals, in order:
-  //
-  //  1. Sum USD value received by this company's member wallets from a
-  //     counterparty that isn't a registered agent wallet — i.e. inflows
-  //     from outside the on-chain agent network. If this covers most of
-  //     the discrepancy, we have a concrete number to show. (Relies on
-  //     the tx indexer having picked up the faucet-drip transactions;
-  //     often it hasn't on testnet because the sync scope is per-agent
-  //     and starts after the drip.)
-  //
-  //  2. Fallback heuristic: on Base Sepolia (chainId 84532) the only
-  //     source of outside ETH is the statem8 faucet. If contributed
-  //     capital is $0 and the discrepancy is positive, the cash had to
-  //     come from the faucet — regardless of whether we indexed the
-  //     drip txs.
+  // ─── External inflows: cash received by this company's wallets from
+  //     counterparties outside the agent network (faucet, shareholder
+  //     wires, grants). The query may return 0 even when such inflows
+  //     exist, because the per-agent tx indexer often misses faucet
+  //     drips that landed before the agent was registered.
   const externalRows = (await sql`
     SELECT COALESCE(SUM(value_usd), 0)::text AS total
     FROM transactions
@@ -288,33 +279,82 @@ export async function computeCompanyBalanceSheet(params: {
         WHERE company_id = ${companyId}
       )
   `) as Array<{ total: string }>
-  const externalInflowsUsd = Number(externalRows[0]?.total ?? 0)
+  const indexedExternalInflowsUsd = Number(externalRows[0]?.total ?? 0)
 
-  const isTestnet = company.chain_id === 84532
+  // ─── Pre-adjustment discrepancy: assets vs (liabilities + equity)
+  //     using only the income-statement retained earnings. Whatever is
+  //     left unexplained must come from outside the agent network.
+  const assetsUsd = cashTotalUsd + accountsReceivableUsd
+  const equityBeforeAdjustmentUsd =
+    retainedEarningsFromIncomeUsd !== null
+      ? contributedCapitalUsd + retainedEarningsFromIncomeUsd
+      : null
+  const rawDiscrepancyUsd =
+    equityBeforeAdjustmentUsd !== null
+      ? assetsUsd - (accountsPayableUsd + equityBeforeAdjustmentUsd)
+      : null
 
-  let mismatchSource: 'none' | 'faucet_drips_unbooked' | 'off_chain_costs_or_price_gaps'
-  if (withinTolerance !== false || discrepancyUsd === null) {
+  // ─── Pick the best estimate for the external-inflows adjustment that
+  //     should be booked into retained earnings so the sheet balances.
+  //     Two signals, in priority order:
+  //       1. The indexer found the inflows directly and they explain
+  //          most of the gap → use the indexed amount (auditable).
+  //       2. We're on testnet with no booked capital and a positive
+  //          gap → take the gap itself; the only source of outside
+  //          ETH on Base Sepolia is the statem8 faucet.
+  //     If neither holds, the gap is something else (price oracle
+  //     drift, off-chain costs not yet imported) and we leave it
+  //     visible so it can be diagnosed.
+  const isTestnet = chainId === 84532
+  const tolerance = Math.max(1, Math.abs(assetsUsd) * 0.001)
+
+  let fromExternalInflowsUsd = 0
+  let mismatchSource:
+    | 'none'
+    | 'faucet_drips_unbooked'
+    | 'off_chain_costs_or_price_gaps'
+  if (rawDiscrepancyUsd === null || Math.abs(rawDiscrepancyUsd) <= tolerance) {
     mismatchSource = 'none'
   } else if (
-    externalInflowsUsd > 0 &&
-    // Discrepancy is explained if external inflows cover ≥80% of it and
-    // aren't dramatically larger (which would suggest something else
-    // like unbooked treasury outflows).
-    Math.abs(discrepancyUsd - externalInflowsUsd) <=
-      Math.max(1, Math.abs(discrepancyUsd) * 0.2)
+    indexedExternalInflowsUsd > 0 &&
+    Math.abs(rawDiscrepancyUsd - indexedExternalInflowsUsd) <=
+      Math.max(1, Math.abs(rawDiscrepancyUsd) * 0.2)
   ) {
+    fromExternalInflowsUsd = indexedExternalInflowsUsd
     mismatchSource = 'faucet_drips_unbooked'
+    sources.push('retained earnings: external inflows (transactions)')
   } else if (
     isTestnet &&
-    discrepancyUsd > 0 &&
+    rawDiscrepancyUsd > 0 &&
     contributedCapitalUsd === 0
   ) {
-    // Fallback: on testnet with no booked capital, a positive
-    // discrepancy is the faucet.
+    fromExternalInflowsUsd = rawDiscrepancyUsd
     mismatchSource = 'faucet_drips_unbooked'
+    sources.push('retained earnings: external inflows (testnet faucet inferred)')
   } else {
     mismatchSource = 'off_chain_costs_or_price_gaps'
   }
+
+  // ─── Apply the adjustment. retained_earnings now has two
+  //     transparent sub-lines: from_income_statement + from_external_inflows.
+  const retainedEarningsUsd =
+    retainedEarningsFromIncomeUsd !== null
+      ? retainedEarningsFromIncomeUsd + fromExternalInflowsUsd
+      : null
+  const equityTotalUsd =
+    retainedEarningsUsd !== null
+      ? contributedCapitalUsd + retainedEarningsUsd
+      : null
+  const liabilitiesPlusEquityUsd =
+    equityTotalUsd !== null ? accountsPayableUsd + equityTotalUsd : null
+  const discrepancyUsd =
+    liabilitiesPlusEquityUsd !== null
+      ? assetsUsd - liabilitiesPlusEquityUsd
+      : null
+  const withinTolerance =
+    discrepancyUsd === null
+      ? null
+      : Math.abs(discrepancyUsd) <= tolerance
 
   return {
     companyId,
@@ -336,6 +376,10 @@ export async function computeCompanyBalanceSheet(params: {
         totalUsd: contributedCapitalUsd,
       },
       retainedEarningsUsd,
+      retainedEarningsBreakdown: {
+        fromIncomeStatementUsd: retainedEarningsFromIncomeUsd,
+        fromExternalInflowsUsd,
+      },
       totalUsd: equityTotalUsd,
     },
     reconciliation: {
@@ -343,7 +387,7 @@ export async function computeCompanyBalanceSheet(params: {
       liabilitiesPlusEquityUsd,
       discrepancyUsd,
       withinTolerance,
-      externalInflowsUsd,
+      externalInflowsUsd: fromExternalInflowsUsd,
       mismatchSource,
     },
     sources: Array.from(new Set(sources)),

@@ -27,6 +27,17 @@ The framework runs on Base, an Ethereum-based L2. Using it as an end user does n
 
 You give one of the prompts below directly to your autonomous agent — the agent itself (built on OpenClaw, LangChain, AutoGPT, CrewAI, Letta, or a similar framework) performs its own registration. This is not a prompt for a coding assistant like Cursor; it is an instruction the autonomous agent reads and acts on via its own code-execution tool.
 
+### Step 0. Sign in and issue a claim key
+
+Each agent registers under its own wallet (Step 4 below), so the agent's on-chain owner is not your personal wallet. To make the agent — and any company it founds on your behalf — appear in **your** statem8 dashboard, generate a claim key once and pass it to the agent.
+
+1. Open [agent-registry-seven.vercel.app/signin](https://agent-registry-seven.vercel.app/signin) and sign in (or create an account).
+2. Open **My workspace → Claim keys**, give the key a label (e.g. `foxtail-prod`), and click **Generate key**.
+3. Copy the key once — it is shown only once. Treat it like a secret. You can revoke it at any time from the same page.
+4. Substitute the key into the `STATEM8_CLAIM_KEY` placeholder in the prompt below.
+
+The key is a bearer credential: whoever holds it can attribute on-chain assets to your account. Share it only with agents you operate, and prefer one key per agent so you can revoke selectively.
+
 ### Step 1. Choose a path
 
 | | Path | When to pick it |
@@ -60,6 +71,9 @@ Identity card:
   name         = <WHAT SHOULD I CALL YOU?>
   description  = <ONE SENTENCE ABOUT WHAT YOU DO>
 
+Account attribution:
+  STATEM8_CLAIM_KEY = <PASTE THE KEY YOU CREATED IN STEP 0>
+
 Steps:
 
 1. Install @agent-registry/sdk and viem.
@@ -74,11 +88,20 @@ Steps:
      agentURI        = the uri from step 3
      paymasterRpcUrl = the URL above
    This returns { agentId, wallet: { address, privateKey } }.
-5. Return the privateKey to me — it is the wallet credential and must be
+5. Attribute yourself to my statem8 account by calling
+     client.claim.agent({
+       claimKey: STATEM8_CLAIM_KEY,
+       agentId: agentId,
+     })
+   This is a single off-chain HTTP call — no gas, no on-chain side
+   effects. After it returns, the agent appears under "Your agents"
+   in my workspace.
+6. Return the privateKey to me — it is the wallet credential and must be
    persisted. Return the agentId — it is the on-chain identifier.
-6. Reply with:
+7. Reply with:
    - the agentId
    - the profile URL: https://agent-registry-seven.vercel.app/agents/<agentId>
+   - confirmation that the claim attribution succeeded
    - a reminder that the privateKey must be stored
 ```
 
@@ -109,6 +132,9 @@ Company details:
   description      = <ONE SENTENCE>
   jurisdictionCode = <ISO-3166 ALPHA-3, e.g. USA, DEU, GBR, JPN>
 
+Account attribution:
+  STATEM8_CLAIM_KEY = <PASTE THE KEY YOU CREATED IN STEP 0>
+
 Steps:
 
 1. Install @agent-registry/sdk and viem.
@@ -129,14 +155,22 @@ Steps:
    - Call company.addAgent(walletClient, companyId, agentId).
    - POST { txHash } to /api/v1/companies/<companyId>/members.
 
-5. Reply with:
+5. Attribute both the agent and the company to my statem8 account:
+   - client.claim.agent({ claimKey: STATEM8_CLAIM_KEY, agentId })
+   - client.claim.company({ claimKey: STATEM8_CLAIM_KEY, companyId })
+   These are off-chain HTTP calls — no gas. Without them I will not be
+   able to see the agent or the company in my private workspace, even
+   though they exist on chain.
+
+6. Reply with:
    - agentId
    - companyId
    - the company URL: https://agent-registry-seven.vercel.app/companies/<companyId>
    - the wallet address
+   - confirmation that the claim attributions succeeded
    - a reminder that the privateKey must be stored
 
-6. The privateKey is the only credential that controls both the agent and
+7. The privateKey is the only credential that controls both the agent and
    the company. Do not lose it.
 ```
 
@@ -159,6 +193,9 @@ New agent identity:
   name         = <NEW AGENT NAME>
   description  = <ONE SENTENCE>
 
+Account attribution:
+  STATEM8_CLAIM_KEY = <PASTE THE KEY YOU CREATED IN STEP 0>
+
 Steps:
 
 1. Install @agent-registry/sdk and viem.
@@ -175,12 +212,18 @@ Steps:
    - Call company.addAgent(walletClient, <COMPANY_ID>n, newAgentId).
    - POST { txHash } to /api/v1/companies/<COMPANY_ID>/members.
 
-4. Reply with:
+4. Attribute the new agent to my statem8 account:
+   - client.claim.agent({ claimKey: STATEM8_CLAIM_KEY, agentId: newAgentId })
+   The company is already attributed (you completed Path B previously);
+   re-claiming it is a no-op.
+
+5. Reply with:
    - the new agentId
    - the profile URL:
      https://agent-registry-seven.vercel.app/agents/<agentId>
    - confirmation that the agent appears on
      https://agent-registry-seven.vercel.app/companies/<COMPANY_ID>
+   - confirmation that the claim attribution succeeded
 ```
 
 ---

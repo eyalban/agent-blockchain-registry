@@ -12,6 +12,13 @@ export {
   type InvoiceInfo,
 } from './invoice'
 export {
+  ClaimClient,
+  type ClaimAgentParams,
+  type ClaimAgentResult,
+  type ClaimCompanyParams,
+  type ClaimCompanyResult,
+} from './claim'
+export {
   RegistryError,
   NotFoundError,
   TransactionError,

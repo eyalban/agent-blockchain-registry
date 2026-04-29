@@ -27,12 +27,11 @@ export function ConnectButton() {
     return () => document.removeEventListener('mousedown', onClick)
   }, [open])
 
-  // Verifiable wallet link: ask the wallet to sign a server-issued
-  // challenge that includes the user id and a fresh nonce. The server
-  // recovers the signer with viem.verifyMessage and only then writes
-  // the link. This means a user can't claim an address they don't
-  // control, and the unique constraint on user_wallets.wallet_address
-  // means a given address never attaches to two accounts.
+  // Direct EOA link via browser wallet: when the signed-in user IS the
+  // wallet (e.g. they manually created a company from this UI), we let
+  // them attribute the address with a single off-chain personal_sign,
+  // bypassing the claim-key flow entirely. For agent-controlled wallets
+  // the user uses a claim key instead — see /workspace/claim-keys.
   async function linkConnectedWallet(): Promise<void> {
     if (!address) return
     setLinking(true)
@@ -77,8 +76,6 @@ export function ConnectButton() {
     return <div className="h-9 w-24 animate-pulse rounded-full bg-(--color-border)" />
   }
 
-  // Signed-in via email — primary state. Wallet, if connected, lives inside
-  // the dropdown.
   if (user) {
     const initial = (user.displayName || user.email).slice(0, 1).toUpperCase()
     const connectedNotLinked =
@@ -121,14 +118,24 @@ export function ConnectButton() {
               My workspace
               <span className="ml-1 text-(--color-text-muted)">&rarr;</span>
             </Link>
+            <Link
+              href="/workspace/claim-keys"
+              onClick={() => setOpen(false)}
+              className="block border-b border-(--color-border) px-4 py-3 text-sm font-medium text-(--color-text-primary) transition-colors hover:bg-(--color-magenta-50) hover:text-(--color-magenta-700)"
+            >
+              Claim keys
+              <span className="ml-1 text-(--color-text-muted)">&rarr;</span>
+            </Link>
+
             <div className="px-4 py-3">
               <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
                 Verified wallets
               </p>
               {user.wallets.length === 0 ? (
                 <p className="mt-2 text-xs text-(--color-text-muted)">
-                  No wallets linked yet. Connect one and sign the challenge to
-                  attribute on-chain agents and companies to your account.
+                  No wallets attributed yet. Use a claim key to attribute
+                  agents, or sign with the connected wallet below to attribute
+                  an EOA you control directly.
                 </p>
               ) : (
                 <ul className="mt-2 space-y-1.5">
@@ -155,24 +162,16 @@ export function ConnectButton() {
                 </ul>
               )}
 
-              <Link
-                href="/workspace/link-wallet"
-                onClick={() => setOpen(false)}
-                className="mt-3 block w-full rounded-lg border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-2 text-center text-sm font-medium text-(--color-magenta-700) transition-colors hover:bg-(--color-magenta-100)"
-              >
-                + Link a wallet
-              </Link>
-
               {connectedNotLinked && (
                 <button
                   type="button"
                   onClick={linkConnectedWallet}
                   disabled={linking}
-                  className="mt-2 w-full rounded-lg bg-(--color-magenta-700) px-3 py-2 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:opacity-50"
+                  className="mt-3 w-full rounded-lg bg-(--color-magenta-700) px-3 py-2 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:opacity-50"
                 >
                   {linking
                     ? 'Sign in your wallet…'
-                    : `Quick-verify ${truncateAddress(address!)}`}
+                    : `Link ${truncateAddress(address!)} (you control it)`}
                 </button>
               )}
               {linkError && (
@@ -207,7 +206,6 @@ export function ConnectButton() {
     )
   }
 
-  // Wallet-only state (no email account).
   if (isConnected && address) {
     return (
       <div className="flex items-center gap-2">

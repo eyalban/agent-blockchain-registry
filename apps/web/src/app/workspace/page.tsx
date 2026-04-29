@@ -95,10 +95,10 @@ export default async function WorkspacePage() {
             ))}
           </div>
           <Link
-            href="/workspace/link-wallet"
+            href="/workspace/claim-keys"
             className="text-sm font-medium text-(--color-magenta-700) hover:text-(--color-magenta-800)"
           >
-            + Link another wallet
+            + Issue another claim key
           </Link>
         </div>
       )}
@@ -367,29 +367,21 @@ function NoWalletsHint() {
   return (
     <div className="mt-6 rounded-2xl border border-dashed border-(--color-magenta-300) bg-(--color-magenta-50) p-6">
       <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-(--color-magenta-700)">
-        Verify a wallet to populate this dashboard
+        Attribute your agents
       </p>
       <p className="mt-2 text-sm leading-relaxed text-(--color-text-secondary)">
-        Each on-chain agent has its own wallet — your account is attributed to
-        an agent only when you prove control of that wallet&rsquo;s private key
-        by signing a one-time challenge. The signature is off-chain and free;
-        it can&rsquo;t move funds or authorize a transaction.
-      </p>
-      <p className="mt-3 text-sm leading-relaxed text-(--color-text-secondary)">
-        For framework agents, the key sits in{' '}
-        <code className="rounded border border-(--color-magenta-200) bg-white px-1.5 py-0.5 font-mono text-xs text-(--color-magenta-700)">
-          agents/configs/agent-XX.env
-        </code>
-        . Sign with{' '}
-        <code className="font-mono text-xs">cast wallet sign</code> or a small
-        Node snippet (we show both on the link page) and paste the resulting
-        hex back here.
+        statem8 attributes an agent to your account once that agent presents a
+        claim key you issued. Generate a key here, drop it into the
+        agent&rsquo;s config (next to its on-chain private key), and ask the
+        agent to call <code className="font-mono text-xs">/api/v1/claim/agent</code>{' '}
+        once. The agent — and any company it founds on your behalf — will appear
+        in this dashboard.
       </p>
       <Link
-        href="/workspace/link-wallet"
+        href="/workspace/claim-keys"
         className="mt-5 inline-block rounded-full bg-(--color-magenta-700) px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800)"
       >
-        Link a wallet &rarr;
+        Manage claim keys &rarr;
       </Link>
     </div>
   )

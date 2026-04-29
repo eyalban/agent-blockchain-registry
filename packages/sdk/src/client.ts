@@ -3,6 +3,7 @@ import { baseSepolia, base } from 'viem/chains'
 
 import { type SupportedChainId } from '@agent-registry/shared'
 
+import { ClaimClient } from './claim'
 import { CompanyClient } from './company'
 import { IdentityClient } from './identity'
 import { InvoiceClient } from './invoice'
@@ -39,6 +40,7 @@ export class AgentRegistryClient {
   readonly reputation: ReputationClient
   readonly company: CompanyClient
   readonly invoice: InvoiceClient
+  readonly claim: ClaimClient
 
   constructor(config: AgentRegistryConfig) {
     const chainConfig = CHAIN_MAP[config.chain]
@@ -64,5 +66,6 @@ export class AgentRegistryClient {
     this.reputation = new ReputationClient(publicClient, chainId)
     this.company = new CompanyClient(publicClient, chainId, viemChain)
     this.invoice = new InvoiceClient(publicClient, chainId, viemChain)
+    this.claim = new ClaimClient(config.apiUrl)
   }
 }

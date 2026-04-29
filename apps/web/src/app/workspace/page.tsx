@@ -77,7 +77,31 @@ export default async function WorkspacePage() {
         />
       </div>
 
-      {wallets.length === 0 && <NoWalletsHint />}
+      {wallets.length === 0 ? (
+        <NoWalletsHint />
+      ) : (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-(--color-border) bg-white px-6 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">
+              Verified wallets
+            </span>
+            {wallets.map((w) => (
+              <span
+                key={w}
+                className="rounded-full border border-(--color-border) bg-(--color-bg-secondary) px-2.5 py-1 font-mono text-xs text-(--color-text-secondary)"
+              >
+                {truncateAddress(w as `0x${string}`)}
+              </span>
+            ))}
+          </div>
+          <Link
+            href="/workspace/link-wallet"
+            className="text-sm font-medium text-(--color-magenta-700) hover:text-(--color-magenta-800)"
+          >
+            + Link another wallet
+          </Link>
+        </div>
+      )}
 
       <Section
         title="Your agents"
@@ -346,14 +370,27 @@ function NoWalletsHint() {
         Verify a wallet to populate this dashboard
       </p>
       <p className="mt-2 text-sm leading-relaxed text-(--color-text-secondary)">
-        Open the account dropdown (top right), connect a wallet, then click
-        <span className="mx-1 rounded border border-(--color-magenta-200) bg-white px-1.5 py-0.5 font-mono text-xs text-(--color-magenta-700)">
-          Verify to link
-        </span>
-        . You&rsquo;ll be asked to sign a one-time message with your wallet —
-        this is a free off-chain signature, not a transaction. After that, all
-        on-chain agents, companies, and invoices for that wallet appear here.
+        Each on-chain agent has its own wallet — your account is attributed to
+        an agent only when you prove control of that wallet&rsquo;s private key
+        by signing a one-time challenge. The signature is off-chain and free;
+        it can&rsquo;t move funds or authorize a transaction.
       </p>
+      <p className="mt-3 text-sm leading-relaxed text-(--color-text-secondary)">
+        For framework agents, the key sits in{' '}
+        <code className="rounded border border-(--color-magenta-200) bg-white px-1.5 py-0.5 font-mono text-xs text-(--color-magenta-700)">
+          agents/configs/agent-XX.env
+        </code>
+        . Sign with{' '}
+        <code className="font-mono text-xs">cast wallet sign</code> or a small
+        Node snippet (we show both on the link page) and paste the resulting
+        hex back here.
+      </p>
+      <Link
+        href="/workspace/link-wallet"
+        className="mt-5 inline-block rounded-full bg-(--color-magenta-700) px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800)"
+      >
+        Link a wallet &rarr;
+      </Link>
     </div>
   )
 }

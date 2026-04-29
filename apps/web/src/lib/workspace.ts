@@ -68,17 +68,33 @@ export async function getUserAgents(
   }))
 }
 
+/**
+ * Companies attributed to the user. Three paths qualify:
+ *   1. owner_address ∈ verified wallets  (you control the EOA that owns the company)
+ *   2. founder_address ∈ verified wallets
+ *   3. some active member agent's owner ∈ verified wallets
+ *      → "I own this agent, this agent is a member of this company,
+ *         therefore this company is in my workspace"
+ *   That third path is what handles companies the user doesn't directly
+ *   own but participates in via an agent (typical for the path-B/C
+ *   framework flow where each agent has its own wallet).
+ */
 export async function getUserCompanies(
   wallets: readonly string[],
 ): Promise<WorkspaceCompany[]> {
   if (wallets.length === 0) return []
   const rows = (await sql`
-    SELECT company_id, owner_address, founder_address,
-           name, description, jurisdiction_code
-    FROM companies
-    WHERE LOWER(owner_address) = ANY(${wallets as string[]})
-       OR LOWER(founder_address) = ANY(${wallets as string[]})
-    ORDER BY created_at DESC
+    SELECT DISTINCT c.company_id, c.owner_address, c.founder_address,
+           c.name, c.description, c.jurisdiction_code, c.created_at
+    FROM companies c
+    LEFT JOIN company_members m
+           ON m.company_id = c.company_id AND m.removed_at IS NULL
+    LEFT JOIN agents_cache a
+           ON a.agent_id = m.agent_id
+    WHERE LOWER(c.owner_address) = ANY(${wallets as string[]})
+       OR LOWER(c.founder_address) = ANY(${wallets as string[]})
+       OR LOWER(a.owner_address) = ANY(${wallets as string[]})
+    ORDER BY c.created_at DESC
   `) as Array<
     Pick<
       DbCompany,
@@ -100,10 +116,41 @@ export async function getUserCompanies(
   }))
 }
 
+/**
+ * Set of company IDs the user is attributed to. Used to fan invoice
+ * attribution out one transitive hop (an invoice issued to your
+ * company is yours, even if neither party address is in your wallet
+ * list — e.g. a payment to a treasury wallet you haven't claimed).
+ */
+async function getUserCompanyIds(wallets: readonly string[]): Promise<string[]> {
+  if (wallets.length === 0) return []
+  const rows = (await sql`
+    SELECT DISTINCT c.company_id
+    FROM companies c
+    LEFT JOIN company_members m
+           ON m.company_id = c.company_id AND m.removed_at IS NULL
+    LEFT JOIN agents_cache a
+           ON a.agent_id = m.agent_id
+    WHERE LOWER(c.owner_address) = ANY(${wallets as string[]})
+       OR LOWER(c.founder_address) = ANY(${wallets as string[]})
+       OR LOWER(a.owner_address) = ANY(${wallets as string[]})
+  `) as Array<{ company_id: string }>
+  return rows.map((r) => r.company_id)
+}
+
+/**
+ * Invoices the user is party to. Match on any of:
+ *   - issuer_address / payer_address ∈ verified wallets
+ *   - issuer_company_id / payer_company_id ∈ user's attributed companies
+ * The second pair captures invoices to/from a company the user accesses
+ * through one of their agents — the company itself doesn't need to live
+ * on a user-controlled EOA.
+ */
 export async function getUserInvoices(
   wallets: readonly string[],
 ): Promise<WorkspaceInvoice[]> {
   if (wallets.length === 0) return []
+  const companyIds = await getUserCompanyIds(wallets)
   const rows = (await sql`
     SELECT invoice_id, chain_id, issuer_address, payer_address,
            issuer_company_id, payer_company_id, issuer_agent_id, payer_agent_id,
@@ -115,14 +162,18 @@ export async function getUserInvoices(
     FROM invoices
     WHERE LOWER(issuer_address) = ANY(${wallets as string[]})
        OR LOWER(payer_address) = ANY(${wallets as string[]})
+       OR (${companyIds.length > 0} AND issuer_company_id = ANY(${companyIds}))
+       OR (${companyIds.length > 0} AND payer_company_id = ANY(${companyIds}))
     ORDER BY issued_at DESC
     LIMIT 500
   `) as DbInvoice[]
   return rows.map((r) => ({
     ...r,
-    direction: wallets.includes(r.issuer_address.toLowerCase())
-      ? 'outgoing'
-      : 'incoming',
+    direction:
+      wallets.includes(r.issuer_address.toLowerCase()) ||
+      (r.issuer_company_id !== null && companyIds.includes(r.issuer_company_id))
+        ? 'outgoing'
+        : 'incoming',
   }))
 }
 
@@ -151,24 +202,33 @@ export async function getWorkspaceSummary(
     }
   }
 
-  const [agents, companies, invStats] = await Promise.all([
+  const companyIds = await getUserCompanyIds(wallets)
+  const hasCompanies = companyIds.length > 0
+  const [agents, invStats] = await Promise.all([
     sql`SELECT COUNT(*)::int AS c FROM agents_cache WHERE chain_id = ${CHAIN_ID} AND LOWER(owner_address) = ANY(${wallets as string[]})`,
     sql`
-      SELECT COUNT(*)::int AS c FROM companies
-      WHERE LOWER(owner_address) = ANY(${wallets as string[]})
-         OR LOWER(founder_address) = ANY(${wallets as string[]})
-    `,
-    sql`
       SELECT
-        COUNT(*) FILTER (WHERE LOWER(issuer_address) = ANY(${wallets as string[]}))::int AS issued,
-        COUNT(*) FILTER (WHERE LOWER(payer_address) = ANY(${wallets as string[]}))::int AS payable,
+        COUNT(*) FILTER (
+          WHERE LOWER(issuer_address) = ANY(${wallets as string[]})
+             OR (${hasCompanies} AND issuer_company_id = ANY(${companyIds}))
+        )::int AS issued,
+        COUNT(*) FILTER (
+          WHERE LOWER(payer_address) = ANY(${wallets as string[]})
+             OR (${hasCompanies} AND payer_company_id = ANY(${companyIds}))
+        )::int AS payable,
         COALESCE(SUM(CASE
-          WHEN status = 'issued' AND LOWER(payer_address) = ANY(${wallets as string[]})
+          WHEN status = 'issued' AND (
+            LOWER(payer_address) = ANY(${wallets as string[]})
+            OR (${hasCompanies} AND payer_company_id = ANY(${companyIds}))
+          )
             THEN amount_usd_at_issue
           ELSE 0
         END), 0)::text AS outstanding,
         COALESCE(SUM(CASE
-          WHEN status = 'issued' AND LOWER(issuer_address) = ANY(${wallets as string[]})
+          WHEN status = 'issued' AND (
+            LOWER(issuer_address) = ANY(${wallets as string[]})
+            OR (${hasCompanies} AND issuer_company_id = ANY(${companyIds}))
+          )
             THEN amount_usd_at_issue
           ELSE 0
         END), 0)::text AS receivable
@@ -186,7 +246,7 @@ export async function getWorkspaceSummary(
   return {
     walletsCount: wallets.length,
     agentsCount: (agents as Array<{ c: number }>)[0]!.c,
-    companiesCount: (companies as Array<{ c: number }>)[0]!.c,
+    companiesCount: companyIds.length,
     invoicesIssued: inv.issued,
     invoicesPayable: inv.payable,
     outstandingUsd: Number(inv.outstanding),

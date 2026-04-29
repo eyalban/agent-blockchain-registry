@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi'
+import { useAccount, useDisconnect, useSignMessage } from 'wagmi'
 
 import { useSession } from '@/hooks/use-session'
 import { truncateAddress } from '@/lib/utils'
@@ -10,7 +10,6 @@ import { truncateAddress } from '@/lib/utils'
 export function ConnectButton() {
   const { user, isLoading, refresh, signOut } = useSession()
   const { address, isConnected } = useAccount()
-  const { connect, connectors, isPending } = useConnect()
   const { disconnect } = useDisconnect()
   const { signMessageAsync } = useSignMessage()
   const [open, setOpen] = useState(false)
@@ -156,30 +155,24 @@ export function ConnectButton() {
                 </ul>
               )}
 
-              {!isConnected && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const c = connectors[0]
-                    if (c) connect({ connector: c })
-                  }}
-                  disabled={isPending}
-                  className="mt-3 w-full rounded-lg border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-2 text-sm font-medium text-(--color-magenta-700) transition-colors hover:bg-(--color-magenta-100) disabled:opacity-50"
-                >
-                  {isPending ? 'Connecting…' : '+ Connect a wallet'}
-                </button>
-              )}
+              <Link
+                href="/workspace/link-wallet"
+                onClick={() => setOpen(false)}
+                className="mt-3 block w-full rounded-lg border border-(--color-magenta-200) bg-(--color-magenta-50) px-3 py-2 text-center text-sm font-medium text-(--color-magenta-700) transition-colors hover:bg-(--color-magenta-100)"
+              >
+                + Link a wallet
+              </Link>
 
               {connectedNotLinked && (
                 <button
                   type="button"
                   onClick={linkConnectedWallet}
                   disabled={linking}
-                  className="mt-3 w-full rounded-lg bg-(--color-magenta-700) px-3 py-2 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:opacity-50"
+                  className="mt-2 w-full rounded-lg bg-(--color-magenta-700) px-3 py-2 text-sm font-semibold text-white shadow-[0_4px_12px_-4px_rgba(219,39,119,0.45)] transition-colors hover:bg-(--color-magenta-800) disabled:opacity-50"
                 >
                   {linking
                     ? 'Sign in your wallet…'
-                    : `Verify ${truncateAddress(address!)} to link`}
+                    : `Quick-verify ${truncateAddress(address!)}`}
                 </button>
               )}
               {linkError && (

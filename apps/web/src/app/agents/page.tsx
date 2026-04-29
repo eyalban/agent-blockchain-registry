@@ -44,7 +44,6 @@ export default async function AgentsPage() {
         <KpiStrip
           cells={[
             { label: 'Total agents', value: stats.total.toLocaleString() },
-            { label: 'Registered this week', value: stats.newThisWeek.toLocaleString() },
             { label: 'Distinct owners', value: stats.uniqueOwners.toLocaleString() },
             { label: 'In a company', value: stats.withCompany.toLocaleString() },
           ]}

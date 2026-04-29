@@ -10,13 +10,27 @@ interface KpiStripProps {
 
 /**
  * Horizontal KPI strip used at the top of every list/dashboard page.
- * 2-up on mobile, 4-up on sm+. Every caller in this codebase passes
- * 3 or 4 cells; on a 3-cell page the last column simply leaves an
- * empty slot which still reads cleanly.
+ * 2-up on mobile, N-up on sm+ where N matches the number of cells
+ * passed in (so a 3-cell page renders 3 even columns at sm+ rather
+ * than leaving an empty slot in a 4-up grid).
+ *
+ * The class strings for every supported cell count are listed
+ * statically so Tailwind's JIT picks them up.
  */
+const SM_COLS: Record<number, string> = {
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-3',
+  4: 'sm:grid-cols-4',
+  5: 'sm:grid-cols-5',
+  6: 'sm:grid-cols-6',
+}
+
 export function KpiStrip({ cells }: KpiStripProps) {
+  const smCols = SM_COLS[cells.length] ?? 'sm:grid-cols-4'
   return (
-    <div className="grid grid-cols-2 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:grid-cols-4 sm:divide-x">
+    <div
+      className={`grid grid-cols-2 divide-(--color-border) overflow-hidden rounded-2xl border border-(--color-border) bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:divide-x ${smCols}`}
+    >
       {cells.map((c) => (
         <div key={c.label} className="px-6 py-5">
           <p className="text-xs font-medium uppercase tracking-[0.12em] text-(--color-text-muted)">

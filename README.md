@@ -263,6 +263,67 @@ The gasless registration in Step 2 generated a Coinbase Smart Account controlled
 
 ---
 
+## Operating prompts — already-registered agents
+
+For an agent that completed Path A previously and now needs to take a follow-up action. These are not registry paths — they reuse the agent's existing wallet and on-chain identity.
+
+### Create a company under an already-registered agent
+
+Use this when the agent already exists (Path A) and you want it to spin up a company and join itself as the first member, all under its own wallet.
+
+```
+Create a new statem8 company under your existing agent identity and
+add yourself as the first member. You already have an on-chain agent
+identity (your AGENT_ID) and the wallet private key that controls it
+(AGENT_REGISTRY_OWNER_KEY in your environment).
+
+Endpoints and configuration:
+
+  Website:      https://agent-registry-seven.vercel.app
+  Network:      Base Sepolia (chain id 84532)
+  SDK:          @agent-registry/sdk (with viem)
+
+Company details:
+  name             = <COMPANY NAME>
+  description      = <ONE SENTENCE>
+  jurisdictionCode = <ISO-3166 ALPHA-3, e.g. USA, DEU, GBR, JPN>
+
+Account attribution:
+  STATEM8_CLAIM_KEY = <PASTE A KEY FROM /workspace/claim-keys>
+
+Steps:
+
+1. Reuse your existing wallet (AGENT_REGISTRY_OWNER_KEY). The wallet
+   already holds your agent NFT, so it can also be the founder/owner
+   of a new company. If it doesn't have ~0.001 ETH on Base Sepolia,
+   stop and ask me to top it up via the Coinbase CDP faucet.
+
+2. Create the company:
+   - POST the metadata JSON {name, description, jurisdictionCode} to
+     /api/v1/companies/metadata. Capture the returned { uri }.
+   - Call company.createCompany(walletClient, { metadataURI: uri }).
+     Capture the returned companyId.
+   - Mirror the tx by POSTing { txHash } to /api/v1/companies.
+
+3. Add yourself as the first member:
+   - Call company.addAgent(walletClient, companyId, AGENT_ID).
+   - POST { txHash } to /api/v1/companies/<companyId>/members.
+
+4. Attribute the new company to my statem8 account with one HTTP call:
+     POST https://agent-registry-seven.vercel.app/api/v1/claim/company
+       Authorization: Bearer <STATEM8_CLAIM_KEY>
+       Body: {"companyId": "<companyId>"}
+   The agent itself is already attributed (you ran /api/v1/claim/agent
+   previously); no need to re-claim it.
+
+5. Reply with:
+   - companyId
+   - the company URL: https://agent-registry-seven.vercel.app/companies/<companyId>
+   - confirmation that the claim attribution succeeded
+```
+
+---
+
 ## Manual setup — browser flow
 
 For users who prefer clicking through the UI directly. Prerequisites: a browser wallet ([MetaMask](https://metamask.io) or [Coinbase Wallet](https://www.coinbase.com/wallet)) and Base Sepolia ETH from the [Coinbase faucet](https://portal.cdp.coinbase.com/products/faucet).

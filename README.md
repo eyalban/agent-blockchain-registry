@@ -88,14 +88,17 @@ Steps:
      agentURI        = the uri from step 3
      paymasterRpcUrl = the URL above
    This returns { agentId, wallet: { address, privateKey } }.
-5. Attribute yourself to my statem8 account by calling
-     client.claim.agent({
-       claimKey: STATEM8_CLAIM_KEY,
-       agentId: agentId,
-     })
-   This is a single off-chain HTTP call — no gas, no on-chain side
-   effects. After it returns, the agent appears under "Your agents"
-   in my workspace.
+5. Attribute yourself to my statem8 account with one HTTP call — no
+   extra package needed:
+     POST https://agent-registry-seven.vercel.app/api/v1/claim/agent
+     Headers:
+       Authorization: Bearer <STATEM8_CLAIM_KEY>
+       Content-Type: application/json
+     Body:
+       {"agentId": "<agentId from step 4>"}
+   A 200 response confirms the agent is now attributed. (If you have
+   @agent-registry/sdk installed from the framework repo, the same
+   call is `client.claim.agent({ claimKey, agentId })`.)
 6. Return the privateKey to me — it is the wallet credential and must be
    persisted. Return the agentId — it is the on-chain identifier.
 7. Reply with:
@@ -155,12 +158,17 @@ Steps:
    - Call company.addAgent(walletClient, companyId, agentId).
    - POST { txHash } to /api/v1/companies/<companyId>/members.
 
-5. Attribute both the agent and the company to my statem8 account:
-   - client.claim.agent({ claimKey: STATEM8_CLAIM_KEY, agentId })
-   - client.claim.company({ claimKey: STATEM8_CLAIM_KEY, companyId })
-   These are off-chain HTTP calls — no gas. Without them I will not be
-   able to see the agent or the company in my private workspace, even
-   though they exist on chain.
+5. Attribute both the agent and the company to my statem8 account
+   with two plain HTTP calls — no SDK install required:
+     POST https://agent-registry-seven.vercel.app/api/v1/claim/agent
+       Authorization: Bearer <STATEM8_CLAIM_KEY>
+       Body: {"agentId": "<agentId>"}
+
+     POST https://agent-registry-seven.vercel.app/api/v1/claim/company
+       Authorization: Bearer <STATEM8_CLAIM_KEY>
+       Body: {"companyId": "<companyId>"}
+   Both should return 200. Without them I will not see the agent or the
+   company in my private workspace, even though they exist on chain.
 
 6. Reply with:
    - agentId
@@ -212,10 +220,12 @@ Steps:
    - Call company.addAgent(walletClient, <COMPANY_ID>n, newAgentId).
    - POST { txHash } to /api/v1/companies/<COMPANY_ID>/members.
 
-4. Attribute the new agent to my statem8 account:
-   - client.claim.agent({ claimKey: STATEM8_CLAIM_KEY, agentId: newAgentId })
+4. Attribute the new agent to my statem8 account with one HTTP call:
+     POST https://agent-registry-seven.vercel.app/api/v1/claim/agent
+       Authorization: Bearer <STATEM8_CLAIM_KEY>
+       Body: {"agentId": "<newAgentId>"}
    The company is already attributed (you completed Path B previously);
-   re-claiming it is a no-op.
+   no need to re-claim it.
 
 5. Reply with:
    - the new agentId

@@ -238,67 +238,145 @@ export function ClaimKeysView({ initialKeys }: Props) {
           How an agent uses the key
         </p>
         <p className="mt-2 text-sm text-(--color-text-secondary)">
-          Drop the key into the agent&rsquo;s config (alongside its on-chain
-          private key) and call one of these endpoints once.
+          The claim API is plain HTTP — no SDK install required. Pick the
+          scenario, copy the agent prompt, paste it into your agent&rsquo;s
+          task input. The agent runs <code className="font-mono text-xs">curl</code>{' '}
+          (or any HTTP client) under the hood.
         </p>
 
-        <div className="mt-4 space-y-4">
-          <Snippet
-            title="Already-registered agent — register under user's custody"
-            body={`curl -X POST https://statem8.app/api/v1/claim/agent \\
+        <div className="mt-5 space-y-6">
+          <Scenario
+            title="Already on chain — claim an existing agent"
+            prompt={`Claim agent #<AGENT_ID> on statem8 for me. Make this request:
+
+POST https://agent-registry-seven.vercel.app/api/v1/claim/agent
+Headers:
+  Authorization: Bearer ${revealed?.plaintext ?? '<PASTE_CLAIM_KEY>'}
+  Content-Type: application/json
+Body:
+  {"agentId": "<AGENT_ID>"}
+
+A 200 response means the agent is now attributed to my account. A 401
+means the key was revoked or wrong. Reply with the response body.`}
+            curl={`curl -X POST https://agent-registry-seven.vercel.app/api/v1/claim/agent \\
   -H "Authorization: Bearer $STATEM8_CLAIM_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"agentId":"5266"}'`}
+  -d '{"agentId":"<AGENT_ID>"}'`}
           />
-          <Snippet
-            title="New agent — register on-chain (Path B/C), then claim"
-            body={`# 1. Run the framework's path-B onboarding to mint the agent NFT.
-#    The framework returns the new agentId.
 
-# 2. Tell statem8 the agent is yours:
-curl -X POST https://statem8.app/api/v1/claim/agent \\
+          <Scenario
+            title="Fresh registration — agent registers itself, then claims"
+            prompt={`After completing the framework's Path A or Path B onboarding (which
+returns a new agentId), run one extra HTTP call to attribute the
+agent to my statem8 account:
+
+POST https://agent-registry-seven.vercel.app/api/v1/claim/agent
+Headers:
+  Authorization: Bearer ${revealed?.plaintext ?? '<PASTE_CLAIM_KEY>'}
+  Content-Type: application/json
+Body:
+  {"agentId": "<AGENT_ID_FROM_REGISTRATION>"}`}
+            curl={`# After the framework returns the new AGENT_ID:
+curl -X POST https://agent-registry-seven.vercel.app/api/v1/claim/agent \\
   -H "Authorization: Bearer $STATEM8_CLAIM_KEY" \\
   -H "Content-Type: application/json" \\
   -d "{\\"agentId\\":\\"$AGENT_ID\\"}"`}
           />
-          <Snippet
-            title="Agent-created company — claim back to user"
-            body={`# Agent calls CompanyRegistry.createCompany(...) on-chain.
-#    The agent's wallet becomes company.owner_address.
 
-# Then the agent attributes the new company to the user:
-curl -X POST https://statem8.app/api/v1/claim/company \\
+          <Scenario
+            title="Agent-created company — claim it back to me"
+            prompt={`After you call CompanyRegistry.createCompany on chain (which returns
+a new companyId), run this extra HTTP call to attribute the company:
+
+POST https://agent-registry-seven.vercel.app/api/v1/claim/company
+Headers:
+  Authorization: Bearer ${revealed?.plaintext ?? '<PASTE_CLAIM_KEY>'}
+  Content-Type: application/json
+Body:
+  {"companyId": "<COMPANY_ID_FROM_CREATION>"}`}
+            curl={`# After the on-chain createCompany call returns COMPANY_ID:
+curl -X POST https://agent-registry-seven.vercel.app/api/v1/claim/company \\
   -H "Authorization: Bearer $STATEM8_CLAIM_KEY" \\
   -H "Content-Type: application/json" \\
   -d "{\\"companyId\\":\\"$COMPANY_ID\\"}"`}
           />
-          <Snippet
-            title="Or use the SDK"
-            body={`import { AgentRegistryClient } from '@agent-registry/sdk'
-
-const client = new AgentRegistryClient({ chain: 'base-sepolia' })
-
-await client.claim.agent({
-  claimKey: process.env.STATEM8_CLAIM_KEY!,
-  agentId: agentId,
-})
-
-await client.claim.company({
-  claimKey: process.env.STATEM8_CLAIM_KEY!,
-  companyId: companyId,
-})`}
-          />
         </div>
+
+        <details className="mt-6 rounded-xl border border-(--color-border) bg-(--color-bg-secondary) p-4 text-sm text-(--color-text-secondary)">
+          <summary className="cursor-pointer font-medium text-(--color-text-primary)">
+            Optional: SDK install
+          </summary>
+          <p className="mt-2">
+            <code className="font-mono text-xs">@agent-registry/sdk</code> is
+            not on npm — install it from the framework repo:
+          </p>
+          <pre className="mt-2 overflow-x-auto rounded-lg border border-(--color-border) bg-white p-3 font-mono text-[11px] leading-5 text-(--color-text-primary)">
+{`git clone https://github.com/eyalban/agent-registry-framework.git
+cd agent-registry-framework && pnpm install && pnpm -F @agent-registry/sdk build
+# then in your agent project:
+pnpm add file:../agent-registry-framework/packages/sdk`}
+          </pre>
+          <p className="mt-2">After install:</p>
+          <pre className="mt-2 overflow-x-auto rounded-lg border border-(--color-border) bg-white p-3 font-mono text-[11px] leading-5 text-(--color-text-primary)">
+{`import { AgentRegistryClient } from '@agent-registry/sdk'
+const client = new AgentRegistryClient({ chain: 'base-sepolia' })
+await client.claim.agent({ claimKey: process.env.STATEM8_CLAIM_KEY!, agentId })
+await client.claim.company({ claimKey: process.env.STATEM8_CLAIM_KEY!, companyId })`}
+          </pre>
+        </details>
       </section>
     </div>
   )
 }
 
-function Snippet({ title, body }: { readonly title: string; readonly body: string }) {
+function Scenario({
+  title,
+  prompt,
+  curl,
+}: {
+  readonly title: string
+  readonly prompt: string
+  readonly curl: string
+}) {
   return (
-    <div>
-      <p className="text-xs font-medium text-(--color-text-primary)">{title}</p>
-      <pre className="mt-1.5 overflow-x-auto rounded-xl border border-(--color-border) bg-(--color-bg-secondary) p-4 font-mono text-[11px] leading-5 text-(--color-text-primary)">
+    <div className="rounded-xl border border-(--color-border) bg-(--color-bg-secondary) p-4">
+      <p className="text-sm font-semibold text-(--color-text-primary)">
+        {title}
+      </p>
+      <Block label="Agent prompt — paste into your agent's task input" body={prompt} />
+      <Block label="curl — for direct testing" body={curl} />
+    </div>
+  )
+}
+
+function Block({
+  label,
+  body,
+}: {
+  readonly label: string
+  readonly body: string
+}) {
+  const [copied, setCopied] = useState(false)
+  async function copy(): Promise<void> {
+    await navigator.clipboard.writeText(body)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium uppercase tracking-[0.08em] text-(--color-text-muted)">
+          {label}
+        </p>
+        <button
+          type="button"
+          onClick={copy}
+          className="text-xs font-medium text-(--color-magenta-700) hover:underline"
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <pre className="mt-1.5 overflow-x-auto whitespace-pre-wrap break-words rounded-lg border border-(--color-border) bg-white p-3 font-mono text-[11px] leading-5 text-(--color-text-primary)">
         {body}
       </pre>
     </div>

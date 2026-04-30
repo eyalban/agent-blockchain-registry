@@ -42,6 +42,16 @@ interface PriceQuery {
 
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3'
 
+// Process-local memo so a dashboard rendering N companies doesn't fan
+// out N price reads to the DB cache (or further to Chainlink/CoinGecko).
+// Keyed by chain + token, TTL ~30s — short enough that a stale price
+// can't drift more than a few cents on stables, fresh enough for live UI.
+const PRICE_MEMO_TTL_MS = 30_000
+const priceMemo = new Map<string, { at: number; price: ResolvedPrice }>()
+function memoKey(q: PriceQuery): string {
+  return `${q.chainId}:${q.token.address ?? 'native'}`
+}
+
 /**
  * Resolve the USD price for a token at a specific block.
  * Returns `null` if no source is available. Never returns a fabricated value.
@@ -49,18 +59,29 @@ const COINGECKO_BASE = 'https://api.coingecko.com/api/v3'
 export async function getTokenPriceUSD(
   query: PriceQuery,
 ): Promise<ResolvedPrice | null> {
+  const k = memoKey(query)
+  const memo = priceMemo.get(k)
+  if (memo && Date.now() - memo.at < PRICE_MEMO_TTL_MS) {
+    return { ...memo.price, cached: true }
+  }
+
   const cached = await readCache(query)
-  if (cached) return cached
+  if (cached) {
+    priceMemo.set(k, { at: Date.now(), price: cached })
+    return cached
+  }
 
   const chainlink = await tryChainlink(query)
   if (chainlink) {
     await writeCache(query, chainlink)
+    priceMemo.set(k, { at: Date.now(), price: chainlink })
     return chainlink
   }
 
   const coingecko = await tryCoinGecko(query)
   if (coingecko) {
     await writeCache(query, coingecko)
+    priceMemo.set(k, { at: Date.now(), price: coingecko })
     return coingecko
   }
 

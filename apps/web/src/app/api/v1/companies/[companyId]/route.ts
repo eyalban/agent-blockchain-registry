@@ -37,30 +37,33 @@ export async function GET(_req: NextRequest, { params }: RouteParams): Promise<N
     )
   }
 
-  const [members, treasuries] = await Promise.all([
+  const [members, treasuries, cacheNameRowsRaw] = await Promise.all([
     listActiveCompanyMembers(companyId),
     listActiveCompanyTreasuries(companyId),
+    sql`
+      SELECT agent_id, name
+      FROM agents_cache
+      WHERE chain_id = ${company.chain_id}
+    `,
   ])
+  const cacheNameRows = cacheNameRowsRaw as unknown as Array<{
+    agent_id: string
+    name: string | null
+  }>
 
-  // Resolve each member's display name. Try the on-chain agent card
-  // first (authoritative); if that fails (IPFS timeout, malformed JSON,
-  // agent not on chain yet), fall back to the agents_cache mirror so
-  // the UI never shows a bare ID when we have a cached name.
-  const cacheNameRows =
-    members.length === 0
-      ? []
-      : ((await sql`
-          SELECT agent_id, name
-          FROM agents_cache
-          WHERE agent_id = ANY(${members.map((m) => m.agent_id)})
-            AND chain_id = ${company.chain_id}
-        `) as Array<{ agent_id: string; name: string | null }>)
+  // Resolve each member's display name. Cache-first: the agents_cache
+  // mirror is populated at registration and is the cheapest read.
+  // Only fall through to an on-chain tokenURI fetch (which is a network
+  // round-trip plus an IPFS resolve) when the cache has no name. That
+  // turns a 30-member listing from ~30 RPC calls into ~0 in the common
+  // case and at most N for newly-indexed agents.
   const cachedNameByAgent = new Map(
     cacheNameRows.map((r) => [r.agent_id, r.name]),
   )
-
   const memberNames = await Promise.all(
     members.map(async (m): Promise<string | null> => {
+      const cached = cachedNameByAgent.get(m.agent_id)
+      if (cached) return cached
       try {
         const tokenURI = (await publicClient.readContract({
           address: IDENTITY_REGISTRY_ADDRESS as `0x${string}`,
@@ -71,9 +74,9 @@ export async function GET(_req: NextRequest, { params }: RouteParams): Promise<N
         const meta = await fetchJsonMetadata<{ name?: unknown }>(tokenURI)
         if (meta && typeof meta.name === 'string') return meta.name
       } catch {
-        // fall through to cache fallback
+        // fall through to null
       }
-      return cachedNameByAgent.get(m.agent_id) ?? null
+      return null
     }),
   )
 

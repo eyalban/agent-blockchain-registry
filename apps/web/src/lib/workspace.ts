@@ -142,7 +142,7 @@ export async function getUserCompanies(
  * company is yours, even if neither party address is in your wallet
  * list — e.g. a payment to a treasury wallet you haven't claimed).
  */
-async function getUserCompanyIds(wallets: readonly string[]): Promise<string[]> {
+export async function getUserCompanyIds(wallets: readonly string[]): Promise<string[]> {
   if (wallets.length === 0) return []
   const rows = (await sql`
     SELECT DISTINCT c.company_id
@@ -168,9 +168,10 @@ async function getUserCompanyIds(wallets: readonly string[]): Promise<string[]> 
  */
 export async function getUserInvoices(
   wallets: readonly string[],
+  precomputedCompanyIds?: readonly string[],
 ): Promise<WorkspaceInvoice[]> {
   if (wallets.length === 0) return []
-  const companyIds = await getUserCompanyIds(wallets)
+  const companyIds = precomputedCompanyIds ?? (await getUserCompanyIds(wallets))
   const rows = (await sql`
     SELECT invoice_id, chain_id, issuer_address, payer_address,
            issuer_company_id, payer_company_id, issuer_agent_id, payer_agent_id,
@@ -209,6 +210,7 @@ export interface WorkspaceSummary {
 
 export async function getWorkspaceSummary(
   wallets: readonly string[],
+  precomputedCompanyIds?: readonly string[],
 ): Promise<WorkspaceSummary> {
   if (wallets.length === 0) {
     return {
@@ -222,7 +224,7 @@ export async function getWorkspaceSummary(
     }
   }
 
-  const companyIds = await getUserCompanyIds(wallets)
+  const companyIds = precomputedCompanyIds ?? (await getUserCompanyIds(wallets))
   const hasCompanies = companyIds.length > 0
   const [agents, invStats] = await Promise.all([
     sql`SELECT COUNT(*)::int AS c FROM agents_cache WHERE chain_id = ${CHAIN_ID} AND LOWER(owner_address) = ANY(${wallets as string[]})`,

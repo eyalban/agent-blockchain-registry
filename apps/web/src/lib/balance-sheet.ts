@@ -189,10 +189,46 @@ async function computeCompanyBalanceSheetUncached(params: {
   const { companyId } = params
   const asOf = params.asOf ?? new Date().toISOString().slice(0, 10)
 
-  const [company, members, treasuries] = await Promise.all([
+  // Phase 1: kick off everything that depends only on companyId / asOf.
+  // None of these read each other's results, so they all run in parallel.
+  const client = publicClient as PublicClient
+  const [
+    company,
+    members,
+    treasuries,
+    accountsReceivableUsd,
+    accountsPayableUsd,
+    capRowsRaw,
+    externalRowsRaw,
+    latest,
+  ] = await Promise.all([
     getCompany(companyId),
     listActiveCompanyMembers(companyId),
     listActiveCompanyTreasuries(companyId),
+    sumUnpaidArByCompany(companyId),
+    sumUnpaidApByCompany(companyId),
+    sql`
+      SELECT from_address, to_address, token_symbol, amount_raw::text,
+             amount_usd::text, tx_hash, contributed_at::text
+      FROM capital_contributions
+      WHERE company_id = ${companyId}
+        AND contributed_at <= (${asOf}::date + INTERVAL '1 day')
+      ORDER BY contributed_at ASC
+    `,
+    sql`
+      SELECT COALESCE(SUM(value_usd), 0)::text AS total
+      FROM transactions
+      WHERE company_id = ${companyId}
+        AND direction IN ('in', 'incoming')
+        AND LOWER(counterparty) NOT IN (
+          SELECT LOWER(wallet_address) FROM agent_wallets
+        )
+        AND LOWER(counterparty) NOT IN (
+          SELECT LOWER(address) FROM company_treasuries
+          WHERE company_id = ${companyId}
+        )
+    `,
+    client.getBlock({ blockTag: 'latest' }),
   ])
 
   if (!company) {
@@ -201,17 +237,49 @@ async function computeCompanyBalanceSheetUncached(params: {
 
   const chainId = company.chain_id as SupportedChainId
   const sources: string[] = []
-
-  // Resolve block for asOf (today = latest; past date requires archive RPC).
-  const client = publicClient as PublicClient
-  const latest = await client.getBlock({ blockTag: 'latest' })
   const blockNumber = Number(latest.number)
+  const blockTimestamp = new Date(Number(latest.timestamp) * 1000)
+  const tokens = Object.values(SUPPORTED_TOKENS[chainId])
 
-  // ─── Cash. Build the wallet list (treasuries + member-agent
-  //     wallets) in two queries, then fan out all balance reads and
-  //     price lookups in parallel. Prices are fetched once per token
-  //     (not once per balance row), since they only depend on
-  //     token + block.
+  if (accountsReceivableUsd > 0) sources.push('AR: InvoiceRegistry')
+  if (accountsPayableUsd > 0) sources.push('AP: InvoiceRegistry')
+
+  // Phase 2: things that depend on Phase 1 results — agent wallets need
+  // member ids, prices need chainId/block, and the income statement
+  // needs the company creation date to bound the from-period. All three
+  // are independent of one another, so run them in parallel.
+  const memberAgentIds = members.map((m) => m.agent_id)
+  const [memberWalletRowsRaw, priceList, incomeStatement] = await Promise.all([
+    memberAgentIds.length === 0
+      ? Promise.resolve([])
+      : sql`
+          SELECT agent_id, wallet_address FROM agent_wallets
+          WHERE agent_id = ANY(${memberAgentIds})
+        `,
+    Promise.all(
+      tokens.map(async (token) => ({
+        symbol: token.symbol,
+        price: await getTokenPriceUSD({
+          chainId,
+          token,
+          blockNumber,
+          blockTimestamp,
+        }),
+      })),
+    ),
+    computeCompanyIncomeStatement({
+      companyId,
+      granularity: 'total',
+      from: company.created_at.slice(0, 10),
+      to: asOf,
+    }),
+  ])
+
+  const memberWalletRows = memberWalletRowsRaw as unknown as Array<{
+    agent_id: string
+    wallet_address: string
+  }>
+
   const walletList: Array<{
     address: `0x${string}`
     source: CashLine['source']
@@ -222,42 +290,20 @@ async function computeCompanyBalanceSheetUncached(params: {
     source: 'treasury',
     label: t.label,
   }))
-
-  if (members.length > 0) {
-    const memberWalletRows = (await sql`
-      SELECT agent_id, wallet_address FROM agent_wallets
-      WHERE agent_id = ANY(${members.map((m) => m.agent_id)})
-    `) as Array<{ agent_id: string; wallet_address: string }>
-    for (const r of memberWalletRows) {
-      walletList.push({
-        address: r.wallet_address as `0x${string}`,
-        source: 'member_agent',
-        agentId: r.agent_id,
-      })
-    }
+  for (const r of memberWalletRows) {
+    walletList.push({
+      address: r.wallet_address as `0x${string}`,
+      source: 'member_agent',
+      agentId: r.agent_id,
+    })
   }
 
-  const tokens = Object.values(SUPPORTED_TOKENS[chainId])
-  const blockTimestamp = new Date(Number(latest.timestamp) * 1000)
-
-  // One price call per token, not per (wallet, token).
-  const priceList = await Promise.all(
-    tokens.map(async (token) => ({
-      symbol: token.symbol,
-      price: await getTokenPriceUSD({
-        chainId,
-        token,
-        blockNumber,
-        blockTimestamp,
-      }),
-    })),
-  )
   const priceMap = new Map(priceList.map((p) => [p.symbol, p.price]))
   for (const { symbol, price } of priceList) {
     if (price) sources.push(`${symbol} price: ${price.source}`)
   }
 
-  // All (wallet, token) balance reads in one parallel batch.
+  // Phase 3: all (wallet, token) balance reads in one parallel batch.
   const balancePairs = walletList.flatMap((entry) =>
     tokens.map((token) => ({ entry, token })),
   )
@@ -291,23 +337,7 @@ async function computeCompanyBalanceSheetUncached(params: {
     })
   }
 
-  // ─── AR/AP: sum of unpaid invoices issued/received by this company.
-  const [accountsReceivableUsd, accountsPayableUsd] = await Promise.all([
-    sumUnpaidArByCompany(companyId),
-    sumUnpaidApByCompany(companyId),
-  ])
-  if (accountsReceivableUsd > 0) sources.push('AR: InvoiceRegistry')
-  if (accountsPayableUsd > 0) sources.push('AP: InvoiceRegistry')
-
-  // ─── Contributed capital (from capital_contributions table; M3.3).
-  const capRows = (await sql`
-    SELECT from_address, to_address, token_symbol, amount_raw::text,
-           amount_usd::text, tx_hash, contributed_at::text
-    FROM capital_contributions
-    WHERE company_id = ${companyId}
-      AND contributed_at <= (${asOf}::date + INTERVAL '1 day')
-    ORDER BY contributed_at ASC
-  `) as Array<{
+  const capRows = capRowsRaw as Array<{
     from_address: string
     to_address: string
     token_symbol: string
@@ -316,7 +346,6 @@ async function computeCompanyBalanceSheetUncached(params: {
     tx_hash: string
     contributed_at: string
   }>
-
   const contributedCapitalRows: CapitalContribution[] = capRows.map((r) => ({
     fromAddress: r.from_address,
     toAddress: r.to_address,
@@ -331,39 +360,10 @@ async function computeCompanyBalanceSheetUncached(params: {
     0,
   )
 
-  // ─── Raw retained earnings from the income statement (covers what
-  //     the per-agent tx indexer has booked: inflows/outflows between
-  //     agents, between companies, on-chain invoice settlements). It
-  //     does NOT generally include faucet drips on testnet, which
-  //     arrive at the company's wallets from a non-agent counterparty
-  //     before the indexer started syncing the agent.
-  const incomeStatement = await computeCompanyIncomeStatement({
-    companyId,
-    granularity: 'total',
-    from: company.created_at.slice(0, 10),
-    to: asOf,
-  })
   const retainedEarningsFromIncomeUsd = incomeStatement.totals.netIncomeUsd
   sources.push('retained earnings: income statement')
 
-  // ─── External inflows: cash received by this company's wallets from
-  //     counterparties outside the agent network (faucet, shareholder
-  //     wires, grants). The query may return 0 even when such inflows
-  //     exist, because the per-agent tx indexer often misses faucet
-  //     drips that landed before the agent was registered.
-  const externalRows = (await sql`
-    SELECT COALESCE(SUM(value_usd), 0)::text AS total
-    FROM transactions
-    WHERE company_id = ${companyId}
-      AND direction IN ('in', 'incoming')
-      AND LOWER(counterparty) NOT IN (
-        SELECT LOWER(wallet_address) FROM agent_wallets
-      )
-      AND LOWER(counterparty) NOT IN (
-        SELECT LOWER(address) FROM company_treasuries
-        WHERE company_id = ${companyId}
-      )
-  `) as Array<{ total: string }>
+  const externalRows = externalRowsRaw as Array<{ total: string }>
   const indexedExternalInflowsUsd = Number(externalRows[0]?.total ?? 0)
 
   // ─── Pre-adjustment discrepancy: assets vs (liabilities + equity)

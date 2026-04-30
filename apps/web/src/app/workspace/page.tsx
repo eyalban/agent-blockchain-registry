@@ -10,6 +10,7 @@ import { truncateAddress } from '@/lib/utils'
 import {
   getUserAgents,
   getUserCompanies,
+  getUserCompanyIds,
   getUserInvoices,
   getUserWallets,
   getWorkspaceSummary,
@@ -41,11 +42,15 @@ export default async function WorkspacePage() {
   }
 
   const wallets = await getUserWallets(user.id)
+  // Resolve companyIds once and pass it to the consumers that would
+  // otherwise each re-derive the same 3-table LEFT JOIN. Saves 2
+  // redundant queries on every workspace render.
+  const companyIds = await getUserCompanyIds(wallets)
   const [summary, agents, companies, invoices] = await Promise.all([
-    getWorkspaceSummary(wallets),
+    getWorkspaceSummary(wallets, companyIds),
     getUserAgents(wallets),
     getUserCompanies(wallets),
-    getUserInvoices(wallets),
+    getUserInvoices(wallets, companyIds),
   ])
 
   return (

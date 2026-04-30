@@ -14,31 +14,54 @@ import { sql } from '@/lib/db'
  *
  * `totalCompanies` counts every row in `companies` (every confirmed
  * `CompanyCreated` event).
+ *
+ * Process-local TTL cache. Stats change at human pace (a few writes
+ * per hour at most), so a 60s window is invisible to viewers but
+ * eliminates ~3 SQL aggregates per home-page load.
  */
+interface StatsPayload {
+  totalAgents: number
+  totalCompanies: number
+  totalTransactions: number
+  network: string
+  chainId: number
+}
+const STATS_TTL_MS = 60_000
+let statsCache: { at: number; payload: StatsPayload } | null = null
+
+async function loadStats(): Promise<StatsPayload> {
+  const [agentRows, companyRows, txRows] = await Promise.all([
+    sql`
+      SELECT COUNT(*) as count FROM (
+        SELECT agent_id FROM agent_wallets
+        UNION
+        SELECT agent_id FROM company_members WHERE removed_at IS NULL
+      ) AS distinct_agents
+    `,
+    sql`SELECT COUNT(*) as count FROM companies`,
+    sql`SELECT COUNT(*) as count FROM transactions`,
+  ])
+  return {
+    totalAgents: Number((agentRows[0] as { count: string }).count),
+    totalCompanies: Number((companyRows[0] as { count: string }).count),
+    totalTransactions: Number((txRows[0] as { count: string }).count),
+    network: 'base-sepolia',
+    chainId: 84532,
+  }
+}
+
 export async function GET(): Promise<NextResponse> {
   try {
-    const [agentRows, companyRows, txRows] = await Promise.all([
-      sql`
-        SELECT COUNT(*) as count FROM (
-          SELECT agent_id FROM agent_wallets
-          UNION
-          SELECT agent_id FROM company_members WHERE removed_at IS NULL
-        ) AS distinct_agents
-      `,
-      sql`SELECT COUNT(*) as count FROM companies`,
-      sql`SELECT COUNT(*) as count FROM transactions`,
-    ])
-
-    const totalAgents = Number((agentRows[0] as { count: string }).count)
-    const totalCompanies = Number((companyRows[0] as { count: string }).count)
-    const totalTransactions = Number((txRows[0] as { count: string }).count)
-
-    return NextResponse.json({
-      totalAgents,
-      totalCompanies,
-      totalTransactions,
-      network: 'base-sepolia',
-      chainId: 84532,
+    const now = Date.now()
+    if (statsCache && now - statsCache.at < STATS_TTL_MS) {
+      return NextResponse.json(statsCache.payload, {
+        headers: { 'cache-control': 'public, max-age=60, stale-while-revalidate=120' },
+      })
+    }
+    const payload = await loadStats()
+    statsCache = { at: now, payload }
+    return NextResponse.json(payload, {
+      headers: { 'cache-control': 'public, max-age=60, stale-while-revalidate=120' },
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Unknown error'

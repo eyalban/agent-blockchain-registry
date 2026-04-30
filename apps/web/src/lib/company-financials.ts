@@ -111,7 +111,71 @@ function formatPeriodLabel(
   return 'all'
 }
 
+// Stale-while-revalidate wrapper around the raw computation.
+// Mirrors balance-sheet.ts: serve the cached value instantly while a
+// background recompute refreshes it. Concurrent callers coalesce on a
+// single inflight promise.
+interface IncomeCacheEntry {
+  value: CompanyIncomeStatement
+  computedAt: number
+}
+const INCOME_FRESH_TTL_MS = 30_000
+const INCOME_STALE_TTL_MS = 5 * 60_000
+const incomeCache = new Map<string, IncomeCacheEntry>()
+const incomeInflight = new Map<string, Promise<CompanyIncomeStatement>>()
+
+function incomeCacheKey(params: {
+  companyId: string
+  granularity?: PeriodGranularity
+  from?: string
+  to?: string
+}): string {
+  return `${params.companyId}|${params.granularity ?? 'monthly'}|${params.from ?? ''}|${params.to ?? ''}`
+}
+
+async function recomputeIncome(params: {
+  companyId: string
+  granularity?: PeriodGranularity
+  from?: string
+  to?: string
+}): Promise<CompanyIncomeStatement> {
+  const key = incomeCacheKey(params)
+  const existing = incomeInflight.get(key)
+  if (existing) return existing
+  const promise = (async () => {
+    try {
+      const value = await computeCompanyIncomeStatementUncached(params)
+      incomeCache.set(key, { value, computedAt: Date.now() })
+      return value
+    } finally {
+      incomeInflight.delete(key)
+    }
+  })()
+  incomeInflight.set(key, promise)
+  return promise
+}
+
 export async function computeCompanyIncomeStatement(params: {
+  companyId: string
+  granularity?: PeriodGranularity
+  from?: string
+  to?: string
+}): Promise<CompanyIncomeStatement> {
+  const key = incomeCacheKey(params)
+  const entry = incomeCache.get(key)
+  const now = Date.now()
+  if (entry) {
+    const age = now - entry.computedAt
+    if (age < INCOME_FRESH_TTL_MS) return entry.value
+    if (age < INCOME_STALE_TTL_MS) {
+      void recomputeIncome(params)
+      return entry.value
+    }
+  }
+  return recomputeIncome(params)
+}
+
+async function computeCompanyIncomeStatementUncached(params: {
   companyId: string
   granularity?: PeriodGranularity
   from?: string
@@ -156,12 +220,6 @@ export async function computeCompanyIncomeStatement(params: {
       AND block_timestamp < ($3::date + INTERVAL '1 day')
     GROUP BY ${txPeriod}, label, counterparty, agent_id
   `
-  const txRows = (await sql.query(txQuery, [
-    companyId,
-    fromClause,
-    toClause,
-  ])) as TxAggRow[]
-
   // ─── Off-chain costs aggregated by period + category ───────────────────────
   const ocPeriod = periodExpressionDate(granularity, 'occurred_at')
   const ocQuery = `
@@ -186,11 +244,11 @@ export async function computeCompanyIncomeStatement(params: {
       AND occurred_at <= $3::date
     GROUP BY ${ocPeriod}, category
   `
-  const ocRows = (await sql.query(ocQuery, [
-    companyId,
-    fromClause,
-    toClause,
-  ])) as OffChainAggRow[]
+  // Both queries are independent — fan them out in parallel.
+  const [txRows, ocRows] = (await Promise.all([
+    sql.query(txQuery, [companyId, fromClause, toClause]),
+    sql.query(ocQuery, [companyId, fromClause, toClause]),
+  ])) as [TxAggRow[], OffChainAggRow[]]
 
   // ─── Bucket rows by period ────────────────────────────────────────────────
   const periodBuckets = new Map<
@@ -224,20 +282,23 @@ export async function computeCompanyIncomeStatement(params: {
 
   const sortedPeriods = Array.from(periodBuckets.keys()).sort()
 
-  const rows: IncomeStatementRow[] = []
-  for (const key of sortedPeriods) {
-    const bucket = periodBuckets.get(key)!
-    const row = await buildRow({
-      granularity,
-      companyId,
-      jurisdictionCode,
-      periodStart: bucket.periodStart,
-      periodEnd: bucket.periodEnd,
-      txRows: bucket.tx,
-      ocRows: bucket.oc,
-    })
-    rows.push(row)
-  }
+  // Build all period rows in parallel. Each row calls resolveTaxRate
+  // which hits the DB; for an annual statement that's 12 sequential
+  // round-trips when serialized — fanned out, the wall time is just one.
+  const rows: IncomeStatementRow[] = await Promise.all(
+    sortedPeriods.map((key) => {
+      const bucket = periodBuckets.get(key)!
+      return buildRow({
+        granularity,
+        companyId,
+        jurisdictionCode,
+        periodStart: bucket.periodStart,
+        periodEnd: bucket.periodEnd,
+        txRows: bucket.tx,
+        ocRows: bucket.oc,
+      })
+    }),
+  )
 
   // Totals aggregate across all rows (pre-tax fields sum; tax is recomputed
   // from the totals row using the rate applicable at `to` or today).

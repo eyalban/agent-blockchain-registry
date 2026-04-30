@@ -72,52 +72,53 @@ export async function resolveTaxRate(params: {
   const { companyId, jurisdictionCode, asOf } = params
   const asOfIso = asOf.toISOString().slice(0, 10)
 
-  // 1. Company override
-  const overrideRows = (await sql`
-    SELECT rate, rate_type, jurisdiction_code, source, source_ref,
-           effective_from::text, effective_to::text,
-           company_id, submitted_by, submitted_at::text
-    FROM tax_rates
-    WHERE company_id = ${companyId}
-      AND rate_type = 'override'
-      AND effective_from <= ${asOfIso}::date
-      AND (effective_to IS NULL OR effective_to >= ${asOfIso}::date)
-    ORDER BY effective_from DESC
-    LIMIT 1
-  `) as TaxRateRow[]
+  // Fan all three precedence queries out in parallel; pick the
+  // highest-precedence non-empty result. The cost vs serial is at most
+  // one extra query worth of DB load (when an override exists), but the
+  // wall time drops from 3× round-trips to 1×.
+  const [overrideRows, effectiveRows, statutoryRows] = (await Promise.all([
+    sql`
+      SELECT rate, rate_type, jurisdiction_code, source, source_ref,
+             effective_from::text, effective_to::text,
+             company_id, submitted_by, submitted_at::text
+      FROM tax_rates
+      WHERE company_id = ${companyId}
+        AND rate_type = 'override'
+        AND effective_from <= ${asOfIso}::date
+        AND (effective_to IS NULL OR effective_to >= ${asOfIso}::date)
+      ORDER BY effective_from DESC
+      LIMIT 1
+    `,
+    sql`
+      SELECT rate, rate_type, jurisdiction_code, source, source_ref,
+             effective_from::text, effective_to::text,
+             company_id, submitted_by, submitted_at::text
+      FROM tax_rates
+      WHERE company_id = ${companyId}
+        AND rate_type = 'effective'
+        AND effective_from <= ${asOfIso}::date
+        AND (effective_to IS NULL OR effective_to >= ${asOfIso}::date)
+      ORDER BY effective_from DESC
+      LIMIT 1
+    `,
+    sql`
+      SELECT rate, rate_type, jurisdiction_code, source, source_ref,
+             effective_from::text, effective_to::text,
+             company_id, submitted_by, submitted_at::text
+      FROM tax_rates
+      WHERE company_id IS NULL
+        AND rate_type = 'statutory'
+        AND jurisdiction_code = ${jurisdictionCode}
+        AND effective_from <= ${asOfIso}::date
+        AND (effective_to IS NULL OR effective_to >= ${asOfIso}::date)
+      ORDER BY effective_from DESC
+      LIMIT 1
+    `,
+  ])) as [TaxRateRow[], TaxRateRow[], TaxRateRow[]]
+
   if (overrideRows[0]) return toResolved(overrideRows[0])
-
-  // 2. Company effective
-  const effectiveRows = (await sql`
-    SELECT rate, rate_type, jurisdiction_code, source, source_ref,
-           effective_from::text, effective_to::text,
-           company_id, submitted_by, submitted_at::text
-    FROM tax_rates
-    WHERE company_id = ${companyId}
-      AND rate_type = 'effective'
-      AND effective_from <= ${asOfIso}::date
-      AND (effective_to IS NULL OR effective_to >= ${asOfIso}::date)
-    ORDER BY effective_from DESC
-    LIMIT 1
-  `) as TaxRateRow[]
   if (effectiveRows[0]) return toResolved(effectiveRows[0])
-
-  // 3. Jurisdiction statutory
-  const statutoryRows = (await sql`
-    SELECT rate, rate_type, jurisdiction_code, source, source_ref,
-           effective_from::text, effective_to::text,
-           company_id, submitted_by, submitted_at::text
-    FROM tax_rates
-    WHERE company_id IS NULL
-      AND rate_type = 'statutory'
-      AND jurisdiction_code = ${jurisdictionCode}
-      AND effective_from <= ${asOfIso}::date
-      AND (effective_to IS NULL OR effective_to >= ${asOfIso}::date)
-    ORDER BY effective_from DESC
-    LIMIT 1
-  `) as TaxRateRow[]
   if (statutoryRows[0]) return toResolved(statutoryRows[0])
-
   return null
 }
 

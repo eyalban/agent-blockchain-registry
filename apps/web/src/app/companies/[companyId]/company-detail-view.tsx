@@ -24,6 +24,7 @@ type Tab =
   | 'financials'
   | 'balance_sheet'
   | 'taxes'
+  | 'manage'
 
 interface TabDef {
   id: Tab
@@ -39,6 +40,7 @@ const TABS: TabDef[] = [
   { id: 'financials', label: 'Income Statement' },
   { id: 'balance_sheet', label: 'Balance Sheet' },
   { id: 'taxes', label: 'Tax Rates' },
+  { id: 'manage', label: 'Manage', ownerOnly: true },
 ]
 
 interface Props {
@@ -173,17 +175,16 @@ export function CompanyDetailView({ companyId }: Props) {
         {tab === 'financials' && <CompanyIncomeStatement companyId={data.companyId} />}
         {tab === 'balance_sheet' && <CompanyBalanceSheet companyId={data.companyId} />}
         {tab === 'taxes' && <TaxRatesTab companyId={data.companyId} />}
+        {tab === 'manage' && isOwner && (
+          <DangerZone
+            companyId={data.companyId}
+            companyName={data.name ?? `Company #${data.companyId}`}
+            open={showDelete}
+            onOpen={() => setShowDelete(true)}
+            onClose={() => setShowDelete(false)}
+          />
+        )}
       </div>
-
-      {isOwner && (
-        <DangerZone
-          companyId={data.companyId}
-          companyName={data.name ?? `Company #${data.companyId}`}
-          open={showDelete}
-          onOpen={() => setShowDelete(true)}
-          onClose={() => setShowDelete(false)}
-        />
-      )}
     </div>
   )
 }
@@ -399,7 +400,7 @@ function DangerZone({
 
   return (
     <>
-      <section className="mt-10 rounded-2xl border border-red-200 bg-red-50/40 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <section className="rounded-2xl border border-red-200 bg-red-50/40 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
         <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-red-700">
           Danger zone
         </p>

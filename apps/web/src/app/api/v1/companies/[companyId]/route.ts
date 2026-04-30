@@ -11,6 +11,7 @@ import {
   getCompany,
   listActiveCompanyMembers,
   listActiveCompanyTreasuries,
+  sql,
   updateCompanyMetadataMirror,
 } from '@/lib/db'
 import { env } from '@/lib/env'
@@ -41,10 +42,23 @@ export async function GET(_req: NextRequest, { params }: RouteParams): Promise<N
     listActiveCompanyTreasuries(companyId),
   ])
 
-  // Resolve each member's display name from the on-chain agent card.
-  // Member counts are bounded so a per-call fan-out is fine; if name
-  // resolution fails (IPFS timeout, malformed JSON), we leave `name`
-  // null and the UI falls back to the numeric ID.
+  // Resolve each member's display name. Try the on-chain agent card
+  // first (authoritative); if that fails (IPFS timeout, malformed JSON,
+  // agent not on chain yet), fall back to the agents_cache mirror so
+  // the UI never shows a bare ID when we have a cached name.
+  const cacheNameRows =
+    members.length === 0
+      ? []
+      : ((await sql`
+          SELECT agent_id, name
+          FROM agents_cache
+          WHERE agent_id = ANY(${members.map((m) => m.agent_id)})
+            AND chain_id = ${company.chain_id}
+        `) as Array<{ agent_id: string; name: string | null }>)
+  const cachedNameByAgent = new Map(
+    cacheNameRows.map((r) => [r.agent_id, r.name]),
+  )
+
   const memberNames = await Promise.all(
     members.map(async (m): Promise<string | null> => {
       try {
@@ -55,10 +69,11 @@ export async function GET(_req: NextRequest, { params }: RouteParams): Promise<N
           args: [BigInt(m.agent_id)],
         })) as string
         const meta = await fetchJsonMetadata<{ name?: unknown }>(tokenURI)
-        return meta && typeof meta.name === 'string' ? meta.name : null
+        if (meta && typeof meta.name === 'string') return meta.name
       } catch {
-        return null
+        // fall through to cache fallback
       }
+      return cachedNameByAgent.get(m.agent_id) ?? null
     }),
   )
 

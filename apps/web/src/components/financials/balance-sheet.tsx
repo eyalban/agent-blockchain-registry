@@ -244,7 +244,11 @@ export function CompanyBalanceSheet({ companyId }: { companyId: string }) {
                 value={data.equity.retainedEarningsBreakdown.fromIncomeStatementUsd}
               />
               <SubLine
-                label="from external inflows (e.g. faucet)"
+                label={
+                  data.equity.retainedEarningsBreakdown.fromExternalInflowsUsd < 0
+                    ? 'less off-chain settlements / unbooked outflows'
+                    : 'plus external inflows (e.g. faucet)'
+                }
                 value={data.equity.retainedEarningsBreakdown.fromExternalInflowsUsd}
               />
             </div>

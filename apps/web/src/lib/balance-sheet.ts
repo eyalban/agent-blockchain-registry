@@ -379,25 +379,25 @@ async function computeCompanyBalanceSheetUncached(params: {
       ? assetsUsd - (accountsPayableUsd + equityBeforeAdjustmentUsd)
       : null
 
-  // ─── External-inflows adjustment.
+  // ─── External-adjustment line. The balance sheet is an identity
+  //     (A = L + E); whatever the gap is between booked equity and
+  //     observed assets must be classified, not left dangling. We
+  //     surface the entire gap as a single transparent sub-line under
+  //     retained earnings so the sheet ALWAYS balances to the cent.
   //
-  //  Whenever the raw discrepancy is POSITIVE (cash on chain exceeds
-  //  what booked income + contributed capital can explain), the only
-  //  honest interpretation is that some money came in from outside
-  //  the agent network and hasn't been booked yet. Book that exact
-  //  amount into retained earnings as a transparent sub-line so the
-  //  sheet balances to the cent.
+  //  Sign conventions for the adjustment line:
+  //    > 0  external INFLOWS — cash arrived from outside the agent
+  //         network and hasn't been booked yet (testnet faucet drips,
+  //         shareholder wires, off-chain settlements credited).
+  //    < 0  external OUTFLOWS — booked income hasn't materialised on
+  //         chain. Causes include off-chain settlements (customer
+  //         paid into a bank instead of a wallet), unbooked treasury
+  //         outflows, gas/fees not classified, or price drift between
+  //         the snapshot price at tx time and the spot price now.
   //
-  //  Source attribution: prefer the indexed amount from `transactions`
-  //  when one exists (auditable); otherwise label it as inferred. We
-  //  do NOT use the indexed amount as the adjustment value — the gap
-  //  itself is what makes the sheet balance, regardless of how the
-  //  indexer happens to have classified individual rows.
-  //
-  //  A NEGATIVE discrepancy (cash < expected equity) means something
-  //  is missing on the asset side — unbooked treasury outflows, price
-  //  drift — and is left as a visible mismatch for diagnosis rather
-  //  than papered over with a phantom liability.
+  //  Source attribution: when positive AND there's an indexed external
+  //  inflow on the transactions table, label it as such (auditable);
+  //  otherwise label it as inferred from the gap.
   const isTestnet = chainId === 84532
   const ZERO_NOISE_USD = 0.005 // less than half a cent → call it zero
 
@@ -408,6 +408,7 @@ async function computeCompanyBalanceSheetUncached(params: {
     | 'off_chain_costs_or_price_gaps'
   if (rawDiscrepancyUsd === null || Math.abs(rawDiscrepancyUsd) < ZERO_NOISE_USD) {
     mismatchSource = 'none'
+    fromExternalInflowsUsd = rawDiscrepancyUsd ?? 0
   } else if (rawDiscrepancyUsd > 0) {
     fromExternalInflowsUsd = rawDiscrepancyUsd
     mismatchSource = 'faucet_drips_unbooked'
@@ -419,11 +420,16 @@ async function computeCompanyBalanceSheetUncached(params: {
       sources.push('retained earnings: external inflows (gap inferred)')
     }
   } else {
+    fromExternalInflowsUsd = rawDiscrepancyUsd
     mismatchSource = 'off_chain_costs_or_price_gaps'
+    sources.push('retained earnings: off-chain settlements / unbooked outflows (gap inferred)')
   }
 
-  // ─── Apply the adjustment. retained_earnings now has two
-  //     transparent sub-lines: from_income_statement + from_external_inflows.
+  // ─── Apply the adjustment. retained_earnings has two transparent
+  //     sub-lines: from_income_statement + from_external_inflows. The
+  //     adjustment is signed so the sheet balances by construction; a
+  //     negative value means cash on chain falls short of booked income
+  //     and gets shown to the user as such.
   const retainedEarningsUsd =
     retainedEarningsFromIncomeUsd !== null
       ? retainedEarningsFromIncomeUsd + fromExternalInflowsUsd
